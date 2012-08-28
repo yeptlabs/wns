@@ -1,0 +1,9 @@
+{
+	"listen":[80,"0.0.0.0"],
+	"lib":["http","extend","log","template","encode"],
+	"classes": ["controller","page"],
+	"log": {
+		"global": true,
+		"access": true
+	}
+}
