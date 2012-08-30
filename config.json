@@ -1,7 +1,6 @@
 {
 	"listen":[80,"187.45.214.195"],
 	"app": {
-		"pedroncs.com": "pedroncs/",
 		"new.dm.com.br": "dm/"
 	}
 }
