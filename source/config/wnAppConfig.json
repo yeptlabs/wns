@@ -1,0 +1,41 @@
+{
+	"title": "WebApp",
+	"lib": {},
+	"path": {
+		"app": "app/",
+		"lib": "lib/",
+		"controllers": "controllers/",
+		"public": "public/",
+		"views": "views/"
+	},
+	"http":{
+		"header": {
+			"Connection": "closed"
+		},
+		"defaultController":"",
+		"contentType": {
+			"js": "text/javascript",
+			"json": "application/json",
+			"css": "text/css",
+			"png": "image/png",
+			"ico": "image/x-icon",
+			"ogg": "audio/ogg",
+			"ebm": "video/webm",
+			"jpg": "image/jpeg",
+			"jpeg": "image/jpeg",
+			"gif": "image/gif",
+			"html": "text/html",
+			"htm": "text/html"
+		},
+		"serveralias": "",
+		"errorPage": ""
+	},
+	"view": {
+		"titleTemplate": "{app.config.title} - {self.title}",
+		"language": "en",
+		"menu": {},
+		"menuTemplate":"<ul>{list}</ul>",
+		"menuItemTemplate":"<li><a href=\"{url}\">{label}</a></li>",
+		"loadScriptPath": "js/"
+	}
+}
