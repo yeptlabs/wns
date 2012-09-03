@@ -52,6 +52,20 @@ function wnServer() {
 	// Start listening the http server
 	this.http.listen();
 
+	// Create new console to the server.
+	this.console = new wnConsole();
+	
+	// Listen to the stdin.
+	process.stdin.resume();
+	process.stdin.setEncoding('utf8');
+	process.stdout.write("> ");
+
+	process.stdin.on('data', function (chunk) {
+	  // Execute the console.
+	  this.console.exec(chunk.substr(0,chunk.length-1).split(' '));
+	  process.stdout.write("\n> ");
+	}.bind(this));
+
  }
 
  /**
