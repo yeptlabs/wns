@@ -35,7 +35,11 @@ WebNode Server
  
  Go to the folder where you downloaded the source of **webNode**
 
+<<<<<<< HEAD
      $ node index.js newapp [domain/ip] [path to the project]
+=======
+     $ node index.js newapp [domain/ip] ##[path to the project]
+>>>>>>> 17856bf463c4d17052612e03e3862cb7089821ae
 
  Example:
 
