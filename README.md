@@ -1,7 +1,8 @@
 WebNode Server 
 ========
 
-A NodeJS MVC Framework and HTTP Server. Based on the structure of the world's best PHP Framework: [Yii](http://yiiframework.com).
+##### NodeJS MVC Framework and HTTP Server based on the structure of the world's best PHP Framework: [Yii](http://yiiframework.com).
+
 
 ## Features
 
@@ -32,7 +33,7 @@ A NodeJS MVC Framework and HTTP Server. Based on the structure of the world's be
 
  * The first step is to create a new application:
  
- Go to the folder where you downloaded the source of webNode
+ Go to the folder where you downloaded the source of **webNode**
 
      $ node index.js newapp [domain/ip] ##[path to the project]
 
@@ -42,13 +43,13 @@ A NodeJS MVC Framework and HTTP Server. Based on the structure of the world's be
    
  This will automatictally create a new application from the default inside that directory and bind the new application to the webNode loading configuration.
 
- * The second step is to start the webNode server and see running your new application
+ * The second step is to start the **webNode server** and see running your new application
  
- On the webNode directory just type:
+ On the **webNode** directory just type:
 
      $ node index.js
  
- And it's done! The webNode server will start runnning based on `config.json` configuration.
+ And it's done! The **webNode server** will start runnning based on `config.json` configuration.
 
  * To view your application running just access:
 
