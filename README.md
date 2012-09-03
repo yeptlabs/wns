@@ -19,15 +19,15 @@ WebNode Server
 
  * NodeJS v0.8.8 ([how to install](https://github.com/joyent/node))
 
-### @ NPM mode
+### @ Git mode
 
- This mode requires to install the last version of NPM.
+ This mode requires the installation of `git`
 
-    $ npm install https://github.com/pedronasser/wnServer
+     $ git clone git://github.com/pedronasser/wnServer.git
 
 ### @ Manual mode
 
- This mode requires the installation of `git` or just download the source.
+ Just download the zip file on the top right and unzip somewhere.
 
 ## Quick start and play
 
