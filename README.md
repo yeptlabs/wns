@@ -23,7 +23,7 @@ WebNode Server
 
  This mode requires the installation of `git`
 
-     $ git clone https://github.com/pedronasser/wnServer.git
+     $ git clone https://github.com/yeptlabs/wnServer.git
 
 ### @ Manual mode
 

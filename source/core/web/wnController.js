@@ -85,7 +85,6 @@ wnController.prototype.render=function (view,data) {
 			_contentAll=new this.view.template(_contentAll,false).match(this.super_),
 			_contentAll=new this.view.template(_contentAll,false).match({self:this});
 
-
 		// Substitui data vinda do controller.
 		_contentAll = (new this.view.template(_contentAll,false)).match(data?data:{});
 
