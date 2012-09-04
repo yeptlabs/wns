@@ -23,15 +23,16 @@ module.exports = wnConsole;
  * Constructor
  * {description}
  */	
-function wnConsole(args) {
-
- }
+function wnConsole(args) {}
 
 /**
  * @var object the configuration of the server.
  */
 wnConsole.prototype.config = {};
 
+/**
+ * Executes a wnConsoleCommand.
+ */
 wnConsole.prototype.exec = function (args) {
 	console.log(args);
 };

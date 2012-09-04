@@ -151,6 +151,9 @@ wnHttp.prototype.controllerHandler = function () {
 		// Creates a new controller based on the default.
 		this.app.controllers[_controller]=new this.app.classes.wnController(this);
 
+		// Delete the require cache if exists.
+		delete require.cache[this.app.appPath+this.app.config.path.controllers+_controller+'.js'];
+
 		// Extends it with the application controller.
 		var _cntr=_r(this.app.appPath+this.app.config.path.controllers+_controller+'.js');
 		this.app.super_.extend(true,this.app.controllers[_controller],_cntr);
