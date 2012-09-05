@@ -6,8 +6,9 @@
   "contributors": [ 
     { "name": "Pedro Nasser", "email": "pedronasser@gmail.com" }
   ],
+  "main": "index",
   "dependencies": {
-    "node-mysql": "2.0.0",
+    "node-mysql": "2.0.0-alpha3",
     "forever": "0.10.0"
   },
   "keywords": [
@@ -20,7 +21,7 @@
     "http",
     "server"
   ],
-  "repository": "git://github.com/pedronasser/wnServer",
+  "repository": "git://github.com/yeptlabs/wnServer",
   "main": "index",
   "engines": { "node": "*" }
 }
