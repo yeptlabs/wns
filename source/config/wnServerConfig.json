@@ -1,14 +1,8 @@
+// Server configuration
 {
-	"listen":[80,"0.0.0.0"],
-	"library":{
-		"http": {},
-		"extend": {},
-		"log": {
-			"global": true,
-			"access": true,
-			"mysql": true
-		},
-		"template": {},
-		"encode": {}
+	// wHttp configuration
+	"http": {	
+		// Listen on port and IP...
+		"listen":[80,"0.0.0.0"]
 	}
 }

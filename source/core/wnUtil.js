@@ -1,5 +1,5 @@
 /**
- * Source of the wnObject class.
+ * Source of the wnUtil class.
  * 
  * @author: Pedro Nasser
  * @link: http://pedroncs.com/projects/webnode/
@@ -17,13 +17,10 @@
  */
 
 // Exports.
-module.exports = wnObject;
+module.exports = wnUtil;
 	
-/**
- * Constructor
- * {description}
- */	
-function wnObject() {}
+// wnUtil Class
+function wnUtil() {}
 
 /**
  * Method that extends `this` or the target with other object's properties
@@ -34,7 +31,7 @@ function wnObject() {}
  * @param object $objectN (optional) additional objects containing properties to merge in.
  * @param object the merge of the target and the other objects
  */
-wnObject.extend = function () {
+wnUtil.extend = function () {
 	var options, name, src, copy, copyIsArray, clone, target = arguments[0] || {},
 		i = 1,
 		length = arguments.length,
@@ -125,3 +122,17 @@ wnObject.extend = function () {
 	  }
 	return target;
 }
+
+
+/**
+ * Clone function
+ * @param function $fn cloned function
+ */
+wnUtil.cloneFn = function(fn) {
+	if (typeof fn != 'function') return false;
+    var temp = function () {};
+	//this.extend(true,temp,fn);
+	temp.prototype.constructor=fn.prototype.constructor || temp.prototype.constructor;
+	console.log(fn.prototype.constructor);
+    return temp;
+};

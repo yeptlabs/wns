@@ -19,46 +19,52 @@
 // Exports.
 module.exports = wnConfig;
 	
-/**
- * Constructor
- * {description}
- * @param $file string path to the configuration file (file must be a json)
- */	
-function wnConfig(file) {
+// wnConfig Class
+function wnConfig() {
 
 	/**
-	 * @extends: wnObject
+	 * Constructor
+	 * {description}
+	 * @param $file string path to the configuration file (file must be a json)
+	 */	
+	this.construct = function (file) {
+
+		// Se existir arquivo, carrega.
+		file&&this.loadFromFile(file);
+
+	};
+
+	/**
+	 * Method for loading configuration from file.
+	 * @param $file string path to the configuration file (file must be a json)
+	 * @return boolean could load the file?
 	 */
-	util.inherits(this,wnObject);
+	this.loadFromFile = function (file) {
 
-	// Se existir arquivo, carrega.
-	file&&this.loadFromFile(file);
+		try {
 
-}
+			// Carregar as configurações...
+			var _data = (fs.readFileSync(file,'utf8').toString())
+						.replace(/\\/g,function () { return "\\"+arguments[0]; })
+						.replace(/\/\/.+?(?=\n|\r|$)|\/\*[\s\S]+?\*\//g,'');
 
-/**
- * Method for loading configuration from file.
- * @param $file string path to the configuration file (file must be a json)
- * @return boolean could load the file?
- */
-wnConfig.prototype.loadFromFile = function (file) {
+				_data = JSON.parse(_data);
+			
+			// Extende as configurações...
+			wnUtil.extend(true,this,_data);
 
-	try {
+			return true;
 
-		// Carregar as configurações...
-		var _data = fs.readFileSync(file);
-			_data = JSON.parse(_data);
+		} catch (e) {
 
-		// Extende as configurações...
-		this.super_.extend(true,this,_data);
+			console.log(e);
+			return false;
 
-		return true;
-
-	} catch (e) {
-
-		return false;
-		new wnError(e);
+		}
 
 	}
+
+	// Construct function.
+	this.construct.apply(this,arguments);
 
 }

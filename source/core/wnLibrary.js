@@ -19,39 +19,44 @@
 // Exports.
 module.exports = wnLibrary;
 	
-/**
- * Constructor
- * {description}
- */	
+// wnLibrary Class
 function wnLibrary(libraryPath,config) {
 
-	// Check if the file exists...
-	if (!fs.existsSync(libraryPath)) return false;
-	
-	// Extends wnObject.
-	util.inherits(this,wnObject);
+	/**
+	 * Constructor
+	 * {description}
+	 */	
+	this.construct = function (libraryPath,config) {
 
-	// Save the path to the library source.
-	this.libraryFile = libraryPath;
+		// Check if the file exists...
+		if (!fs.existsSync(libraryPath)) return false;
+		
+		// Save the path to the library source.
+		this.libraryFile = libraryPath;
 
-	// Create a temporary instance of the library.
-	var _libSource = require(libraryPath),
-		_lib = new _libSource;
+		// Create a temporary instance of the library.
+		var _libSource = require(libraryPath),
+			_lib = new _libSource;
 
-	// Extends this class with the library class.
-	this.super_.extend(true,this,_lib);
+		// Extends this class with the library class.
+		wnUtil.extend(true,this,_lib);
 
-	// Extends the configuration with the custom configuration..
-	this.super_.extend(true,this.config,config);
+		// Extends the configuration with the custom configuration..
+		wnUtil.extend(true,this.config,config);
+
+	};
+
+	/**
+	 * @var object configuration of the library
+	 */
+	this.config = {};
+
+	/**
+	 * @var string path to the library source file
+	 */
+	this.libraryFile = '';
+
+	// Construct function.
+	this.construct.apply(this,arguments);
 
 }
-
-/**
- * @var object configuration of the library
- */
-wnLibrary.prototype.config = {};
-
-/**
- * @var string path to the library source file
- */
-wnLibrary.prototype.libraryFile = '';

@@ -17,21 +17,9 @@
  */
 
 // Exports.
-module.exports = wnConsole;
+module.exports = wnConsoleCommand;
 	
-/**
- * Constructor
- * {description}
- */	
-function wnConsole(args) {
+// wnConsoleCommand Class
+function wnConsoleCommand(args) {
 
- }
-
-/**
- * @var object the configuration of the server.
- */
-wnConsole.prototype.config = {};
-
-wnConsole.prototype.exec = function (args) {
-	console.log(args);
-};
+}

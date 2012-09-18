@@ -1,6 +1,10 @@
+// Default Application Configuration
 {
+
+	// Application Name
 	"title": "WebApp",
-	"lib": {},
+
+	// Path to respective directories
 	"path": {
 		"app": "app/",
 		"lib": "lib/",
@@ -8,34 +12,43 @@
 		"public": "public/",
 		"views": "views/"
 	},
+
+	// wnHttpRequest default configuration
 	"http":{
+
+		// Default HTTP Header.
 		"header": {
 			"Connection": "closed"
 		},
+
 		"defaultController":"",
-		"contentType": {
-			"js": "text/javascript",
-			"json": "application/json",
-			"css": "text/css",
-			"png": "image/png",
-			"ico": "image/x-icon",
-			"ogg": "audio/ogg",
-			"ebm": "video/webm",
-			"jpg": "image/jpeg",
-			"jpeg": "image/jpeg",
-			"gif": "image/gif",
-			"html": "text/html",
-			"htm": "text/html"
-		},
+		"contentType": {},
 		"serveralias": "",
-		"errorPage": ""
+		"errorPage": "",
+
+		// wnUrlManager configuration
+		"urlManager": {}
+
 	},
+
+	// wnView configuration
 	"view": {
 		"titleTemplate": "{app.config.title} - {self.title}",
 		"language": "en",
 		"menu": {},
 		"menuTemplate":"<ul>{list}</ul>",
-		"menuItemTemplate":"<li><a href=\"{url}\">{label}</a></li>",
+		"menuItemTemplate":"<li><a href='{url}'>{label}</a></li>",
 		"loadScriptPath": "js/"
+	},
+
+	// wnLog configuration
+	"log": {
+		"*": true,
+		"access": true,
+		"mysql": true,
+		"notfound": true,
+		"error": true,
+		"trace": true
 	}
+
 }

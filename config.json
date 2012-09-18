@@ -1,6 +1,15 @@
+// wnServer configuration
 {
-	"listen":[80,"187.45.214.195"],
+
+	// wnHttp configuration
+	"http": {	
+		// Listening port
+		"listen":[80,"187.45.214.195"]
+	},
+
+	// wnApp loading paths
 	"app": {
 		"new.dm.com.br": "dm/"
 	}
+
 }
