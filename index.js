@@ -15,4 +15,16 @@
  * @since 1.0.0
  */
 
-require('./source/wnInit.js');
+(function () {
+
+	// Initialize the webNode.
+	require('./source/wnInit.js');
+
+	// Create the server using the following configuration file.
+	// Push the new server to the wnConsole.
+	wns.console.addServer(new wns.wnServer('config.json'));
+
+})();
+
+// WNS is just a temporary object to the loading system.
+delete wns;

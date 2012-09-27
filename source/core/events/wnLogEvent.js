@@ -1,5 +1,5 @@
 /**
- * Source of the wnUtil class.
+ * Source of the wnLogEvent class.
  * 
  * @author: Pedro Nasser
  * @link: http://pedroncs.com/projects/webnode/
@@ -22,14 +22,24 @@ module.exports = {
 	/**
 	 * Class dependencies
 	 */
-	extend: [],
+	extend: ['wnEvent'],
 
 	/**
 	 * Constructor
 	 * {description}
 	 * @param VARTYPE $example description
 	 */	
-	constructor: function () {},
+	constructor: function (parent,cb) {
+
+		this.super_ = parent;
+
+		// Create an EventEmitter.
+		this.emitter=new emitter;
+
+		// Store the handler function
+		cb&&this.addListener(cb);
+
+	},
 
 	/**
 	 * PRIVATE
