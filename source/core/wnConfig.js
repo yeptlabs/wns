@@ -16,55 +16,79 @@
  * @since 1.0.0
  */
 
-// Exports.
-module.exports = wnConfig;
-	
-// wnConfig Class
-function wnConfig() {
+// Exports
+module.exports = {
+
+	/**
+	 * Class dependencies
+	 */
+	extend: [],
 
 	/**
 	 * Constructor
 	 * {description}
-	 * @param $file string path to the configuration file (file must be a json)
+	 * @param VARTYPE $example description
 	 */	
-	this.construct = function (file) {
+	constructor: function (file) {
 
 		// Se existir arquivo, carrega.
 		file&&this.loadFromFile(file);
 
-	};
+	},
 
 	/**
-	 * Method for loading configuration from file.
-	 * @param $file string path to the configuration file (file must be a json)
-	 * @return boolean could load the file?
+	 * PRIVATE
+	 *
+	 * Only get and set by their respectives get and set private functions.
+	 *
+	 * Example:
+	 * If has a property named $id.
+	 * It's getter function will be `this.getId`, and it's setter `this.setId`.
+	 * To define a PRIVILEGED function you put a underscore before the name.
 	 */
-	this.loadFromFile = function (file) {
+	private: {},
 
-		try {
+	/**
+	 * Public Variables
+	 * Can be accessed and defined directly.
+	 */
+	public: {},
 
-			// Carregar as configurações...
-			var _data = (fs.readFileSync(file,'utf8').toString())
-						.replace(/\\/g,function () { return "\\"+arguments[0]; })
-						.replace(/\/\/.+?(?=\n|\r|$)|\/\*[\s\S]+?\*\//g,'');
+	/**
+	 * Methods
+	 */
+	methods: {
+	
+		/**
+		 * Method for loading configuration from file.
+		 * @param $file string path to the configuration file (file must be a json)
+		 * @return boolean could load the file?
+		 */
+		loadFromFile: function (file) {
 
-				_data = JSON.parse(_data);
-			
-			// Extende as configurações...
-			wnUtil.extend(true,this,_data);
+			try {
 
-			return true;
+				// Carregar as configurações...
+				var _data = (fs.readFileSync(file,'utf8').toString())
+							.replace(/\\/g,function () { return "\\"+arguments[0]; })
+							.replace(/\/\/.+?(?=\n|\r|$)|\/\*[\s\S]+?\*\//g,'');
 
-		} catch (e) {
+					_data = JSON.parse(_data);
+				
+				// Extende as configurações...
+				Object.extend(true,this,_data);
 
-			console.log(e);
-			return false;
+				return true;
+
+			} catch (e) {
+
+				console.log(e);
+				return false;
+
+			}
 
 		}
 
 	}
 
-	// Construct function.
-	this.construct.apply(this,arguments);
-
-}
+};

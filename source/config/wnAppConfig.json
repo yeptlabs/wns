@@ -47,8 +47,9 @@
 		"access": true,
 		"mysql": true,
 		"notfound": true,
-		"error": true,
-		"trace": true
+		"trace": true,
+		"exception": true,
+		"stack": true
 	}
 
 }
