@@ -1,5 +1,5 @@
 /**
- * Source of the wnUtil class.
+ * Source of the wnClass class.
  * 
  * @author: Pedro Nasser
  * @link: http://pedroncs.com/projects/webnode/
@@ -8,11 +8,11 @@
  */
 
 /**
- * {full_description}
+ * An example of a webNode Class.
  *
- * @author Pedro Nasser
+ * @author {autor}
  * @version $Id$
- * @pagackge system.base
+ * @package {path}
  * @since 1.0.0
  */
 
@@ -22,14 +22,16 @@ module.exports = {
 	/**
 	 * Class dependencies
 	 */
-	extend: [],
+	extend: ['wnClass','wnOtherClass'],
 
 	/**
 	 * Constructor
 	 * {description}
 	 * @param VARTYPE $example description
 	 */	
-	constructor: function () {},
+	constructor: function (example) {
+		console.log(this);
+	},
 
 	/**
 	 * PRIVATE
@@ -41,17 +43,41 @@ module.exports = {
 	 * It's getter function will be `this.getId`, and it's setter `this.setId`.
 	 * To define a PRIVILEGED function you put a underscore before the name.
 	 */
-	private: {},
+	private: {
+
+		/**
+		 * var INT id of something
+		 */
+		id: 0
+	
+	},
 
 	/**
 	 * Public Variables
 	 * Can be accessed and defined directly.
 	 */
-	public: {},
+	public: {
+
+		/**
+		 * var OBJECT configuration of this class
+		 */
+		config: {}
+
+	},
 
 	/**
 	 * Methods
 	 */
-	methods: {}
+	methods: {
+	
+		/** 
+		 * PRIVILEGED: Redefining getId function.
+		 * @param STRING $config example of param
+		 */
+		_getId: function ($config) {
+			return this.id;
+		}
+
+	}
 
 };

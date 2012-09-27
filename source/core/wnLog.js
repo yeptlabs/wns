@@ -1,5 +1,5 @@
 /**
- * Source of the wnUtil class.
+ * Source of the wnLog class.
  * 
  * @author: Pedro Nasser
  * @link: http://pedroncs.com/projects/webnode/
@@ -29,7 +29,16 @@ module.exports = {
 	 * {description}
 	 * @param VARTYPE $example description
 	 */	
-	constructor: function () {},
+	constructor: function (data,zone) {
+
+		// Import to the object.
+		this.data = data || '';
+		this.zone = zone || this.zone;
+		
+		// Push the exception to the event handler.
+		this.handler.push&&this.handler.push(this);
+
+	},
 
 	/**
 	 * PRIVATE
@@ -47,7 +56,19 @@ module.exports = {
 	 * Public Variables
 	 * Can be accessed and defined directly.
 	 */
-	public: {},
+	public: {
+
+		/**
+		 * @var mixed data to log
+		 */
+		data: '',
+
+		/**
+		 * @var string zone of this log
+		 */
+		zone: '*'
+
+	},
 
 	/**
 	 * Methods
