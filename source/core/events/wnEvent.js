@@ -22,7 +22,7 @@ module.exports = {
 	/**
 	 * Class dependencies
 	 */
-	extend: [],
+	extend: ['wnComponent'],
 
 	/**
 	 * Constructor
@@ -30,18 +30,28 @@ module.exports = {
 	 */	
 	constructor: function (parent,cb) {
 
+		// Get parent.
+		 _super = parent;
+
 		// Create an EventEmitter.
 		this.emitter=new emitter;
 
 		// Store the handler function
 		cb&&this.addListener(cb);
 
+		console.log(this.getEventName());
+
 	},
 
 	/**
 	 * PRIVATE
 	 */
-	private: {},
+	private: {
+	
+		_eventName: '',
+		_super: undefined
+
+	},
 
 	/**
 	 * Public Variables
@@ -70,7 +80,7 @@ module.exports = {
                 this.stack.push(e);
 
                 // Emit the 'exception' event with the arguments.
-                this.emitter.emit(this.eventName,e);
+                this.emitter.emit(this.getEventName(),e);
 
         },
 
@@ -81,7 +91,7 @@ module.exports = {
         addListener: function (listener) {
 
                 // Create an listener to call the handler.
-                this.listener=this.emitter.on(this.eventName,listener);
+                this.listener=this.emitter.on(this.getEventName(),listener);
 
         },
 
@@ -92,9 +102,17 @@ module.exports = {
         removeListener: function (listener) {
 
                 // If possible, change the handler
-                this.emitter.removeListener(this.eventName, listener);
+                this.emitter.removeListener(this.getEventName(), listener);
 
-        }
+        },
+
+		/**
+		 * Return the name of this event.
+		 * @return STRING name of the event
+		 */
+		getEventName: function () {
+			return _eventName;
+		}
 	
 	}
 

@@ -31,6 +31,7 @@ module.exports = {
 	 */	
 	constructor: function (configFile) {
 
+
 		// If dont have config information, then uses the default
 		this.configFile = configFile || './config.json';
 
@@ -59,7 +60,7 @@ module.exports = {
 		// Load custom wnServer configuration on the root directory (if exists)
 		if (fs.existsSync(cwd+this.configFile)) {
 			wns.log.push('[*] Loading custom server config... [/'+this.configFile+']');
-			this.config.loadFromFile(cwd+configFile);
+			this.config.loadFromFile(cwd+this.configFile);
 		} else {
 			wns.log.push('[*] Invalid custom server configuration.');
 			// Define that the server has not been loaded.
@@ -72,6 +73,7 @@ module.exports = {
 
 		// Setting up exception handler to this application.
 		this.events.wnExceptionEvent = new this.c.wnExceptionEvent(this,this.exceptionHandler);
+
 		this.c.wnException=this.classBuild.recompile('wnException', { public: { handler: this.events.wnExceptionEvent } });
 
 		// Setting up log event.
@@ -101,7 +103,7 @@ module.exports = {
 		/* HTTP Server */
 
 		// Creates a new http server..
-		wns.log.push('[*] Creating HTTP server...');
+		/*wns.log.push('[*] Creating HTTP server...');
 		this.http = new this.c.wnHttp(this);
 		this.http.super_=this;
 
@@ -116,7 +118,7 @@ module.exports = {
 
 			new this.c.wnException(e);
 
-		}
+		}*/
 
 		// Define that the server has been loaded.
 		this.loaded = true;

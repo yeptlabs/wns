@@ -25,25 +25,13 @@ module.exports = {
 	extend: ['wnEvent'],
 
 	/**
-	 * Constructor
-	 * {description} TODO
-	 */	
-	constructor: function (parent,cb) {
-
-		this.super_ = parent;
-
-		// Create an EventEmitter.
-		this.emitter=new emitter;
-
-		// Store the handler function
-		cb&&this.addListener(cb);
-
-	},
-
-	/**
 	 * PRIVATE
 	 */
-	private: {},
+	private: {
+	
+		_eventName: 'wnException'
+
+	},
 
 	/**
 	 * Public Variables

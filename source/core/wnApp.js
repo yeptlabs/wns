@@ -22,7 +22,7 @@ module.exports = {
 	/**
 	 * Class dependencies
 	 */
-	extend: [],
+	extend: ['wnService'],
 
 	/**
 	 * Constructor
@@ -59,7 +59,7 @@ module.exports = {
 		wns.log.push('['+appName+'] Loading default app config... [/'+sourcePath+'config/wnAppConfig.json]');
 		this.config = new this.c.wnConfig(cwd+sourcePath+'config/wnAppConfig.json');
 		wns.log.push('['+appName+'] Loading custom app config... [/<appPath>/config.json]');
-		this.config.loadFromFile(appPath+'config.json');
+		this.config.loadFromFile(this.appPath+'config.json');
 
 		// Load custom classes into the core classes.
 		var classes=fs.readdirSync(this.appPath+this.config.path.classes);
@@ -73,10 +73,10 @@ module.exports = {
 		}
 
 		// Load a library into the application.
-		for (e in this.config.lib) {
+		/*for (e in this.config.lib) {
 			this.loadLibrary(e,this.config.lib[e]);
 			wns.log.push('['+appName+'] - Loaded library: /lib/'+e+'.js');
-		}
+		}*/
 
 		wns.log.push('['+appName+'] Setting up urlManager...');
 		// Setting up a urlmanager to this application.
@@ -154,7 +154,12 @@ module.exports = {
 		/**
 		 * @var wnUrlManager instance
 		 */
-		urlManager: {}
+		urlManager: {},
+
+		/**
+		 * @var name of the configuration file
+		 */
+		configFileName: 'config.json'
 
 	},
 
@@ -192,20 +197,6 @@ module.exports = {
 			// Log the stack.
 			for (s in _stack)
 				new this.c.wnLog(_stack[s],'stack');
-
-		},
-
-		/**
-		 * Load and library to the application
-		 * The library file must be on the application directory, inside the library folder.
-		 * @param $library string the name of the library to be loaded
-		 * @param $config object the configuration of the library
-		 */
-		loadLibrary: function (library,config) {
-
-			var config = config || {};
-			this.c[library]=new this.c.wnLibrary(this.appPath+this.config.path.lib+library+'.js',config);
-			if (config.alias && !this[config.alias]) this[config.alias] = this.c[library];
 
 		}
 

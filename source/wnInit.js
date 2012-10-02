@@ -43,7 +43,7 @@ console.log(' - Loading and compiling wnBuild class..');
 wns.wnBuild = _r(cwd+sourcePath+'wnBuild.js');
 
 console.log(' - Loading core required classes souces...');
-var _coreClasses={};
+var _coreClasses={}, toBuild = {};
 // Recursivelly getting list of all classes in the core/
 _walk(cwd+sourcePath+'core', function (err, classes) {
 
@@ -51,35 +51,46 @@ _walk(cwd+sourcePath+'core', function (err, classes) {
 	for (c in classes) {
 
 		// Loading class source.
-		var _class = fs.readFileSync(classes[c]).toString();
+		var _class = fs.readFileSync(classes[c]).toString(),
+			className = classes[c].split('/').pop().split('.')[0];
 
 		// Compiling the class.
 		var module = {};
 		eval(_class);
 
 		// Check structure.
-		if (!wns.wnBuild.prototype.checkStructure(module.exports)) continue;
+		if (wns.wnBuild.prototype.checkStructure(module.exports)) {
 
-		// Store class.
-		wns[classes[c].split('/').pop().split('.')[0]] = module.exports;
+			// Send it to the build list.
+			toBuild[className] = module.exports;
+
+		} else {
+		
+			// Send it to the WNS.
+			wns[className] = module.exports;
+		
+		}
 
 		// Store class source.
-		_coreClasses[classes[c].split('/').pop().split('.')[0]] = _class; 
+		_coreClasses[className] = _class; 
 
-		console.log('  > Class found: '+classes[c].split('/').pop().split('.')[0]);
+		console.log('  > Class found: '+className);
 
 	}
 
 	// We will compile the new classes to the WNS object.
 	console.log(' - Compiling required classes...');
-	var compiled = (new wns.wnBuild(wns).build());
-	for (c in compiled) {
-		// Store compiled classes as read-only.
-		Object.defineProperty(wns, c, {
-			value: compiled[c].loaded == true ? compiled[c] : wns[c],
-			writable: false,
-			configurable: false
-		});
+	var compiled = (new wns.wnBuild(toBuild).build());
+	for (c in toBuild) {
+		if (compiled[c].loaded) {
+			// Store compiled classes as read-only.
+			Object.defineProperty(wns, c, {
+				value: compiled[c],
+				writable: false,
+				configurable: false,
+				enumerable: true
+			});
+		}
 	}
 
 });
