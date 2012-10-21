@@ -22,144 +22,21 @@ module.exports = {
 	/**
 	 * Class dependencies
 	 */
-	extend: ['wnService'],
-
-	/**
-	 * Constructor
-	 * {description}
-	 * @param $appName string name of the application
-	 * @param $appPath string path to the application
-	 */	
-	constructor: function (appName,appPath) {
-
-		// Save the appPath.
-		this.appPath = appPath;
-
-		// Save the appName.
-		this.appName = appName;
-
-		 wns.log.push('['+appName+'] Copying core classes sources to the application.');
-		 var _c = {};
-		 for (c in coreClasses) {
-			 var module = {},
-				 _class = coreClasses[c];
-			 eval(_class);
-			 _c[c] = module.exports;
-		 }
-		wns.log.push('['+appName+'] Compiling core classes instance...');
-		this.classBuild = new wns.wnBuild(_c);
-		var compiled = this.classBuild.build();
-		for (c in compiled) {
-			this.c[c] = compiled[c].loaded == true ? compiled[c] : this.c[c];
-		}
-
-		wns.log.push('['+appName+'] Creating application...');
-
-		// Loads the default and custom configuration of the application
-		wns.log.push('['+appName+'] Loading default app config... [/'+sourcePath+'config/wnAppConfig.json]');
-		this.config = new this.c.wnConfig(cwd+sourcePath+'config/wnAppConfig.json');
-		wns.log.push('['+appName+'] Loading custom app config... [/<appPath>/config.json]');
-		this.config.loadFromFile(this.appPath+'config.json');
-
-		// Load custom classes into the core classes.
-		var classes=fs.readdirSync(this.appPath+this.config.path.classes);
-		for (c in classes) {
-			if (this.c[classes[c].split('.')[0]]==undefined) continue;
-			var _class = fs.readFileSync(this.appPath+this.config.path.classes+classes[c]).toString(),
-				module = {};
-			eval(_class);
-			this.c[classes[c].split('.')[0]] = this.classBuild.recompile(classes[c].split('.')[0], module.exports), 
-			wns.log.push('['+appName+'] - Loaded custom class: /'+this.config.path.classes+classes[c]);
-		}
-
-		// Load a library into the application.
-		/*for (e in this.config.lib) {
-			this.loadLibrary(e,this.config.lib[e]);
-			wns.log.push('['+appName+'] - Loaded library: /lib/'+e+'.js');
-		}*/
-
-		wns.log.push('['+appName+'] Setting up urlManager...');
-		// Setting up a urlmanager to this application.
-		this.urlManager = new this.c.wnUrlManager(this).addRules(this.config.http.urlManager.rules).process();
-
-		/* EVENTS */
-		wns.log.push('['+appName+'] Setting up events...');
-
-		// Setting up exception handler to this application.
-		this.events.wnExceptionEvent = new this.c.wnExceptionEvent(this,function (e) {
-			this.exceptionHandler(e);
-		}.bind(this));
-		// Recompile the wnExeception prototype to add the handler..
-		this.c.wnException=this.classBuild.recompile('wnException', { public: { handler: this.events.wnExceptionEvent } });
-
-		// Setting up log event.
-		// Recompile the wnLog prototype to add the handler..
-		this.c.wnLog=this.classBuild.recompile('wnLog', { public: { handler: function () {} } });
-
-	},
+	extend: ['wnModule'],
 
 	/**
 	 * PRIVATE
-	 *
-	 * Only get and set by their respectives get and set private functions.
-	 *
-	 * Example:
-	 * If has a property named $id.
-	 * It's getter function will be `this.getId`, and it's setter `this.setId`.
-	 * To define a PRIVILEGED function you put a underscore before the name.
 	 */
-	private: {},
+	private: {
+
+		_controllers: {}
+	
+	},
 
 	/**
 	 * Public Variables
-	 * Can be accessed and defined directly.
 	 */
 	public: {
-
-		/**
-		 * @var object object with all loaded controllers
-		 */
-		controllers: {},
-
-		/**
-		 * @var object object with all loaded custom classes
-		 */
-		classes: {},
-
-		/**
-		 * @var object configuration of the application
-		 */
-		config: {},
-
-		/**
-		 * @var object all events handlers
-		 */
-		events: {},
-
-		/**
-		 * @var string path to the application files.
-		 */
-		appPath: '',
-
-		/**
-		 * @var string the name of the application
-		 */
-		appName: '',
-
-		/**
-		 * @var object all loaded classes
-		 */
-		c: {},
-
-		/**
-		 * @var wnUrlManager instance
-		 */
-		urlManager: {},
-
-		/**
-		 * @var name of the configuration file
-		 */
-		configFileName: 'config.json'
 
 	},
 
@@ -169,35 +46,76 @@ module.exports = {
 	methods: {
 
 		/**
-		 * Log handler
-		 * @param $data log data
-		 * @param $zone log zone
+		 * Initializes the application
+		 */	
+		init: function ()
+		{
+			this.e.log("Starting application's components...");
+			this.startComponents();
+			this.e.log('Application `'+this.getConfig('id')+'` running...');
+		},
+
+		/**
+		 * Create a new httpRequest handler.
+		 * @param $request object
+		 * @param $response object
 		 */
-		logHandler: function (data,zone) {
-			var _log = { data: '['+this.appName+'] ' + data, zone: (zone || 'trace') };
-			if (this.config.log != undefined) {
-				if (this.config.log[zone] === true) return _log;
-			} else return _log;
+		createRequest: function (req,resp)
+		{
+			var reqConf = Object.extend(true,{},this.getComponentConfig('http'),{ request: req, response: resp, app: this });
+				httpRequest = this.createClass('wnHttpRequest',reqConf);	
+			try
+			{
+				httpRequest.run();
+			}
+			catch (e)
+			{
+				this.e.exception(e);
+			}
+		},
+
+		/**
+		 * Log filter
+		 * @param $e eventObject object of this event emition
+		 * @param $data mixed data
+		 * @param $zone string zone
+		 */
+		logFilter: function (e,data,zone)
+		{
+			var event = this.getEvent('log'),
+				config = event.getConfig();
+			if (this.config.log[log.zone] === true) return true;
 			return false;
 		},
 
 		/**
-		 * Exception handler
-		 * @param $e wnException instance
+		 * Local Log Handler
+		 * @param $e eventObject object of this event emition
+		 * @param $arg1 mixed argument
+		 * @param $arg2 mixed argument
+		 * ...
+ 		 * @param $argN mixed argument
 		 */
-		exceptionHandler: function (e) {
+		logHandler: function (e,data)
+		{
+		},
 
-			// Log the message.
-			new this.c.wnLog('ERROR: '+e.message,'exception');
+		/**
+		 * Exception handler
+		 * @param $e eventObject object of this event emition
+		 * @param $arg1 mixed argument
+		 * @param $arg2 mixed argument
+		 * ...
+ 		 * @param $argN mixed argument
+		 */
+		exceptionHandler: function (e,err)
+		{
+			e.owner.e.log('ERROR: '+err.message,'exception');
 
-			// Split stack.
-			var _stack = e.stack.split("\n");
-			// Remove first line.
+			var _stack = err.stack.split("\n");
 			_stack.shift();
-			// Log the stack.
 			for (s in _stack)
-				new this.c.wnLog(_stack[s],'stack');
-
+				e.owner.e.log(_stack[s],'stack');
 		}
 
 	}

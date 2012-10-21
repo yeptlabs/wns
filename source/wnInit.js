@@ -22,10 +22,12 @@ global.cwd = process.cwd()+'/'; // Current work directory
 global._r = require; // Alias to require
 global._walk = _r(cwd+sourcePath+'util/recursiveReadDir'); // Recursive read directory
 Object.extend = _r(cwd+sourcePath+'util/extend'); // Object recursive extension
+Object.extend(true,Object,_r(cwd+sourcePath+'util/object')); // Object recursive extension
 
 console.log(' - Loading required node modules..');
 global.http = _r('http');
 global.fs = _r('fs');
+global.path = _r('path');
 global.url = _r('url');
 global.zlib = _r('zlib');
 global.stream = _r('stream');
@@ -100,6 +102,3 @@ Object.defineProperty(global, 'coreClasses', { value: _coreClasses, writable: fa
 
 // Create a new console
 wns.console = new wns.wnConsole();
-
-// Create an alias.
-wns.log = wns.console;

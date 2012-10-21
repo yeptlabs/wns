@@ -22,36 +22,31 @@ module.exports = {
 	/**
 	 * Class dependencies
 	 */
-	extend: [],
-
-	/**
-	 * Constructor
-	 * {description}
-	 * @param VARTYPE $example description
-	 */	
-	constructor: function (args) {},
+	extend: ['wnComponent'],
 
 	/**
 	 * PRIVATE
-	 *
-	 * Only get and set by their respectives get and set private functions.
-	 *
-	 * Example:
-	 * If has a property named $id.
-	 * It's getter function will be `this.getId`, and it's setter `this.setId`.
-	 * To define a PRIVILEGED function you put a underscore before the name.
 	 */
 	private: {},
 
 	/**
 	 * Public Variables
-	 * Can be accessed and defined directly.
 	 */
 	public: {},
 
 	/**
 	 * Methods
 	 */
-	methods: {}
+	methods: {
+
+		/**
+		 * Initializer.
+		 */	
+		init: function ()
+		{
+
+		}
+
+	}
 
 };

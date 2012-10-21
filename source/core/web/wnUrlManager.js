@@ -22,34 +22,15 @@ module.exports = {
 	/**
 	 * Class dependencies
 	 */
-	extend: [],
-
-	/**
-	 * Constructor
-	 * {description}
-	 */	
-	constructor: function (parent) {
-
-		// Extend with the parent..
-		this.super_=parent;
-
-	},
+	extend: ['wnComponent'],
 
 	/**
 	 * PRIVATE
-	 *
-	 * Only get and set by their respectives get and set private functions.
-	 *
-	 * Example:
-	 * If has a property named $id.
-	 * It's getter function will be `this.getId`, and it's setter `this.setId`.
-	 * To define a PRIVILEGED function you put a underscore before the name.
 	 */
 	private: {},
 
 	/**
 	 * Public Variables
-	 * Can be accessed and defined directly.
 	 */
 	public: {
 
@@ -72,6 +53,12 @@ module.exports = {
 	 * Methods
 	 */
 	methods: {
+
+		/**
+		 * Initializer
+		 */	
+		init: function () {
+		},
 
 		/**
 		 * Return the object with all the rules in the format (pattern=>route)

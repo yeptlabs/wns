@@ -1,5 +1,5 @@
 /**
- * Source of the wnUtil class.
+ * Source of the wnException class.
  * 
  * @author: Pedro Nasser
  * @link: http://pedroncs.com/projects/webnode/
@@ -22,14 +22,28 @@ module.exports = {
 	/**
 	 * Class dependencies
 	 */
-	extend: [],
+	extend: ['wnComponent'],
 
 	/**
 	 * Constructor
 	 * {description}
-	 * @param VARTYPE $example description
 	 */	
-	constructor: function () {},
+	constructor: function () {
+
+		var err = arguments[0];
+		if (!(err instanceof Error)) {
+			var err = new Error(arguments[0] || '');
+				err.code = arguments[1] || -1;
+		}
+
+		this.message = err.message;
+		this.stack = err.stack;
+		this.code = err.code;
+		
+		// Push the exception to the event handler.
+		this.handler.push&&this.handler.push(this);
+
+	},
 
 	/**
 	 * PRIVATE
@@ -47,7 +61,24 @@ module.exports = {
 	 * Public Variables
 	 * Can be accessed and defined directly.
 	 */
-	public: {},
+	public: {
+
+		/**
+		 * @var string the message of the error
+		 */
+		message: '',
+
+		/**
+		 * @var string the stack of the error
+		 */
+		stack: '',
+
+		/**
+		 * @var integer the code number of the error
+		 */
+		code: -1
+
+	},
 
 	/**
 	 * Methods

@@ -25,32 +25,11 @@ module.exports = {
 	extend: ['wnComponent'],
 
 	/**
-	 * Constructor
-	 * {description} TODO
-	 */	
-	constructor: function (parent,cb) {
-
-		// Get parent.
-		 _super = parent;
-
-		// Create an EventEmitter.
-		this.emitter=new emitter;
-
-		// Store the handler function
-		cb&&this.addListener(cb);
-
-		console.log(this.getEventName());
-
-	},
-
-	/**
 	 * PRIVATE
 	 */
 	private: {
-	
-		_eventName: '',
-		_super: undefined
-
+		_filters: [],
+		_listeners: []
 	},
 
 	/**
@@ -58,60 +37,138 @@ module.exports = {
 	 */
 	public: {
 	
-        /**
-         * @var array stack of exceptions
-         */
-        stack: []
-
 	},
 
 	/**
 	 * Methods
 	 */
 	methods: {
+
+		/**
+		 * Initializer.
+		 */	
+		init: function ()
+		{
+		},
 	
         /**
          * Push anything to the exception stack.
-         * @param $e exception object
          */
-        push: function (e) {
+        push: function ()
+		{
+			if (this.checkFilters.apply(this,arguments))
+			{
+				var self = this,
+					args = [],
+					eventObject = function ()
+					{
+						this.event = self;
+						this.owner = self.getConfig('source');
+						this.eventName = self.getEventName();
+						this.stopPropagation = false;
+					};
 
-                // Push that array to the stack of exceptions
-                this.stack.push(e);
+				var	getEventObject = typeof arguments[0] == 'object'
+								&& arguments[0].stopPropagation!=undefined ? true : false,
+					evtObj = getEventObject ? arguments[0] : new eventObject;
 
-                // Emit the 'exception' event with the arguments.
-                this.emitter.emit(this.getEventName(),e);
+				for (var a = (getEventObject ? 1 : 0); a<arguments.length; a++)
+				{
+					args.push(arguments[a]);
+				}
+				
+				args.unshift(evtObj);
 
+				var listeners = _listeners.slice();
+				for (var i = 0, l = listeners.length; i < l; i++)
+				{
+					if (evtObj.stopPropagation != true)
+						listeners[i].apply(this, args);
+				}
+
+			}
+        },
+
+		/**
+		 * Add new filter to the event.
+		 * @param function $filter filter
+		 */
+		addFilter: function (filter)
+		{
+			_filters.push(filter);
+		},
+
+		/**
+		 * Clear all event filters.
+		 */
+		clearFilters: function ()
+		{
+			_filters = [];
+		},
+
+		/**
+		 * Check if passed all filters
+		 * @return boolean if passed.
+		 */
+		checkFilters: function ()
+		{
+			for (f in _filters)
+			{
+				if (!_filter[s].apply(undefined,arguments)) return false;
+			}
+			return true;
+		},
+
+        /**
+         * Add a new handler for the 'event.'
+         * @param $listener function listener of the event
+         */
+        addListener: function (listener)
+		{
+			if ('function' !== typeof listener) return false;
+			_listeners.push(listener);
+        },
+
+
+        /**
+         * Prepend a new handler for the 'event.'
+         * @param $listener function listener of the event
+         */
+        prependListener: function (listener)
+		{
+			if ('function' !== typeof listener) return false;
+			_listeners.unshift(listener);
         },
 
         /**
-         * Add a new handler for the 'exception event.'
+         * Remove and listener from the 'event.'
          * @param $listener function listener of the event
          */
-        addListener: function (listener) {
+        removeListener: function (listener)
+		{
 
-                // Create an listener to call the handler.
-                this.listener=this.emitter.on(this.getEventName(),listener);
+			var position = -1, list = _listeners;
+			for (var i = 0, length = list.length; i < length; i++) {
+			  if (list[i] === listener ||
+				  (list[i].listener && list[i].listener === listener))
+			  {
+				position = i;
+				break;
+			  }
+			}
 
-        },
-
-        /**
-         * Remove and listener from the 'exception event.'
-         * @param $listener function listener of the event
-         */
-        removeListener: function (listener) {
-
-                // If possible, change the handler
-                this.emitter.removeListener(this.getEventName(), listener);
-
+			if (position < 0)
+				return this;
+			list.splice(position, 1);
         },
 
 		/**
 		 * Return the name of this event.
 		 * @return STRING name of the event
 		 */
-		getEventName: function () {
-			return _eventName;
+		getEventName: function ()
+		{
+			return this.getConfig('eventName');
 		}
 	
 	}

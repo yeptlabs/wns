@@ -44,6 +44,17 @@ function wnBuild(classesSource) {
 };
 
 /**
+ * Check if the class is compiled.
+ * @param STRING $className
+ * return BOOLEAN exists?
+ */
+wnBuild.prototype.exists = function (className) {
+
+	return this.classes[className] != undefined && this.classes[className].loaded;
+
+};
+
+/**
  * Recompile a class from classesSource with new properties.
  * @param STRING $className
  * @param OBJECT $obj
@@ -108,46 +119,26 @@ wnBuild.prototype.buildClass = function (className) {
 	// Check if extension is ready.
 	if (!this.checkDependencies(targetClass.extend)) return false;
 
-	// Build object.
-	var build = {
-		constructor: function () {},
-		methods: {},
-		public: {}
-	};
-
-	// Importing from dependencies..
-	build.extendMethods = {};
-	var self = this;
-	for (k in targetClass.extend)
-	{
-		(function () {
-			var extendBuild=self.classes[targetClass.extend[k]].build;
-
-			var foundit = false;
-			// Declare private variables
-			for (p in extendBuild.private) {
-				eval('var '+p+' = extendBuild.private[p];');
-			}
-
-			// Redeclare privileged methods.
-			for (m in extendBuild.methods) {
-				build.methods[m] = eval('['+extendBuild.methods[m].toString()+']')[0];
-			}
-
-			// Push public vars to the build
-			Object.extend(true,build.public,extendBuild.public);
-
-			// Define this constructor as the main constructor.
-			build.constructor=eval('['+extendBuild.constructor+']')[0] || build.constructor;
-
-		})();
-	}
-
 	// Importing from targetClass
-	Object.extend(true,build,targetClass);
+	var build = Object.extend(true,{},targetClass),
+		self = this;
+
+	// Getting all real extensions
+	var _ext = [];
+	(function (extend) {
+		for (e in extend)
+		{
+			var ext=_ext.reverse();
+				ext.push(extend[e]);
+				ext.reverse();
+				_ext=ext;
+			arguments.callee(self.classes[extend[e]].build.extend);
+		}
+	})(build.extend);
+	build.extend = _ext;
 
 	// Creating descriptor of the public properties and methods..
-	var desc = this.createDescriptor(build);
+	//var desc = this.createDescriptor(build);
 
 	// Get builder.
 	var _builder = this;
@@ -155,22 +146,57 @@ wnBuild.prototype.buildClass = function (className) {
 	eval("var klass = function "+className+"() {}");
 
 	// Importing descriptor.
-	Object.defineProperties(klass.prototype,desc);
+	//Object.defineProperties(klass.prototype,desc);
 
 	// Class builder.
 	classBuilder.prototype.build = function () {
 
 		var k = new klass;
 
-		// Declare private vars
-		for (p in build.private) {
-			eval('var '+p+' = build.private[p];');
+		// Importing extensions
+		for (e in build.extend)
+		{
+				(function () {
+
+					var extendBuild=self.classes[build.extend[e]].build;
+
+					// Declare private variables
+					for (p in extendBuild.private) {
+						eval('var '+p+' = _builder.newValue(extendBuild.private[p]);');
+					}
+
+					var _className = self.newValue(className),
+						_extend = self.newValue(build.extend),
+						_buildMethods = self.newValue(extendBuild.methods);
+
+					// Redeclare privileged methods.
+					for (m in _buildMethods) {
+						k[m] = eval('['+_buildMethods[m].toString()+']')[0];
+					}
+
+					// Push public vars to the build
+					Object.extend(true,build.public,extendBuild.public);
+
+					// Define this constructor as the main constructor.
+					build.constructor=eval('['+extendBuild.constructor+']')[0] || build.constructor;
+
+				})();
 		}
 
-		// Redeclare privileged methods
-		for (m in targetClass.methods) {
-			k[m] = eval('['+targetClass.methods[m].toString()+']')[0];
-		}
+		// Import private and privileged
+		(function () {
+		
+			// Declare private vars
+			for (p in build.private) {
+				eval('var '+p+' = _builder.newValue(build.private[p]);');
+			}
+
+			// Redeclare privileged methods
+			for (m in build.methods) {
+				k[m] = eval('['+build.methods[m].toString()+']')[0];
+			}
+
+		})();
 
 		// Import constructor
 		k.constructor = build.constructor;
@@ -210,7 +236,7 @@ wnBuild.prototype.buildClass = function (className) {
  * @param OBJECT $targetClass
  * @return OBJECT result descriptor
  */
-wnBuild.prototype.createDescriptor = function (targetClass) {
+/*wnBuild.prototype.createDescriptor = function (targetClass) {
 
 	var descriptor = {
 		_private: {
@@ -252,7 +278,7 @@ wnBuild.prototype.createDescriptor = function (targetClass) {
 	}
 
 	return descriptor;
-}
+}*/
 
 /**
  * Check class source structure.

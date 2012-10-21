@@ -26,58 +26,69 @@ module.exports = {
 
 	/**
 	 * Constructor
-	 * @param OBJECT $parent parent object.
-	 * @param OBJECT $config configuration object.
+	 * @param object $parent parent object.
+	 * @param object $config configuration object.
 	 */	
-	constructor: function (parent,modulePath) {
+	constructor: function (parent,modulePath,config)
+	{
 
-		this.modulePath = modulePath || this.modulePath
-		super_ = parent;
+		this.setModulePath(modulePath || '');
+		super_ = parent || {};
 
-		this.preinit();
+		this.preinit.apply(this,arguments); 
 
 		this.importClasses();
-		this.preloadComponents();
-		this.attachBehaviors();
+		this.c = this.getComponent('classBuilder').classes;
+
+		var defaultConfig = sourcePath+'config/'+className+'Config.json';
+		if (config)
+			this.setConfig(config);
+		if (fs.existsSync(defaultConfig))
+			this.configureFromFile(defaultConfig);
 		this.configureFromFile(this.modulePath + this.configFile);
 
-		this.init();
+		this.preloadComponents();
+		this.preloadEvents();
 
+		this.getConfig('autoInit')!=false&&this.init.apply(this,arguments);
 	},
 
 	/**
 	 * PRIVATE
 	 */
-	private: {
-	
+	private:
+	{
 		_modules: {},
+		_modulesConfig: {},
 		_components: {},
+		_componentsConfig: {},
+		_modulesEvents: {},
 		super_: undefined
-
 	},
 
 	/**
 	 * Public Variables
 	 */
-	public: {
+	public:
+	{
 
 		/**
-		 * @var STRING module configuration's file
+		 * @var string module configuration's file
 		 */
 		configFile: 'config.json',
 
 		/**
-		 * @var STRING module directory's path
+		 * @var string module directory's path
 		 */
-		modulePath: './',
+		modulePath: '/',
 
 		/**
-		 * @var ARRAY components to preload
+		 * @var object preload components configuration
 		 */	
-		preload: [],
+		preload: {},
 
 		/**
-		 * @var ARRAY behaviors to attach
+		 * @var array behaviors to attach
 		 */
 		behaviors: {}
 	
@@ -91,118 +102,216 @@ module.exports = {
 		/**
 		 * Create a wnBuilder to this module then import all classes from core.
 		 */
-		importClasses: function () {
-
+		importClasses: function ()
+		{
 			var _c = {};
-
-			for (c in global.coreClasses) {
+			for (c in global.coreClasses)
+			{
 				var module = {},
 				 _class = global.coreClasses[c];
 				eval(_class);
 				_c[c] = module.exports;
 			}
-			
 			var classBuilder = new wns.wnBuild(_c);
 			this.setComponent('classBuilder',classBuilder);
-
 			classBuilder.build();
-
 		},
 
 		/**
+		 * Get a JSON configuration from file then send it to the `setConfig`
+		 * @param string $file path to the file
+		 * @return boolean success?
+		 */
+		configureFromFile: function (file)
+		{
+			if (fs.statSync(file).isFile() && path.extname(file) == '.json')
+			{
+				var _data = (fs.readFileSync(file,'utf8').toString())
+							.replace(/\\/g,function () { return "\\"+arguments[0]; })
+							.replace(/\/\/.+?(?=\n|\r|$)|\/\*[\s\S]+?\*\//g,'');
+				if(_data = JSON.parse(_data))
+				{
+					this.setConfig(_data,true);
+					return true;
+				}
+			}
+			return false;
+		
+		},
+
+		/**
+		 * Returns the directory that contains the application modules.
+		 * @return string the directory that contains the application modules.
+		 */
+		getModulePath: function ()
+		{
+			return this.modulePath;
+		},
+
+		/**
+		 * Sets the directory that contains the application modules.
+		 * @param string $value the directory that contains the application modules.
+		 */
+		setModulePath: function (value)
+		{
+			value=cwd+value;
+			if (value != undefined && fs.statSync(value).isDirectory())
+				this.modulePath = value;
+		},
+
+		/**
+		 * Set new properties to the component configuration.
 		 *
+		 * @param object $components application components(id=>component configuration or instances)
+		 * Defaults to true, meaning the previously registered component configuration of the same ID
+		 * will be merged with the new configuration. If false, the existing configuration will be replaced completely.
 		 */
-		attachBehaviors: function () {
-		
-		},
-
-		/**
-		 * Extend this module configuration with new properties.
-		 * @param OBJECT $extend configuration extension
-		 * @param BOOLEAN $overwrite overwrite it?
-		 */
-		configure: function (extend, overwrite) {
-
-			if (typeof extend != 'object') return false;
-
-			this.config=Object.extend(true,this.config,extend);
-			return true;
-
-		},
-
-		/**
-		 * Get a JSON configuration from file then send it to the
-		 * configure() method.
-		 * @param STRING $file path to the file
-		 * @return BOOLEAN success?
-		 */
-		configureFromFile: function (file) {
-
-			if (!fs.existsSync(file)) return false;
-
-			var _data = (fs.readFileSync(file,'utf8').toString())
-						.replace(/\\/g,function () { return "\\"+arguments[0]; })
-						.replace(/\/\/.+?(?=\n|\r|$)|\/\*[\s\S]+?\*\//g,'');
-
-			if(_data = JSON.parse(_data)) {
-				this.configure(_data,true);
-				return true;
-			} else return false;
-		
+		setComponents: function (components)
+		{
+			for (c in components)
+			{
+				if (this.hasComponent(c))
+				{
+					Object.extend(true,components[c],this.getComponent(c));
+				}
+				_componentsConfig[c]=Object.extend(true,_componentsConfig[c] || {}, components[c]);
+			}
 		},
 
 		/**
 		 * Puts a component under the management of the module.
 		 * The component will be initialized by calling the init() method.
-		 * @param STRING $id component ID
-		 * @param BOOLEAN if successful true, else false
+		 * @param string $id component ID
+		 * @param boolean if successful true, else false
 		 */
-		setComponent: function (id,component) {
-			if (!component) {
+		setComponent: function (id,component)
+		{
+			if (!component)
 				delete _components[id];
-			} else {
+			else
 				_components[id]=component;
-			}
 		},
 
 		/**
 		 * Retrieves the named component.
 		 * The component has to be declared in the global components list. A new instance will be created
 		 * when calling this method with the given ID for the first time.
-		 * @param STRING $id application module ID (case-sensitive)
+		 * @param string $id component ID
 		 * @return wnModule the module instance, false if the module is disabled or does not exist.
 		 */
-		getComponent: function (id) {
+		getComponent: function (id)
+		{
 			if (_components[id] != undefined) 
 				return _components[id];
-			else if (this.classBuilder != undefined && this.classBuilder.has(id)) {
-				var config = this.config[id] || {},
-					component = this.classBuilder.create(id,config);
-				component.init();
+			else if (this.hasComponent('classBuilder'))
+			{
+				var config = _componentsConfig[id] || {},
+					className = config.class || id;
+				if (this.getComponent('classBuilder').exists(className))
+				{
+					config.id = id;
+					config.autoInit = !(config.autoInit == false);
+					var component = this.createComponent(className,config);
+					!(config.autoInit)&&component.init(config);
+					_components[id] = component;
+					if (typeof config.alias == 'string')
+						this[config.alias] = _components[id]
+					return _components[id];
+				} else
+					return false;
 			}
 		},
 
 		/**
-		 * Returns a value indicating whether the specified component is installed.
-		 * @param STRING $id the component ID
-		 * @return BOOLEAN whether the specified component is installed.
+		 * Create a new instance of the component.
+		 * @param string $className component class (case-sensitive)
+		 * @param string $config application 
+		 * @return wnModule the module instance, false if the module is disabled or does not exist.
 		 */
-		hasComponent: function (id) {
-		
+		createComponent: function (className,config)
+		{
+			return new this.c[className](config);
+		},
+
+		/**
+		 * Returns a value indicating whether the specified component is installed.
+		 * @param string $id the component ID
+		 * @return boolean whether the specified component is installed.
+		 */
+		hasComponent: function (id)
+		{
+			return _components[id] != undefined;
 		},
 
 		/**
 		 * Get all components from the list.
 		 */
-		getComponents: function (list) {
+		getComponents: function ()
+		{
+			return _components;
+		},
+
+		/**
+		 * Returns the list of components configuration
+		 * @return object list of components configuration
+		 */
+		getComponentsConfig: function ()
+		{
+			return _componentsConfig;
+		},
+
+		/**
+		 * Returns the component's configuration
+		 * @return object component's configuration
+		 */
+		getComponentConfig: function (id)
+		{
+			return _componentsConfig[id];
 		},
 
 		/**
 		 * Preload all required components
 		 */
-		preloadComponents: function () {
-			for (p in this.preload)
-				this.getComponent(this.preload[p]);
+		preloadComponents: function ()
+		{
+			this.setConfig({components: this.preload});
+			var preload = this.getConfig().components;
+			if (preload != undefined)
+			{
+				this.setComponents(preload);
+			}
+		},
+
+		/**
+		 * Start all preloaded components
+		 */
+		startComponents: function ()
+		{
+			var cps=this.getComponentsConfig();
+			for (c in cps)
+			{
+				this.e.log('- Starting component: '+c);
+				this.getComponent(c);
+			}
+		},
+
+		/**
+		 * Merge new configuration into the module configuration
+		 *
+		 * @param object $modules application modules(id=>module configuration or instances)
+		 * Defaults to true, meaning the previously registered module configuration of the same ID
+		 * will be merged with the new configuration. If false, the existing configuration will be replaced completely.
+		 */
+		setModules: function (modules)
+		{
+			for (m in modules)
+			{
+				if (this.hasModule(m))
+				{
+					Object.extend(true,modules[m],this.getModule(m));
+				}
+				_modulesConfig[m]=Object.extend(true,_modulesConfig[m] || {}, modules[m]);
+			}
 		},
 
 		/**
@@ -210,46 +319,139 @@ module.exports = {
 		 * The module has to be declared in the global modules list. A new instance will be created
 		 * when calling this method with the given ID for the first time.
 		 * @param string $id application module ID (case-sensitive)
-		 * @return CModule the module instance, null if the module is disabled or does not exist.
+		 * @return wnModule the module instance, null if the module is disabled or does not exist.
 		 */
-		getModule: function (id) {
-		
+		getModule: function (id)
+		{
+			if (_modules[id] != undefined) 
+				return _modules[id];
+			else if (this.hasComponent('classBuilder'))
+			{
+				var config = _modulesConfig[id] || {},
+					modulePath = config.modulePath || id,
+					className = config.class;
+				if (fs.existsSync(modulePath) && className != undefined)
+				{
+					config.id = id;
+					config.autoInit = !(config.autoInit == false);
+					var module = this.createModule(className,modulePath,config)
+					_modules[id] = module;
+					this.attachModuleEvents(id);
+					!(config.autoInit)&&module.init(modulePath,config);
+					return _modules[id];
+				} else
+					return false;
+			}
 		},
 
 		/**
 		 * Returns a value indicating whether the specified module is installed.
-		 * @param STRING $id the module ID
-		 * @return BOOLEAN whether the specified module is installed.
+		 * @param string $id the module ID
+		 * @return boolean whether the specified module is installed.
 		 */
-		hasModule: function (id) {
-		
+		hasModule: function (id)
+		{
+				return _modules[id] != undefined;	
 		},
 
 		/**
-		 * Returns the configuration of the currently installed modules.
-		 * @return array the configuration of the currently installed modules (module ID => configuration)
+		 * Create a new instance of module
+		 * @param string $className component class (case-sensitive)
+		 * @param string $config application 
+		 * @return wnModule the module instance, false if the module is disabled or does not exist.
 		 */
-		getModules: function () {
-		
+		createModule: function (className,modulePath,config)
+		{
+			return new this.c[className](this,modulePath,config);
+		},
+
+		/**
+		 * Returns the list of instaled modules.
+		 * @return object list of instaled modules.
+		 */
+		getModules: function ()
+		{
+			return _modules;
+		},
+
+		/**
+		 * Returns the list of modules configuration
+		 * @return object list of modules configuration
+		 */
+		getModulesConfig: function ()
+		{
+			return _modulesConfig;
+		},
+
+		/**
+		 * Attach to this module all bubble-events from loaded modules
+		 * This create a Bubble-Event to answer to each event that bubles from the module's modules.
+		 * Also attach to all modules' events and handler to dispatch the event.
+		 * @param string $id source module id
+		 */
+		attachModuleEvents: function (id) {
+			var module = this.getModule(id),
+				events;
+			if (module != undefined && (events=module.getEvents()) && !Object.isEmpty(events)) {
+				for (e in events)
+				{
+					var evtConfig = {},
+						eventName = 'module.'+e.split('-').pop(),
+						evtCnf = events[e].getConfig(),
+						event = events[e],
+						eventClass;
+
+					if (!this.hasEvent(eventName) && evtCnf.bubble && e.indexOf('event-module') == -1)
+					{
+						evtConfig[eventName]=Object.extend(true,evtConfig[eventName],evtCnf);
+						evtConfig[eventName].listenEvent=null;
+						evtConfig[eventName].handler=null;
+						this.setEvents(evtConfig);
+						this.getEvent(eventName);
+					}
+
+					if (this.hasEvent(eventName) && e.indexOf('event-module') == -1)
+					{
+						eventClass = this.getEvent(eventName);
+						event.prependListener(function (e) {
+							if (typeof e == 'object'
+								&& e.stopPropagation == true)
+										return false;
+							eventClass.push.apply(eventClass,arguments);
+						});
+					}
+
+				}
+				this.attachEventsHandlers();
+			}
+		},
+
+		/**
+		 * Get the respective bubble event that answer to the respective module's event (if exists).
+		 * @param string $id module's id
+		 * @param string $eventName event's name
+		 * @return wnEvent the bubble event of the module's event
+		 */
+		getModuleEvent: function (eventName) {
+			this.getEvent('module.'+eventName);
 		},
 
 		/**
 		 * Returns the parent object.
-		 * @returen OBJECT the parent object.
+		 * @returen object the parent object.
 		 */
-		getParent: function () {
+		getParent: function ()
+		{
 			return super_;
 		},
 		
 		/**
 		 * This methods is called before the real initialization of the module
 		 */
-		preinit: function () {},
+		preinit: function ()
+		{
 
-		/**
-		 * This methods is called after the real initialization of the module
-		 */
-		init: function () {}
+		}
 
 	}
 
