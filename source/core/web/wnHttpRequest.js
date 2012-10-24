@@ -35,7 +35,7 @@ module.exports = {
 	public: {
 
 		/**
-		 * @var object Parsed URL object
+		 * @var object parsed url object
 		 */
 		parsedUrl: {},
 
@@ -43,6 +43,16 @@ module.exports = {
 		 * @var string data of the response
 		 */
 		data: '',
+
+		/**
+		 * @var integer response's code.
+		 */
+		code: 200,
+
+		/**
+		 * @var object response's header
+		 */
+		header: {}
 
 	},
 
@@ -57,7 +67,7 @@ module.exports = {
 		 */	
 		init: function ()
 		{
-			this.header = this.getConfig('header');
+			this.header = this.getConfig('header') || this.header;
 			this.info = this.getConfig('request');
 			this.response = this.getConfig('response');
 			this.app = this.getConfig('app');
@@ -68,26 +78,25 @@ module.exports = {
 		 */
 		send: function ()
 		{
-			var http=this;
-
-			var acceptEncoding = http.info.headers['accept-encoding'];
+			var self = this,
+				acceptEncoding = this.info.headers['accept-encoding'];
 			if (!acceptEncoding) 
 				acceptEncoding = '';
 
-			if (acceptEncoding.match(/\bgzip\b/) || (typeof http.data == 'string' && Buffer.byteLength(http.data, 'utf8')>150))
+			if (acceptEncoding.match(/\bgzip\b/) || (typeof this.data == 'string' && Buffer.byteLength(this.data, 'utf8')>150))
 			{
-				http.header['Content-Encoding']='gzip';
-				zlib.gzip(new Buffer(http.data), function (e,buf)
+				this.header['Content-Encoding']='gzip';
+				zlib.gzip(new Buffer(this.data), function (e,buf)
 				{
-					http.header['Content-Length']=buf.length;
-					http.response.writeHead(http.code,http.header);
-					http.response.end(buf);
+					self.header['Content-Length']=buf.length;
+					self.response.writeHead(self.code,self.header);
+					self.response.end(buf);
 				});
 			} else
 			{
-				http.header['Content-Length']=http.data.length;
-				http.response.writeHead(http.code,http.header);
-				http.response.end(http.data);		
+				this.header['Content-Length']=this.data.length;
+				this.response.writeHead(this.code,this.header);
+				this.response.end(http.data);		
 			}
 		},
 
@@ -125,39 +134,28 @@ module.exports = {
 				_action=_plen>1&&_p[2]!=''?_p[2]:undefined,
 				controllerPath = this.app.modulePath+this.app.getConfig('path').controllers+_controller+'.js';
 
-			if (!this.app.hasController(_controller) || 1==1)
+			if (this.app.existsController(_controller))
 			{
-				if (this.app.existsController(_controller))
-				{
-					this.app.e.log('Controller not found: '+_controller,'access');
-					this.errorHandler();
-					return false;
-				}
-				var newController = this.app.getController(_controller);
-				this.controller=newController;
+				this.app.e.log('Controller not found: '+_controller,'access');
+				this.errorHandler();
+				return false;
 			}
+			
+			this.controller=this.app.getController(_controller,this);
 
-			_action=this.action=(!_action?this.app.controllers[_controller].defaultAction:_action);
+			_action=this.action=(!_action?this.controller.defaultAction:_action);
 
-			var _resolveAction = _action;
-			for (a in this.app.controllers[_controller])
-			{
-				if (a.toLowerCase() == 'action'+_action.toLowerCase())
-					{
-						_resolveAction=a;
-						break;
-					}
-			}
-
-			if (_action != _resolveAction)
+			var _resolveAction;
+			if (_resolveAction=this.controller.resolveAction(_action))
 			{
 				_action = this.action = _resolveAction;
-				this.app.controllers[_controller][_action]&&this.app.controllers[_controller][_action]();
+				this.controller[_action]&&this.controller[_action]();
 			} else
 			{
-				new this.app.c.wnLog('View not found: '+_action,'access');
+				this.app.e.log('Action not found: '+_action,'access');
 				this.errorHandler();
 			}
+
 		},
 
 		/**
@@ -167,25 +165,24 @@ module.exports = {
 		 */
 		publicHandler: function ()
 		{
-				var _filename = this.route.translation;
+			var _filename = this.route.translation.replace(/^\//,''),
+				file;
 
-				this.app.getFile(this.app.modulePath+this.app.getConfig('path').public+_filename, function (err, data) {
-
-					if (err)
-					{
-						this.code = 404;
-						this.header['Status']='404 Not Found';
-						this.app.e.log('File not found: '+this.parsedUrl.pathname,'access');
-					}
-					else
-						this.data = data;
+			if (file=this.app.getFile(this.app.getConfig('path').public+_filename,true))
+			{
+					this.data = file;
 
 					this.header['Content-Length']=this.data.length;
 					this.header['Content-Type']=mime.lookup(this.parsedUrl.pathname);
 
 					this.send();
 
-				}.bind(this));
+					return false;
+			}
+
+			this.code = 404;
+			this.header['Status']='404 Not Found';
+			this.app.e.log('File not found: '+this.parsedUrl.pathname,'access');
 		},
 
 		/**

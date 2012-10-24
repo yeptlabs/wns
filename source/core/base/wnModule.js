@@ -39,13 +39,15 @@ module.exports = {
 
 		this.importClasses();
 		this.c = this.getComponent('classBuilder').classes;
-
+		
 		var defaultConfig = sourcePath+'config/'+className+'Config.json';
 		if (config)
 			this.setConfig(config);
 		if (fs.existsSync(defaultConfig))
 			this.configureFromFile(defaultConfig);
 		this.configureFromFile(this.modulePath + this.configFile);
+
+		this.importCustomClasses();
 
 		this.preloadComponents();
 		this.preloadEvents();
@@ -115,6 +117,29 @@ module.exports = {
 			var classBuilder = new wns.wnBuild(_c);
 			this.setComponent('classBuilder',classBuilder);
 			classBuilder.build();
+		},
+		
+		/**
+		 * Import custom classes (if exists) from the module's path.
+		 */
+		importCustomClasses: function () {
+			var classPath = this.getConfig('path') && this.getConfig('path').classes ? this.getConfig('path').classes : 'classes/',
+				path = this.modulePath+classPath;
+			if (fs.existsSync(path))
+			{
+				var classes = fs.readdirSync(path),
+					_c = {};
+				for (c in classes)
+				{
+					var module = {},
+						className = classes[c].split('.')[0],
+					 _class = fs.readFileSync(path+classes[c],'utf-8').toString();
+					eval(_class);
+					_c[className] = module.exports;
+					var cb = this.getComponent('classBuilder');
+					cb.classes[className]=cb.recompile(className,_c[className]);
+				}
+			}
 		},
 
 		/**
@@ -210,9 +235,10 @@ module.exports = {
 				if (this.getComponent('classBuilder').exists(className))
 				{
 					config.id = id;
-					config.autoInit = !(config.autoInit == false);
+					config.autoInit = false;
 					var component = this.createComponent(className,config);
-					!(config.autoInit)&&component.init(config);
+					Object.defineProperty(component,'c',{ value: this.c, enumerable:false, writable: false });
+					component.init(config);
 					_components[id] = component;
 					if (typeof config.alias == 'string')
 						this[config.alias] = _components[id]

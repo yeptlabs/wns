@@ -125,6 +125,20 @@ module.exports = {
 		},
 
 		/**
+		 * Get a file.
+		 * The file's path is relative to the module's path.
+		 * @param $filePath string file's path
+		 */
+		getFile: function (filePath,binary) {
+			var realPath = this.instanceOf('wnModule')?this.modulePath+filePath:filePath;
+			if (fs&&fs.existsSync(realPath)) {
+				var file = fs.readFileSync(realPath);
+				return (binary===true) ? file : file.toString();
+			}
+			return false;
+		},
+
+		/**
 		 * Create an class from the classSources.
 		 * @var string $className name of the class
 		 * @var object $config class configuration

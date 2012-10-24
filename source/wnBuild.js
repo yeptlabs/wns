@@ -62,12 +62,13 @@ wnBuild.prototype.exists = function (className) {
  */
 wnBuild.prototype.recompile = function (className,obj) {
 
-	if (!this.classes[className].loaded) return false;
-
+	this.classes[className] = this.classes[className] || {};
 	this.classes[className].loaded = false;
 
 	var _nc = Object.extend(true,this.classes[className].build,obj);
-		_c=this.buildClass(className);
+	this.classesSource[className] = _nc;
+	var _c=this.buildClass(className);
+
 	if (_c.loaded == true) { // Loaded.
 		return _c;
 	} else {
@@ -167,18 +168,22 @@ wnBuild.prototype.buildClass = function (className) {
 
 					var _className = self.newValue(className),
 						_extend = self.newValue(build.extend),
-						_buildMethods = self.newValue(extendBuild.methods);
+						_buildMethods = self.newValue(extendBuild.methods),
+						extendBuild=self.classes[build.extend[e]].build;
 
 					// Redeclare privileged methods.
 					for (m in _buildMethods) {
 						k[m] = eval('['+_buildMethods[m].toString()+']')[0];
 					}
-
+				
 					// Push public vars to the build
 					Object.extend(true,build.public,extendBuild.public);
 
+					var extendBuild=self.classes[build.extend[e]].build;
+
 					// Define this constructor as the main constructor.
-					build.constructor=eval('['+extendBuild.constructor+']')[0] || build.constructor;
+					if (extendBuild.propertyIsEnumerable('constructor'))
+						build.constructor=eval('['+extendBuild.constructor+']')[0];
 
 				})();
 		}
@@ -199,7 +204,8 @@ wnBuild.prototype.buildClass = function (className) {
 		})();
 
 		// Import constructor
-		k.constructor = build.constructor;
+		if (build.propertyIsEnumerable('constructor'))
+			k.constructor = build.constructor;
 
 		// Redeclare public vars
 		for (p in build.public) {

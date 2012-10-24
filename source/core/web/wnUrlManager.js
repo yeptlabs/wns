@@ -27,7 +27,11 @@ module.exports = {
 	/**
 	 * PRIVATE
 	 */
-	private: {},
+	private: {
+	
+		_rules: []
+	
+	},
 
 	/**
 	 * Public Variables
@@ -42,11 +46,6 @@ module.exports = {
 			["<controller:[\\w'-]+>/<action:[\\w|\\W]+>","<controller>/<action>"]
 		],
 
-		/**
-		 * @var array where it stores all wnUrlRule objects
-		 */
-		_rules: []
-
 	},
 
 	/**
@@ -58,25 +57,41 @@ module.exports = {
 		 * Initializer
 		 */	
 		init: function () {
+			var newRules = this.getConfig('rules');
+			this.addRules(newRules);
+			this.process();
 		},
 
 		/**
 		 * Return the object with all the rules in the format (pattern=>route)
 		 * @return object list of all rules
 		 */
-		getRules: function () {
+		getRules: function ()
+		{
 			return this.rules;
+		},
+
+		/**
+		 * Returns the list of wnUrlRule objects
+		 * @return array list of all wnUrlRules
+		 */
+		getRulesList: function ()
+		{
+			return _rules;
 		},
 
 		/**
 		 * Find out which route rule is the right pattern.
 		 * @return wnUrlRule instance
 		 */
-		parseRequest: function (request) {
+		parseRequest: function (request)
+		{
 			// Match the request with a all rules
-			for (r in this._rules) {
-				var _parsed = this._rules[r].parseRequest(this,request);
-				if (_parsed != false) return _parsed;
+			for (r in _rules)
+			{
+				var _parsed = _rules[r].parseRequest(this,request);
+				if (_parsed != false)
+					return _parsed;
 			}
 			return false;
 		},
@@ -88,8 +103,9 @@ module.exports = {
 		 * @param string $pattern the pattern part of the rule
 		 * @return wnUrlRule instance
 		 */
-		getUrlRuleClass: function () {
-			return this.super_.c.wnUrlRule;
+		getUrlRuleClass: function () 
+		{
+			return this.c.wnUrlRule;
 		},
 
 		/**
@@ -98,7 +114,8 @@ module.exports = {
 		 * @param string $pattern the pattern part of the rule
 		 * @return wnUrlRule instance
 		 */
-		createUrlRule: function (route,pattern) {
+		createUrlRule: function (route,pattern)
+		{
 			var _class = this.getUrlRuleClass();
 			return new _class(route,pattern);
 		},
@@ -108,13 +125,14 @@ module.exports = {
 		 * @param object $rules new rules (pattern=>route)
 		 * @return wnUrlManager instance
 		 */
-		addRules: function (rules) {
-			if (typeof rules == 'object') {
-				var _rules = this.rules.reverse();
-				for (r in rules) {
-					_rules.push([r,rules[r]]);
-				}
-				this.rules = _rules.reverse();
+		addRules: function (rules)
+		{
+			if (typeof rules == 'object')
+			{
+				var _rules = this.rules;
+				for (r in rules)
+					_rules.unshift([r,rules[r]]);
+				this.rules = _rules;
 			}
 			return this;
 		},
@@ -123,25 +141,17 @@ module.exports = {
 		 * Clear the array of wnUrlRule and then creates all rules again from the rules object.
 		 * @return wnUrlManager instance
 		 */
-		process: function () {
-			// Clear all instance of 
-			delete this._rules;
+		process: function ()
+		{
+			_rules = [];
 			this._rules = [];
-			// Create and push new wnUrlRules
-			for (r in this.rules) {
+			for (r in this.rules)
+			{
 				var _r1 = this.rules[r][0].replace(/\x5C+/gim,"\x5C"),
 					_r2 = this.rules[r][1].replace(/\x5C+/gim,"\x5C");
-				this._rules.push(this.createUrlRule(_r2,_r1));
+				_rules.push(this.createUrlRule(_r2,_r1));
 			}
 			return this;
-		},
-
-		/**
-		 * Returns the list of wnUrlRule objects
-		 * @return array list of all wnUrlRules
-		 */
-		getRulesList: function () {
-			return this._rules;
 		}
 
 	}

@@ -22,7 +22,7 @@ module.exports = {
 	/**
 	 * Class dependencies
 	 */
-	extend: ['wnComponent'],
+	extend: [],
 
 	/**
 	 * Constructor
