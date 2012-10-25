@@ -1,21 +1,17 @@
 /**
  * Source of the wnUrlRule class.
- *
- * Some codes were taken from Yii Framework source
- * (https://github.com/yiisoft/yii/blob/master/framework/web/CUrlManager.php)
  * 
  * @author: Pedro Nasser
- * @link: http://pedroncs.com/projects/webnode/
- * @license: http://pedroncs.com/projects/webnode/#license
- * @copyright: Copyright &copy; 2012 WebNode Server
+ * @link: http://wns.yept.net/
+ * @license: http://yept.net/projects/wns/#license
+ * @copyright: Copyright &copy; 2012 WNS
  */
 
 /**
- * {full_description}
+ * Description coming soon.
  *
  * @author Pedro Nasser
- * @version $Id$
- * @pagackge system.base
+ * @package system.core.web
  * @since 1.0.0
  */
 

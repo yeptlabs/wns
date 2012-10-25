@@ -2,17 +2,16 @@
  * Source of the wnApp class.
  * 
  * @author: Pedro Nasser
- * @link: http://pedroncs.com/projects/webnode/
- * @license: http://pedroncs.com/projects/webnode/#license
- * @copyright: Copyright &copy; 2012 WebNode Server
+ * @link: http://wns.yept.net/
+ * @license: http://yept.net/projects/wns/#license
+ * @copyright: Copyright &copy; 2012 WNS
  */
 
 /**
- * {full_description}
+ * Description coming soon.
  *
  * @author Pedro Nasser
- * @version $Id$
- * @pagackge system.base
+ * @package system.core
  * @since 1.0.0
  */
 
@@ -52,6 +51,11 @@ module.exports = {
 		{
 			this.e.log("Starting application's components...");
 			this.startComponents();
+			if (this.getConfig('scripts') != undefined)
+			{
+				this.e.log("Starting application's scripts...");
+				this.startScripts();
+			}
 			this.e.log('Application `'+this.getConfig('id')+'` running...');
 		},
 

@@ -1,42 +1,49 @@
 /**
- * @WebNode - A NodeJS MVC Framework and HTTP Server
+ * @WNS - A NodeJS MVC Framework and HTTP Server
  * 
  * @author: Pedro Nasser
- * @link: http://pedroncs.com/projects/webnode/
- * @license: http://pedroncs.com/projects/webnode/#license
- * @copyright: Copyright &copy; 2012 WebNode Server
+ * @link: http://wns.yept.net/
+ * @license: http://yept.net/projects/wns/#license
+ * @copyright: Copyright &copy; 2012 WNS
  */
 
 /**
- * Load required sources and initializes the wnServer.
+ * Description coming soon.
  *
  * @author Pedro Nasser
- * @version $Id$
  * @package system
  * @since 1.0.0
  */
 
-console.log('Loading WEBNODE:');
-global.sourcePath = 'source/'; // Path to the source
-global.cwd = process.cwd()+'/'; // Current work directory
-global._r = require; // Alias to require
-global._walk = _r(cwd+sourcePath+'util/recursiveReadDir'); // Recursive read directory
-Object.extend = _r(cwd+sourcePath+'util/extend'); // Object recursive extension
-Object.extend(true,Object,_r(cwd+sourcePath+'util/object')); // Object recursive extension
+console.log('Loading WNS:');
 
-console.log(' - Loading required node modules..');
-global.http = _r('http');
-global.fs = _r('fs');
-global.path = _r('path');
-global.url = _r('url');
-global.zlib = _r('zlib');
-global.stream = _r('stream');
-global.util = _r('util');
-global.emitter = _r('events').EventEmitter;
-global.Buffer = _r('buffer').Buffer;
-global.mime = _r('mime');
+// Loading requirements..
+try
+{
+	global.sourcePath = 'source/';
+	global.cwd = process.cwd()+'/';
+	global._r = require;
+	global._walk = _r(cwd+sourcePath+'util/recursiveReadDir');
+	Object.extend = _r(cwd+sourcePath+'util/extend');
+	Object.extend(true,Object,_r(cwd+sourcePath+'util/object'));
 
-// WEBNODE object.
+	console.log(' - Loading required node modules..');
+	global.http = _r('http');
+	global.fs = _r('fs');
+	global.path = _r('path');
+	global.url = _r('url');
+	global.zlib = _r('zlib');
+	global.stream = _r('stream');
+	global.util = _r('util');
+	global.emitter = _r('events').EventEmitter;
+	global.Buffer = _r('buffer').Buffer;
+	global.mime = _r('mime');
+} catch (e) {
+	throw e;
+	process.exit();
+}
+
+// WNS object.
 // Will contain the classes to build and load.
 global.wns = {};
 
