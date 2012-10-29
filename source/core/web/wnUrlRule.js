@@ -166,11 +166,12 @@ module.exports = {
 				}
 
 				// Searching for regexp from the param's list
-				for (p in this.params) {
-
+				for (p in this.params)
+				{
 					var reg = this.params[p],
 						match = _urlPiece.match(new RegExp('\/'+reg,'gi'));
-					if (match != null) {
+					if (match != null)
+					{
 						result.params[p] = match[0].replace(/^\//gi, '');
 						_urlPiece=_urlPiece.replace(new RegExp('^\/'+reg,'gi'),'');
 					}
@@ -180,7 +181,8 @@ module.exports = {
 				if(this.route.indexOf('<')!==-1 && this.route.match(/<(\w+):?(.*?)?>/gi))
 				{
 					var match = this.route.match(/<(\w+):?(\w+)?>/gi);
-					for(m in match) {
+					for(m in match)
+					{
 						var _t=(match[m].replace(/[\<|\>]/gi,'')).replace(/^\//,'').replace(/\/$/,''),
 							_param = _t.split(':')[0],
 							_fromParam = this.translations[_param]=='';

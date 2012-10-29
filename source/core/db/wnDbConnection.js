@@ -26,8 +26,7 @@ module.exports = {
 	/**
 	 * PRIVATE
 	 */
-	private: {
-	},
+	private: {},
 
 	/**
 	 * Public Variables
@@ -57,7 +56,17 @@ module.exports = {
 		/**
 		 * @var integer setInterval UID
 		 */
-		keepAlive: -1
+		keepAlive: -1,
+
+		/**
+		 * @var object events to be preloaded.
+		 */
+		defaultEvents: {
+			'connect': {},
+			'close': {},
+			'query': {},
+			'result': {}
+		}
 	
 	},
 
@@ -76,82 +85,82 @@ module.exports = {
 
 		/**
 		 * Connect to the database
-		 * @param $query string SQL to be query
-		 * @param $callback function callback function
 		 */
 		connect: function ()
 		{
-			if (!this.connected==true)
+			if (!(this.connected==true))
 			{
 				this.failed = false;
 				this.connecting = true;
 				this.mysql = _r('mysql');
 				this.connection = this.mysql.createConnection(this.getConfig());
 
+				this.connection.once('error', function () {
+					this.close(true);
+				}.bind(this));
+					
 				this.connection.connect(function (err) {
 					if (err)
 					{
-						this.connected=false;
-						this.failed=true;
+						this.connected = false;
+						this.failed = true;
 						this.connecting = false;
 					} else
 					{
-						this.connected=true;
-						this.failed=false;
-						this.connecting=false;
+						this.connected = true;
+						this.failed = false;
+						this.connecting = false;
 					}
+					this.e.connect(err);
 				}.bind(this));
 
-				(function () {
-					if (this.connecting!=true)
-						if (this.failed == false)
-							this._query();
-					else {
-						setTimeout(arguments.callee.bind(this),500);
-					}
-				}.bind(this))();
+			} else
+				this.e.connect();
+		},
 
-				this.connection.on('error', function () {
-					this.close(true);
+		/**
+		 * Method that query the database and when the response comes,
+		 * send the data to the callback function.
+		 * @param $query string SQL to be query
+		 * @param $callback function callback function
+		 */
+		query: function (query,cb)
+		{
+			var self=this;
+			this.once('result', function (e,err,rows,fields) {
+				cb&&cb(err,rows,fields);
+			});
+			if (!this.connecting && this.connected)
+			{
+				this.e.query(query,cb);
+				this.connection.query(query,function (err,rows,fields) {
+					this.e.result(err,rows,fields);
 				}.bind(this));
+			} else
+			{
+				this.once('connect',function (e,err) {
+					this.e.query(query,cb);
+					this.connection.query(query,function (err,rows,fields) {
+						this.e.result(err,rows,fields);
+					}.bind(this));
+				}.bind(this));
+				this.connect();
 			}
 		},
 
 		/**
-		 * Method that query the database and when the response comes, send the data to the callback function.
-		 * @param $query string SQL to be query
-		 * @param $callback function callback function
-		 */
-		query: function ()
-		{
-			while (this.connecting==true);
-
-			var args=arguments;
-			this._query = function () {
-				this.connection.query.apply(this.connection,args);
-			};
-
-			this.connect.apply(this,arguments);
-
-			this._query();
-		},
-
-		/**
-		 * Method that terminate the DB connection
+		 * Terminate the connection
 		 */
 		close: function ()
 		{
-			var _terminate = function ()
+			if (this.connection)
 			{
+				this.connection.destroy();
 				this.connecting = false;
 				this.connected = false;
 				this.failed = false;
-			}.bind(this);
-
-			if (!ended == true)
-				this.connection.end(_terminate);
-			else
-				_terminate();
+				this.e.close();
+			}
 		}
 	
 	}

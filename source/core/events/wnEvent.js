@@ -66,8 +66,8 @@ module.exports = {
 						this.eventName = self.getEventName();
 						this.stopPropagation = false;
 					};
-
-				var	getEventObject = typeof arguments[0] == 'object'
+	
+				var	getEventObject = arguments[0] != null && typeof arguments[0] == 'object'
 								&& arguments[0].stopPropagation!=undefined ? true : false,
 					evtObj = getEventObject ? arguments[0] : new eventObject;
 
@@ -78,7 +78,7 @@ module.exports = {
 				
 				args.unshift(evtObj);
 
-				var listeners = _listeners.slice();
+				var listeners = _listeners;
 				for (var i = 0, l = listeners.length; i < l; i++)
 				{
 					if (evtObj.stopPropagation != true)
@@ -119,7 +119,7 @@ module.exports = {
 		},
 
         /**
-         * Add a new handler for the 'event.'
+         * Add a new handler to this event.'
          * @param $listener function listener of the event
          */
         addListener: function (listener)
@@ -128,6 +128,12 @@ module.exports = {
 			_listeners.push(listener);
         },
 
+		/**
+		 * Alias to addListener.
+		 */
+		on: function () {
+			this.addListener.apply(this,arguments);
+		},
 
         /**
          * Prepend a new handler for the 'event.'
@@ -140,7 +146,22 @@ module.exports = {
         },
 
         /**
-         * Remove and listener from the 'event.'
+         * Add a new one-time-listener to this event.
+         * @param $listener function listener of the event
+         */
+		once: function (listener) {
+			if ('function' !== typeof listener) return false;
+			var self = this;
+			function g() {
+				self.removeListener(g);
+				listener.apply(this, arguments);
+			};
+			g.listener = listener;
+			self.on(g);
+		},
+
+        /**
+         * Remove a listener from this event.
          * @param $listener function listener of the event
          */
         removeListener: function (listener)
@@ -160,6 +181,13 @@ module.exports = {
 				return this;
 			list.splice(position, 1);
         },
+
+		/**
+		 * Return array of listeners functions
+		 */
+		getListeners: function () {
+			return _listeners;
+		},
 
 		/**
 		 * Return the name of this event.

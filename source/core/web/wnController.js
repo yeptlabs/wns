@@ -64,7 +64,12 @@ module.exports = {
 		/**
 		 * @var string string where it will be stored the response
 		 */
-		response: ''
+		response: '',
+
+		/**
+		 * @var string controller title
+		 */
+		title: undefined
 
 	},
 
@@ -167,8 +172,11 @@ module.exports = {
 
 				// Renderiza a pagina temporaria.
 				var	_contentAll=this.view.render(),
-					_contentAll=new this.app.c.wnTemplate(_contentAll,false).match(this),
-					_contentAll=new this.app.c.wnTemplate(_contentAll,false).match({self:this});
+					_contentAll=new this.app.c.wnTemplate(_contentAll,false).match({
+						self: this,
+						app: this.app.getConfig(),
+						request: this.request.getConfig()
+					});
 
 				// Substitui data vinda do controller.
 				_contentAll = (new this.app.c.wnTemplate(_contentAll,false)).match(data?data:{});

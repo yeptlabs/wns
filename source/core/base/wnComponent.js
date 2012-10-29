@@ -27,8 +27,9 @@ module.exports = {
 	 * Constructor
 	 * DO NOT OVERWRITE this.
 	 */	
-	constructor: function (config)
+	constructor: function (config,classes)
 	{
+		Object.defineProperty(this,'c',{ value: (classes || {}), enumerable:false, writable: false });
 		this.setConfig(config);
 		this.preloadEvents();
 		this.getConfig('autoInit')!=false&&this.init.apply(this,arguments); 
@@ -60,12 +61,19 @@ module.exports = {
 		/**
 		 * @var object loaded events.
 		 */
-		e: {},
+		e: {
+			log: function () {}
+		},
 
 		/**
 		 * @var object imported classes.
 		 */
-		c: {}
+		c: {},
+
+		/**
+		 * @var object events to be preloaded.
+		 */
+		defaultEvents: {}
 
 	},
 
@@ -153,7 +161,7 @@ module.exports = {
 		 */
 		preloadEvents: function ()
 		{
-			var preload = this.getConfig().events;
+			var preload = Object.extend(true,{},this.defaultEvents,this.getConfig().events);
 			if (preload != undefined)
 				this.setEvents(preload);
 			for (e in preload)
@@ -231,10 +239,9 @@ module.exports = {
 			{
 				var config = _eventsConfig[eventName] || {},
 						className = config.class;
-					config.id = name;
+					config.id = eventName;
 					config.source = this;
 					var evt = this.createClass(className,config);
-
 					if (hidden != false)
 					{
 						_events[eventName] = evt;
@@ -261,6 +268,21 @@ module.exports = {
 		hasEvent: function (name)
 		{
 			return _events['event-'+name] != undefined;
+		},
+
+		/**
+		 * Add a new one-time-listener to the event if it exists
+		 * @param string $eventName event name
+		 * @param function $handler event handler
+		 */
+		once: function (eventName,handler) {
+			var event;
+			if (event = this.getEvent(eventName))
+			{
+				if (!event.once(handler))
+					this.e.log('Invalid handler sent to event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
+			} else
+				this.e.log('Not existent event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
 		},
 
 		/**

@@ -237,55 +237,6 @@ wnBuild.prototype.buildClass = function (className) {
 };
 
 /**
- * Create the descriptor of all properties of the targetClass
- * @param OBJECT $targetClass
- * @return OBJECT result descriptor
- */
-/*wnBuild.prototype.createDescriptor = function (targetClass) {
-
-	var descriptor = {
-		_private: {
-			value: {}
-		},
-		_methods: {
-			value: {}
-		}
-	};
-
-	// Public import
-	for (p in targetClass.public) {
-		descriptor[p] = {
-			value: targetClass.public[p],
-			enumerable: true,
-			configurable: false,
-			writable: true
-		};
-	}
-
-	// Public import
-	for (p in targetClass.private) {
-		descriptor._private.value[p] = targetClass.private[p];
-	}
-
-	// Methods import
-	for (p in targetClass.methods) {
-		// Its privileged?
-		if (p.substr(0,1) == '_') {
-			descriptor._methods.value[p.substr(1)] = targetClass.methods[p];
-		} else {
-			descriptor[p] = {
-				value: targetClass.methods[p],
-				enumerable: true,
-				configurable: false,
-				writable: true
-			};
-		}
-	}
-
-	return descriptor;
-}*/
-
-/**
  * Check class source structure.
  * @param OBJECT $targetClass
  * @return BOOLEAN true if structure is correct, false if not
@@ -332,6 +283,7 @@ wnBuild.prototype.newValue = function (property) {
 	if (type != 'object') {
 		if (property==undefined || property==null) return property;
 		if (type === 'function') return property;
+		if (type === 'boolean') return property == true;
 		if (type == 'string') return property + "";
 		var _i = new (global[type.substr(0,1).toUpperCase()+type.substr(1).toLowerCase()])(property);
 		return (type == 'number') && _i.toValue ? _i.toValue() : _i;

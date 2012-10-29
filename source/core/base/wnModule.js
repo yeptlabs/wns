@@ -28,7 +28,7 @@ module.exports = {
 	 * @param object $parent parent object.
 	 * @param object $config configuration object.
 	 */	
-	constructor: function (parent,modulePath,config)
+	constructor: function (parent,modulePath,config,classes)
 	{
 
 		this.setModulePath(modulePath || '');
@@ -37,7 +37,13 @@ module.exports = {
 		this.preinit.apply(this,arguments); 
 
 		this.importClasses();
-		this.c = this.getComponent('classBuilder').classes;
+		if (classes == undefined)
+		{
+			this.c = this.getComponent('classBuilder').classes;
+		} else
+		{
+			Object.defineProperty(this,'c',{ value: classes, enumerable:false, writable: false });
+		}
 		
 		var defaultConfig = sourcePath+'config/'+className+'Config.json';
 		if (config)
@@ -234,10 +240,9 @@ module.exports = {
 				if (this.getComponent('classBuilder').exists(className))
 				{
 					config.id = id;
-					config.autoInit = false;
-					var component = this.createComponent(className,config);
-					Object.defineProperty(component,'c',{ value: this.c, enumerable:false, writable: false });
-					component.init(config);
+					config.autoInit = (config.autoInit == true);
+					var component = this.createComponent(className,config,this.c);
+					(!config.autoInit)&&component.init(config);
 					_components[id] = component;
 					if (typeof config.alias == 'string')
 						this[config.alias] = _components[id]
@@ -253,9 +258,9 @@ module.exports = {
 		 * @param string $config application 
 		 * @return wnModule the module instance, false if the module is disabled or does not exist.
 		 */
-		createComponent: function (className,config)
+		createComponent: function (className,config,classes)
 		{
-			return new this.c[className](config);
+			return new this.c[className](config,classes);
 		},
 
 		/**
