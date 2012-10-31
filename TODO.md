@@ -1,5 +1,6 @@
 TODO LIST
 ==============
+(In order of priority)
 
 ## v1.0.0 RC1
 
@@ -13,5 +14,5 @@ TODO LIST
 - Server and app store log as file system.
 - Better wnTemplate class.
 - Fully develop wnCache and wnDependency classes.
-- Code and docs revision.
+- Code and docs revision. 
 - Stress and memory test.
