@@ -1,4 +1,4 @@
-WNS.
+WNS Framework.
 ========
 ##### NodeJS MVC Framework and HTTP Server inspired on the structure of the [world's best PHP Framework: Yii](http://yiiframework.com).
 
