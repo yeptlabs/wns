@@ -2,17 +2,16 @@
  * Source of the wnController class.
  * 
  * @author: Pedro Nasser
- * @link: http://pedroncs.com/projects/webnode/
- * @license: http://pedroncs.com/projects/webnode/#license
- * @copyright: Copyright &copy; 2012 WebNode Server
+ * @link: http://wns.yept.net/
+ * @license: http://yept.net/projects/wns/#license
+ * @copyright: Copyright &copy; 2012 WNS
  */
 
 /**
- * {full_description}
+ * Description coming soon.
  *
  * @author Pedro Nasser
- * @version $Id$
- * @pagackge system.base
+ * @package system.core.web
  * @since 1.0.0
  */
 
@@ -22,45 +21,15 @@ module.exports = {
 	/**
 	 * Class dependencies
 	 */
-	extend: [],
-
-	/**
-	 * Constructor
-	 * {description}
-	 * @param VARTYPE $example description
-	 */	
-	constructor: function (extend) {
-
-		// Extends..
-		this.request=extend;
-		this.app=this.request.app;
-
-		// Import all request queries.
-		this.query=Object.extend(true,this.query,{ POST: this.request.info.body });
-		this.query=Object.extend(true,this.query,{ GET: this.request.parsedUrl.query });
-		this.query=Object.extend(true,this.query.GET, this.request.route.params);
-
-		// Creates a new View
-		this.view=new this.app.c.wnView;
-		this.view.super_=this;
-
-	},
+	extend: ['wnComponent'],
 
 	/**
 	 * PRIVATE
-	 *
-	 * Only get and set by their respectives get and set private functions.
-	 *
-	 * Example:
-	 * If has a property named $id.
-	 * It's getter function will be `this.getId`, and it's setter `this.setId`.
-	 * To define a PRIVILEGED function you put a underscore before the name.
 	 */
 	private: {},
 
 	/**
 	 * Public Variables
-	 * Can be accessed and defined directly.
 	 */
 	public: {
 
@@ -83,14 +52,14 @@ module.exports = {
 		request: undefined,
 
 		/**
-		 * @var string the name of the default action to be loaded
-		 */
-		defaultAction: 'index',
-
-		/**
 		 * @var string the name of the default layout to be loaded
 		 */
 		layout: 'main',
+
+		/**
+		 * @var string default action
+		 */
+		defaultAction: 'index',
 
 		/**
 		 * @var string string where it will be stored the response
@@ -98,9 +67,9 @@ module.exports = {
 		response: '',
 
 		/**
-		 * Default Index action.
+		 * @var string controller title
 		 */
-		actionIndex: function () {}
+		title: undefined
 
 	},
 
@@ -108,6 +77,72 @@ module.exports = {
 	 * Methods
 	 */
 	methods: {
+
+		/**
+		 * Initializer
+		 */	
+		init: function ()
+		{
+			this.request=this.getConfig('request');
+			this.app=this.getConfig('app');
+
+			if (this.request)
+			{
+				this.query=Object.extend(true,this.query,{ POST: this.request.info.body });
+				this.query=Object.extend(true,this.query,{ GET: this.request.parsedUrl.query });
+				this.query=Object.extend(true,this.query.GET, this.request.route.params);
+			}
+
+			if (this.app)
+				this.view=this.app.createClass('wnView',{ controller: this });
+		},
+
+		/**
+		 * Default Index action.
+		 */
+		actionIndex: function () {},
+
+		/**
+		 * Resolve the action's method's name.
+		 * @param $action string action's name
+		 * @return mixed action's name or false.
+		 */
+		resolveAction: function (action)
+		{	
+			action = action+'';
+			var actions = this.getActions();
+			for (a in actions)
+			{
+				if (actions[a].toLowerCase() == 'action'+action.toLowerCase())
+					{
+						return actions[a];
+					}
+			}
+			return false;
+		},
+
+		/**
+		 * Get list of action of this controller
+		 */
+		getActions: function ()
+		{		
+			var actions = [];
+			for (a in this)
+			{
+				if ((a+'').substr(0,6) == 'action')
+					actions.push(a);
+			}
+			return actions;
+		},
+		
+		/**
+		 * Return the name of this controller.
+		 * @return controller's name
+		 */
+		getControllerName: function ()
+		{
+			return this.getConfig('controllerName');
+		},
 	
 		/**
 		 * Renders the view.
@@ -116,30 +151,32 @@ module.exports = {
 		 */
 		render: function (view,data) {
 
-			var _controller=this.request.controller,
+			var _controller=this.getControllerName(),
 				_layout=this.layout;
 				_view=view;
 
 			// Verifica se a view realmente existe...
-			if (fs.existsSync(this.app.appPath+this.app.config.path.views+this.request.controller+'/'+view+'.tpl')) {
+			if (_viewtpl=this.app.getFile(this.app.getConfig('path').views+_controller+'/'+view+'.tpl')) {
 
 				// Buscando templates...
-				var _viewtpl=fs.readFileSync(this.app.appPath+this.app.config.path.views+_controller+'/'+_view+'.tpl').toString(),
-					_layouttpl=fs.readFileSync(this.app.appPath+this.app.config.path.views+'layouts/'+_layout+'.tpl').toString();
+				var _layouttpl=this.app.getFile(this.app.getConfig('path').views+'layouts/'+_layout+'.tpl');
 
 					// Importa o layout...
 					this.view.layout = (new this.app.c.wnTemplate(_layouttpl?_layouttpl:'{conteudo}',false)).match({'content':_viewtpl});
 
 					// Load the language from configuration
-					this.view.language = this.app.config.view.language;
+					this.view.language = this.app.getConfig('components').view.language;
 
 					// Load the title template from configuration
-					this.view.title = this.app.config.view.titleTemplate;
+					this.view.title = this.app.getConfig('components').view.titleTemplate;
 
 				// Renderiza a pagina temporaria.
 				var	_contentAll=this.view.render(),
-					_contentAll=new this.app.c.wnTemplate(_contentAll,false).match(this),
-					_contentAll=new this.app.c.wnTemplate(_contentAll,false).match({self:this});
+					_contentAll=new this.app.c.wnTemplate(_contentAll,false).match({
+						self: this,
+						app: this.app.getConfig(),
+						request: this.request.getConfig()
+					});
 
 				// Substitui data vinda do controller.
 				_contentAll = (new this.app.c.wnTemplate(_contentAll,false)).match(data?data:{});
@@ -149,9 +186,10 @@ module.exports = {
 
 				// Envia resposta ao usuário.
 				this.request.send();
+
 			} else {
 				// Se não, retorna um erro e não modifica a resposta...
-				new this.app.c.wnException('View template not found: '+_controller+'/'+view,404);
+				this.app.e.log('View template not found: '+_controller+'/'+view,404);
 				this.request.send();
 			}
 		}

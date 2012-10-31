@@ -2,77 +2,107 @@
  * Source of the wnBuild class.
  * 
  * @author: Pedro Nasser
- * @link: http://pedroncs.com/projects/webnode/
- * @license: http://pedroncs.com/projects/webnode/#license
- * @copyright: Copyright &copy; 2012 WebNode Server
+ * @link: http://wns.yept.net/
+ * @license: http://yept.net/projects/wns/#license
+ * @copyright: Copyright &copy; 2012 WNS
  */
 
 /**
- * {full_description}
+ * Description coming soon.
  *
  * @author Pedro Nasser
- * @version $Id$
- * @pagackge system.base
+ * @package system
  * @since 1.0.0
  */
 
 module.exports=wnBuild;
 
 /* wnBuild Class */
-function wnBuild(classes) {
+function wnBuild(classesSource) {
+
+	this.classesSource = {};
 
 	// Import classes.
-	this.classes = classes || {};
+	for (c in classesSource)
+	{
+		// Remove invalid classes.
+		if (this.checkStructure(classesSource[c])) {
+			this.classesSource[c] = classesSource[c];
+			// Remove invalid dependencies...
+			if (!this.classesSource[c].extend) this.classesSource[c].extend = [];
+		}
+	}
 
-	// Result;
-	this.result = {};
+	// Remove invalid dependencies
+	for (c in this.classesSource)
+	{
+		// Remove a invalid extend if has been deleted.
+		this.classesSource[c].extend = this.removeInvalidDependencies(this.classesSource[c].extend);
+	}
 
 };
 
 /**
- * Recompile and class.
+ * Check if the class is compiled.
+ * @param STRING $className
+ * return BOOLEAN exists?
+ */
+wnBuild.prototype.exists = function (className) {
+
+	return this.classes[className] != undefined && this.classes[className].loaded;
+
+};
+
+/**
+ * Recompile a class from classesSource with new properties.
  * @param STRING $className
  * @param OBJECT $obj
+ * @param OBJECT recompiled class object
  */
 wnBuild.prototype.recompile = function (className,obj) {
 
-	this.result[className].loaded = false;
+	this.classes[className] = this.classes[className] || {};
+	this.classes[className].loaded = false;
 
-	var _nc = Object.extend(true,this.result[className].build,obj);
-		_c=this.buildClass(_nc,className);
-	if (_c && _c.loaded == true) { // Loaded.
+	var _nc = Object.extend(true,this.classes[className].build,obj);
+	this.classesSource[className] = _nc;
+	var _c=this.buildClass(className);
+
+	if (_c.loaded == true) { // Loaded.
 		return _c;
-	} else { //Invalid structure
-		return this.result[className];
+	} else {
+		return this.classes[className];
 	}
 
 };
 
 /**
  * Build all classes.
+ * @return OBJECT object with the result of class compilation
  */
 wnBuild.prototype.build = function () {
 
 	var _done = 0;
-	for (c in this.classes) { if (this.classes[c] != undefined && this.classes[c].loaded != true) _done++; }
+	for (c in this.classesSource) { if (this.classesSource[c] != undefined && this.classesSource[c].loaded != true) _done++; }
 
+	this.classes = {};
 	while (_done > 0) {
-		for (c in this.classes)
+		for (c in this.classesSource)
 		{
-			if (this.classes[c] != undefined && this.classes[c].loaded != true) {
-				var _c=this.buildClass(this.classes[c],c);
-				if (_c) { // Loaded.
+			if (this.classes[c] == undefined) {
+				var _c=this.buildClass(c);
+				if (_c.loaded == true) { // Loaded.
 					_done--;
-					this.result[c] = _c;
+					this.classes[c] = _c;
 				} else if (_c == -1) { //Invalid structure
 					_done--;
-					delete this.classes[c];
+					this.classes[c] = {};
 				}
 			}
 		}
 	}
 
-	return this.result;
+	return this.classes;
 
 };
 
@@ -80,56 +110,101 @@ wnBuild.prototype.build = function () {
  * Build a single class.
  * @param OBJECT $targetClass
  * @param STRING $className
+ * @return OBJECT class builder
  */
-wnBuild.prototype.buildClass = function (targetClass,className) {
+wnBuild.prototype.buildClass = function (className) {
 
-	// Checking object structure...
-	if (!this.checkStructure(targetClass)) return -1;
+	var targetClass = this.classesSource[className];
 
-	// Checking dependencies...
+	// Check if extension is ready.
 	if (!this.checkDependencies(targetClass.extend)) return false;
 
-	// Remove invalid dependencies...
-	targetClass.extend = this.removeInvalidDependencies(targetClass.extend);
-
-	// Build object.
-	var build = {};
-
-	// Importing from dependencies..
-	for (k in targetClass.extend)
-	{
-		Object.extend(true,build,this.result[targetClass.extend[k]].build);
-	}
-
 	// Importing from targetClass
-	Object.extend(true,build,targetClass);
+	var build = Object.extend(true,{},targetClass),
+		self = this;
+
+	// Getting all real extensions
+	var _ext = [];
+	(function (extend) {
+		for (e in extend)
+		{
+			var ext=_ext.reverse();
+				ext.push(extend[e]);
+				ext.reverse();
+				_ext=ext;
+			arguments.callee(self.classes[extend[e]].build.extend);
+		}
+	})(build.extend);
+	build.extend = _ext;
 
 	// Creating descriptor of the public properties and methods..
-	var desc = this.createDescriptor(build);
+	//var desc = this.createDescriptor(build);
 
 	// Get builder.
 	var _builder = this;
+	eval("var classBuilder = function "+className+"() { return this.build.apply(undefined,arguments); }");
 	eval("var klass = function "+className+"() {}");
 
 	// Importing descriptor.
-	Object.defineProperties(klass.prototype,desc);
+	//Object.defineProperties(klass.prototype,desc);
 
 	// Class builder.
-	function classInstance() {
+	classBuilder.prototype.build = function () {
 
 		var k = new klass;
-	
-		// Import private.
-		for (p in build.private) {
-			k[p] = build.private[p];
-		}
-		// Import private methods
-		for (m in build.methods) {
-			k[m] = build.methods[m];
+
+		// Importing extensions
+		for (e in build.extend)
+		{
+				(function () {
+
+					var extendBuild=self.classes[build.extend[e]].build;
+
+					// Declare private variables
+					for (p in extendBuild.private) {
+						eval('var '+p+' = _builder.newValue(extendBuild.private[p]);');
+					}
+
+					var _className = self.newValue(className),
+						_extend = self.newValue(build.extend),
+						_buildMethods = self.newValue(extendBuild.methods),
+						extendBuild=self.classes[build.extend[e]].build;
+
+					// Redeclare privileged methods.
+					for (m in _buildMethods) {
+						k[m] = eval('['+_buildMethods[m].toString()+']')[0];
+					}
+				
+					// Push public vars to the build
+					Object.extend(true,build.public,extendBuild.public);
+
+					var extendBuild=self.classes[build.extend[e]].build;
+
+					// Define this constructor as the main constructor.
+					if (extendBuild.propertyIsEnumerable('constructor'))
+						build.constructor=eval('['+extendBuild.constructor+']')[0];
+
+				})();
 		}
 
+		// Import private and privileged
+		(function () {
+		
+			// Declare private vars
+			for (p in build.private) {
+				eval('var '+p+' = _builder.newValue(build.private[p]);');
+			}
+
+			// Redeclare privileged methods
+			for (m in build.methods) {
+				k[m] = eval('['+build.methods[m].toString()+']')[0];
+			}
+
+		})();
+
 		// Import constructor
-		k.constructor = build.constructor;
+		if (build.propertyIsEnumerable('constructor'))
+			k.constructor = build.constructor;
 
 		// Redeclare public vars
 		for (p in build.public) {
@@ -137,14 +212,14 @@ wnBuild.prototype.buildClass = function (targetClass,className) {
 		}
 
 		// Call constructor.
-		k.constructor.apply(k, arguments);
+		k.constructor&&k.constructor.apply(k, arguments);
 
 		return k;
 	
 	};
 
 	// Save the descriptor
-	Object.defineProperty(classInstance, 'build', {
+	Object.defineProperty(classBuilder, 'build', {
 		value: build,
 		writable: false,
 		enumerable: false,
@@ -152,80 +227,34 @@ wnBuild.prototype.buildClass = function (targetClass,className) {
 	});
 
 	// Define as loaded.
-	Object.defineProperty(classInstance, 'loaded', {
+	Object.defineProperty(classBuilder, 'loaded', {
 		value: true,
 		enumerable: false
 	});
 
-	return classInstance;
+	return classBuilder;
 
 };
 
 /**
- * Create the descriptor of all properties of the targetClass
- * @param OBJECT $targetClass
- */
-wnBuild.prototype.createDescriptor = function (targetClass) {
-
-	var _desc = {
-		_private: {
-			value: {}
-		},
-		_methods: {
-			value: {}
-		}
-	};
-
-	// Public import
-	for (p in targetClass.public) {
-		_desc[p] = {
-			value: targetClass.public[p],
-			enumerable: true,
-			configurable: false,
-			writable: true
-		};
-	}
-
-	// Public import
-	for (p in targetClass.private) {
-		_desc._private.value[p] = targetClass.private[p];
-	}
-
-	// Methods import
-	for (p in targetClass.methods) {
-		// Its privileged?
-		if (p.substr(0,1) == '_') {
-			_desc._methods.value[p.substr(1)] = targetClass.methods[p];
-		} else {
-			_desc[p] = {
-				value: targetClass.methods[p],
-				enumerable: true,
-				configurable: false,
-				writable: true
-			};
-		}
-	}
-
-	return _desc;
-}
-
-/**
  * Check class source structure.
  * @param OBJECT $targetClass
+ * @return BOOLEAN true if structure is correct, false if not
  */
 wnBuild.prototype.checkStructure = function (targetClass) {
-	return targetClass && targetClass.private && targetClass.public && targetClass.extend && targetClass.methods && targetClass.constructor;
+	return targetClass && targetClass.private && targetClass.public && targetClass.methods;
 };
 
 /**
  * Check class dependencies
  * @param ARRAY $extensions
+ * @return BOOLEAN true if all dependencies are already loaded
  */
 wnBuild.prototype.checkDependencies = function (extensions) {
 	if (typeof extensions != 'object') return false;
 	for (e in extensions)
 	{
-		if (this.result[extensions[e]] == undefined || this.result[extensions[e]].loaded != true) return false;
+		if (this.classes[extensions[e]] == undefined || this.classes[extensions[e]].loaded != true) return false;
 	}
 	return true;
 };
@@ -233,12 +262,13 @@ wnBuild.prototype.checkDependencies = function (extensions) {
 /**
  * Remove class invalid dependencies.
  * @param ARRAY $extensions
+ * @return ARRAY valid extensions and if its not ok remove from the list
  */
 wnBuild.prototype.removeInvalidDependencies = function (extensions) {
 	var _ext = [];
 	for (e in extensions)
 	{
-		if (this.classes[extensions[e]] != undefined) _ext.push(extensions[e]);
+		if (this.classesSource[extensions[e]] != undefined) _ext.push(extensions[e]);
 	}
 	return _ext;
 };
@@ -246,12 +276,14 @@ wnBuild.prototype.removeInvalidDependencies = function (extensions) {
 /**
  * Create new memory variable to the property.
  * @param ANY $property
+ * @result ANY new instance of the data
  */
 wnBuild.prototype.newValue = function (property) {
 	var type = typeof property;
 	if (type != 'object') {
 		if (property==undefined || property==null) return property;
 		if (type === 'function') return property;
+		if (type === 'boolean') return property == true;
 		if (type == 'string') return property + "";
 		var _i = new (global[type.substr(0,1).toUpperCase()+type.substr(1).toLowerCase()])(property);
 		return (type == 'number') && _i.toValue ? _i.toValue() : _i;

@@ -1,18 +1,8 @@
-// wnServer default configuration.
+// wnConsole default configuration.
 {
-
-	// Where the applications will be stored.
-	"appDirectory": "app/",
 
 	// Components
 	"components": {
-
-		// wnHttp default configuration
-		"http": {
-			"class": "wnHttp",
-			// Listen on port and IP...
-			"listen":[80,"0.0.0.0"]
-		}
 
 	},
 
@@ -32,8 +22,7 @@
 			"eventName": "wnLog",
 			"handler": "logHandler",
 			"listenEvent": "module.log",
-			"filters": ["filterLog"],
-			"bubble": true
+			"filters": ["filterLog"]
 		},
 
 		"exception": {

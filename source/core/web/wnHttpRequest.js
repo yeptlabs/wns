@@ -2,17 +2,16 @@
  * Source of the wnHttpRequest class.
  * 
  * @author: Pedro Nasser
- * @link: http://pedroncs.com/projects/webnode/
- * @license: http://pedroncs.com/projects/webnode/#license
- * @copyright: Copyright &copy; 2012 WebNode Server
+ * @link: http://wns.yept.net/
+ * @license: http://yept.net/projects/wns/#license
+ * @copyright: Copyright &copy; 2012 WNS
  */
 
 /**
- * {full_description}
+ * Description coming soon.
  *
  * @author Pedro Nasser
- * @version $Id$
- * @pagackge system.base
+ * @package system.core.web
  * @since 1.0.0
  */
 
@@ -22,70 +21,22 @@ module.exports = {
 	/**
 	 * Class dependencies
 	 */
-	extend: [],
-
-	/**
-	 * Constructor
-	 * {description}
-	 * @param VARTYPE $example description
-	 */	
-	constructor: function (extend) {
-
-		// Extend the httpRequest with the request, response and app information
-		Object.extend(true, this, extend);
-
-		try {
-			// Run the request.*/
-			this.run();
-		}
-		catch (e) {
-			new this.app.c.wnException(e);
-		}
-
-	},
+	extend: ['wnComponent'],
 
 	/**
 	 * PRIVATE
-	 *
-	 * Only get and set by their respectives get and set private functions.
-	 *
-	 * Example:
-	 * If has a property named $id.
-	 * It's getter function will be `this.getId`, and it's setter `this.setId`.
-	 * To define a PRIVILEGED function you put a underscore before the name.
 	 */
 	private: {},
 
 	/**
 	 * Public Variables
-	 * Can be accessed and defined directly.
 	 */
 	public: {
 
 		/**
-		 * @var object Parsed URL object
+		 * @var object parsed url object
 		 */
 		parsedUrl: {},
-
-		/**
-		 * @var object Application object
-		 */
-		app: {},
-
-		/**
-		 * @var object Request info object
-		 */
-		info: {},
-
-		/**
-		 * @var object Response object
-		 */
-		response: {},
-
-		/**
-		 * @var object Route object
-		 */
-		route: {},
 
 		/**
 		 * @var string data of the response
@@ -93,12 +44,12 @@ module.exports = {
 		data: '',
 
 		/**
-		 * @var integer status code of the response
+		 * @var integer response's code.
 		 */
 		code: 200,
 
 		/**
-		 * @var object header configuration of the response
+		 * @var object response's header
 		 */
 		header: {}
 
@@ -109,180 +60,146 @@ module.exports = {
 	 */
 	methods: {
 
+
 		/**
-		 * Method that compress, prepare and sends the response.
-		 */
-		send: function () {
-
-			// Objeto http
-			var http=this;
-
-			// Busca saber se é possivel encodar o conteúdo
-			var acceptEncoding = http.info.headers['accept-encoding'];
-			if (!acceptEncoding) { acceptEncoding = ''; }
-
-			// Verifica se é possivel utilizar gzip e se possui mais de 150bytes.
-			if (acceptEncoding.match(/\bgzip\b/) || (typeof http.data == 'string' && Buffer.byteLength(http.data, 'utf8')>150)) {
-				// gzipa.
-				http.header['Content-Encoding']='gzip';
-				zlib.gzip(new Buffer(http.data), function (e,buf) {
-					// Envia a resposta..
-					http.header['Content-Length']=buf.length;
-					http.response.writeHead(http.code,http.header);
-					http.response.end(buf);
-				});
-			} else {
-				// Envia a resposta..
-				http.header['Content-Length']=http.data.length;
-				http.response.writeHead(http.code,http.header);
-				http.response.end(http.data);		
-			}
-
+		 * Initializer
+		 */	
+		init: function ()
+		{
+			this.header = this.getConfig('header') || this.header;
+			this.info = this.getConfig('request');
+			this.response = this.getConfig('response');
+			this.app = this.getConfig('app');
 		},
 
 		/**
-		 * Runs the request execution..
+		 * Method that compress, prepare and sends the response.
+		 */
+		send: function ()
+		{
+			var self = this,
+				acceptEncoding = this.info.headers['accept-encoding'];
+			if (!acceptEncoding) 
+				acceptEncoding = '';
+
+			if (acceptEncoding.match(/\bgzip\b/) || (typeof this.data == 'string' && Buffer.byteLength(this.data, 'utf8')>150))
+			{
+				this.header['Content-Encoding']='gzip';
+				zlib.gzip(new Buffer(this.data), function (e,buf)
+				{
+					self.header['Content-Length']=buf.length;
+					self.response.writeHead(self.code,self.header);
+					self.response.end(buf);
+				});
+			} else
+			{
+				this.header['Content-Length']=this.data.length;
+				this.response.writeHead(this.code,this.header);
+				this.response.end(http.data);		
+			}
+		},
+
+		/**
+		 * Check the route and then send it to the right handler...
 		 */	
-		run: function () {
+		run: function ()
+		{
+			if (this.info.url == '/')
+				this.info.url = '/'+this.getConfig('defaultController')+'/';
 
-			// Get the default header configuration..
-			this.header = this.app.config.http.header;
-
-			// Check if its an access to the '/'
-			// If yes: change to default controller url
-			if (this.info.url == '/') this.info.url = '/'+this.app.config.http.defaultController+'/';
-
-			// Parse the URL
 			this.parsedUrl=url.parse(this.info.url);
 
-			// Get the pattern of the request.
-			this.route = this.app.urlManager.parseRequest(this) || { translation: this.info.url, params: {}, template: '' };
+			this.route = this.app.getComponent('urlManager').parseRequest(this) || { translation: this.info.url, params: {}, template: '' };
 			var _template = this.route ? this.route.template : false;
 
-			// Is a file request?
-			if (_template == '<file>') return this.publicHandler();
-			// Else is a controller/action request.
-			else return this.controllerHandler();
-
+			if (_template == '<file>')
+				return this.publicHandler();
+			else
+				return this.controllerHandler();
 		},
 
 		/**
 		 * Controller Access Handler
+		 * Check if the controller is valid, then creates.
+		 * If not valid send it to the errorHandler.
 		 */
-		controllerHandler: function () {
-			
-			// Changeing content-type to text/html
+		controllerHandler: function ()
+		{
 			this.header['Content-Type']=mime.lookup('.html');
 
-			// Parse the url to get the correct controller and action name.
 			var _p=(this.route.translation).split('/'),
 				_plen = _p.length,
-				_controller=_plen>0&&_p[1]!=''?_p[1]:this.app.config.http.defaultController,
-				_action=_plen>1&&_p[2]!=''?_p[2]:undefined;
+				_controller=_plen>0&&_p[1]!=''?_p[1]:this.getConfig('defaultController'),
+				_action=_plen>1&&_p[2]!=''?_p[2]:undefined,
+				controllerPath = this.app.modulePath+this.app.getConfig('path').controllers+_controller+'.js';
 
-			// Check if this controller not have been loaded before.
-			// TODO: Smart Cache System.
-			if (!this.app.controllers[_controller] || 1==1) {
-
-				// Check the existence of the controller on the directory.
-				if (!fs.existsSync(this.app.appPath+this.app.config.path.controllers+_controller+'.js')) {;
-					
-					new this.app.c.wnLog('Controller not found: '+_controller,'access');
-
-					// Show error.
-					this.errorHandler();
-
-					return false;
-
-				}
-
-				// Creates a new controller based on the default.
-				this.app.controllers[_controller]=new this.app.c.wnController(this);
-
-				// Delete the require cache if exists.
-				delete require.cache[this.app.appPath+this.app.config.path.controllers+_controller+'.js'];
-
-				// Extends it with the application controller.
-				var _cntr=_r(this.app.appPath+this.app.config.path.controllers+_controller+'.js');
-				Object.extend(true,this.app.controllers[_controller],_cntr);
-				this.controller=_controller;
-
-			}
-
-			// If theres no action name try to reach the default action...
-			_action=this.action=(!_action?this.app.controllers[_controller].defaultAction:_action);
-
-			// Resolve action name
-			var _resolveAction = _action;
-			for (a in this.app.controllers[_controller]) {
-				if (a.toLowerCase() == 'action'+_action.toLowerCase()) { _resolveAction=a; break; }
-			}
-
-			// If action really exits..
-			if (_action != _resolveAction) {
-
-				_action = this.action = _resolveAction;
-
-				// Executes the action.
-				this.app.controllers[_controller][_action]&&this.app.controllers[_controller][_action]();
-
-			// If not, redirect to error page.
-			} else {
-
-				new this.app.c.wnLog('View not found: '+_action,'access');
-				// Show error.
+			if (this.app.existsController(_controller))
+			{
+				this.app.e.log('Controller not found: '+_controller,'access');
 				this.errorHandler();
-
+				return false;
 			}
 			
+			this.controller=this.app.getController(_controller,this);
+
+			_action=this.action=(!_action?this.controller.defaultAction:_action);
+
+			var _resolveAction;
+			if (_resolveAction=this.controller.resolveAction(_action))
+			{
+				_action = this.action = _resolveAction;
+				this.controller[_action]&&this.controller[_action]();
+			} else
+			{
+				this.app.e.log('Action not found: '+_action,'access');
+				this.errorHandler();
+			}
+
 		},
 
 		/**
 		 * Public File Access Handler
+		 * Try to load the file if exists.
+		 * If not, send it to the 
 		 */
-		publicHandler: function () {
+		publicHandler: function ()
+		{
+			var _filename = this.route.translation.replace(/^\//,''),
+				file;
 
-				_filename = this.route.translation;
+			if (file=this.app.getFile(this.app.getConfig('path').public+_filename,true))
+			{
+					this.data = file;
 
-				// Try to read the file on the public directory
-				fs.readFile(this.app.appPath+this.app.config.path.public+_filename, function (err, data) {
-
-					// If notfound:
-					if (err) { this.code = 404; this.header['Status']='404 Not Found'; new this.app.c.wnLog('File not found: '+this.parsedUrl.pathname,'access'); }
-					// If found it, send it to the http.data
-					else { this.data = data; }
-
-					// Define headers
 					this.header['Content-Length']=this.data.length;
 					this.header['Content-Type']=mime.lookup(this.parsedUrl.pathname);
 
-					// Send the response
 					this.send();
 
-				}.bind(this));
+					return false;
+			}
 
+			this.code = 404;
+			this.header['Status']='404 Not Found';
+			this.app.e.log('File not found: '+this.parsedUrl.pathname,'access');
 		},
 
 		/**
 		 * Error Access Handler
 		 */
-		errorHandler: function () {
-
-			// If it does not exists
+		errorHandler: function ()
+		{
 			this.code = 404;
 			this.header['Status']='404 Not Found';
 
-			// Exist errorPage? If yes, redirect.
-			if (this.app.config.http.errorPage!=undefined) {
+			if (this.getConfig('errorPage')!=undefined)
+			{
 				this.code = 302;
-				this.header['Location']='/'+this.app.config.http.errorPage;
+				this.header['Location']='/'+this.getConfig('errorPage');
 			}
 
-			// Send response.
 			this.send();
-
 		}
 
 	}
-
 };
