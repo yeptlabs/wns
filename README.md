@@ -1,25 +1,27 @@
 WNS.
 ========
-##### NodeJS MVC Framework and HTTP Server based on the structure of the world's best PHP Framework: [Yii](http://yiiframework.com).
+##### NodeJS MVC Framework and HTTP Server inspired on the structure of the [world's best PHP Framework: Yii](http://yiiframework.com).
 
 
 ## Features
 
-Resume in these words: `scalable, extendable, secure, customization, configurable, dynamic, smart, mvc, event, error, log, cache`
-
- - Ispired on **[Yii Framework](http://yiiframework.com)**
- - Build **high performance** applications
- - Full *classes*, *libraries*, *configurations*, *environment* **global and private customization**
- - *Model-View-Controller (MVC)* design pattern
- - **1 to MANY**. One *HTTP server* to *multiple servers* and *multiple applications*
- - Support **multiple domains** and **multiple subdomains**
- - Fully **event-driven**. Total event manipulation
- - Smart **template engine** and **customization**
- - Smart and powerful **cache system**
- - Complete **error handling** and **logging**
- - **Separated console and log** for each application and each server
- - Fully **scalable**
- - Fully **extendable**
+ - **NODEJS** - `Builded on top of Node.js`
+ - **INSPIRED** - `Ispired on Yii Framework`
+ - **PERFORMANCE** - `Build high performance applications`
+ - **PRIVATE-CUSTOMIZATION** - `Full classes, libraries, configurations, environment global and private customization`
+ - **MVC** - `Model-View-Controller (MVC) design pattern`
+ - **1:N** - `One HTTP server to multiple servers and multiple applications`
+ - **DOMAIN** - `Support multiple domains and subdomains`
+ - **EVENT** - `Fully event-driven. Total event manipulation`
+ - **TEMPLATE** - `Smart template engine and customization`
+ - **CACHE** - `Smart and powerful cache system`
+ - **ERROR-LOG** - `Complete error handling and logging`
+ - **CONSOLE** - `Private console to each application`
+ - **WEBCONSOLE** - `A powerful private web console`
+ - **SCALABLE** - `Fully scalable`
+ - **EXTENDABLE** - `Fully extendable`
+ - **ROUTABLE** - `Fully routable`
+ - **MUCH-MORE** - `See yourself...`
 
 ## Installation
 
