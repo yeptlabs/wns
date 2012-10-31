@@ -1,4 +1,8 @@
-** Todo v1.0.0 RC1
+TODO LIST
+==============
+
+## Todo v1.0.0 RC1
+
 - Finish wnDbConnection class with support to all databases with out ORM or with node-orm plugin.
 - Finish wnEvent class.
 - Fully develop an wnScript system.
