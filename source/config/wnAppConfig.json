@@ -1,4 +1,4 @@
-// Default Application Configuration
+// wnApp default configuration.
 {
 
 	// Application Name
@@ -13,43 +13,66 @@
 		"views": "views/"
 	},
 
-	// wnHttpRequest default configuration
-	"http":{
+	// Components
+	"components": {
 
-		// Default HTTP Header.
-		"header": {
-			"Connection": "closed"
+		// wnHttpRequest default configuration
+		"http": {
+			"class": "wnHttpRequest",
+
+			// Default HTTP Header.
+			"header": {
+				"Connection": "closed"
+			},
+
+			"defaultController":"site",
+			"contentType": {},
+			"serveralias": "",
+			"errorPage": ""
 		},
 
-		"defaultController":"",
-		"contentType": {},
-		"serveralias": "",
-		"errorPage": "",
+		// wnView default configuration
+		"view": {
+			"class": "wnView",
+			"titleTemplate": "{app.title} - {self.title}",
+			"language": "en",
+			"menu": {},
+			"menuTemplate":"<ul>{list}</ul>",
+			"menuItemTemplate":"<li><a href='{url}'>{label}</a></li>",
+			"loadScriptPath": "js/"
+		},
 
 		// wnUrlManager configuration
-		"urlManager": {}
+		"urlManager": {
+			"class": "wnUrlManager"
+		}
 
 	},
 
-	// wnView configuration
-	"view": {
-		"titleTemplate": "{app.config.title} - {self.title}",
-		"language": "en",
-		"menu": {},
-		"menuTemplate":"<ul>{list}</ul>",
-		"menuItemTemplate":"<li><a href='{url}'>{label}</a></li>",
-		"loadScriptPath": "js/"
-	},
+	// Events
+	"events": {
+	
+		"log": {
+			"zone": {
+				"*": true,
+				"access": true,
+				"mysql": true,
+				"notfound": true,
+				"trace": true,
+				"exception": true,
+				"stack": true
+			},
+			"eventName": "wnLog",
+			"handler": "logHandler",
+			"filters": ["filterLog"],
+			"bubble": true
+		},
 
-	// wnLog configuration
-	"log": {
-		"*": true,
-		"access": true,
-		"mysql": true,
-		"notfound": true,
-		"trace": true,
-		"exception": true,
-		"stack": true
+		"exception": {
+			"handler": "exceptionHandler",
+			"eventName": "wnException"
+		}
+
 	}
 
 }

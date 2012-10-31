@@ -1,21 +1,17 @@
 /**
  * Source of the wnUrlRule class.
- *
- * Some codes were taken from Yii Framework source
- * (https://github.com/yiisoft/yii/blob/master/framework/web/CUrlManager.php)
  * 
  * @author: Pedro Nasser
- * @link: http://pedroncs.com/projects/webnode/
- * @license: http://pedroncs.com/projects/webnode/#license
- * @copyright: Copyright &copy; 2012 WebNode Server
+ * @link: http://wns.yept.net/
+ * @license: http://yept.net/projects/wns/#license
+ * @copyright: Copyright &copy; 2012 WNS
  */
 
 /**
- * {full_description}
+ * Description coming soon.
  *
  * @author Pedro Nasser
- * @version $Id$
- * @pagackge system.base
+ * @package system.core.web
  * @since 1.0.0
  */
 
@@ -170,11 +166,12 @@ module.exports = {
 				}
 
 				// Searching for regexp from the param's list
-				for (p in this.params) {
-
+				for (p in this.params)
+				{
 					var reg = this.params[p],
 						match = _urlPiece.match(new RegExp('\/'+reg,'gi'));
-					if (match != null) {
+					if (match != null)
+					{
 						result.params[p] = match[0].replace(/^\//gi, '');
 						_urlPiece=_urlPiece.replace(new RegExp('^\/'+reg,'gi'),'');
 					}
@@ -184,7 +181,8 @@ module.exports = {
 				if(this.route.indexOf('<')!==-1 && this.route.match(/<(\w+):?(.*?)?>/gi))
 				{
 					var match = this.route.match(/<(\w+):?(\w+)?>/gi);
-					for(m in match) {
+					for(m in match)
+					{
 						var _t=(match[m].replace(/[\<|\>]/gi,'')).replace(/^\//,'').replace(/\/$/,''),
 							_param = _t.split(':')[0],
 							_fromParam = this.translations[_param]=='';

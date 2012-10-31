@@ -1,7 +1,7 @@
 {
-  "name": "webNode Server",
+  "name": "wns.",
   "description": "A NodeJS MVC Framework and HTTP Server",
-  "version": "1.0.0a",
+  "version": "1.0.0rc1",
   "author": "Pedro Nasser <pedronasser@gmail.com>",
   "contributors": [ 
     { "name": "Pedro Nasser", "email": "pedronasser@gmail.com" }
@@ -22,7 +22,7 @@
     "http",
     "server"
   ],
-  "repository": "git://github.com/yeptlabs/wnServer",
+  "repository": "git://github.com/yeptlabs/wns",
   "main": "index",
   "engines": { "node": "*" }
 }

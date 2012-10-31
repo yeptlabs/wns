@@ -1,5 +1,5 @@
 /**
- * Source of the wnCacheDependency class.
+ * Source of the wnDbCommand class.
  * 
  * @author: Pedro Nasser
  * @link: http://wns.yept.net/
@@ -11,6 +11,6 @@
  * Description coming soon.
  *
  * @author Pedro Nasser
- * @package system.core.cache
+ * @package system.core.db
  * @since 1.0.0
  */

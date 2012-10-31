@@ -2,17 +2,16 @@
  * Source of the wnConsoleCommand class.
  * 
  * @author: Pedro Nasser
- * @link: http://pedroncs.com/projects/webnode/
- * @license: http://pedroncs.com/projects/webnode/#license
- * @copyright: Copyright &copy; 2012 WebNode Server
+ * @link: http://wns.yept.net/
+ * @license: http://yept.net/projects/wns/#license
+ * @copyright: Copyright &copy; 2012 WNS
  */
 
 /**
- * {full_description}
+ * Description coming soon.
  *
  * @author Pedro Nasser
- * @version $Id$
- * @pagackge system.base
+ * @package system.core.console
  * @since 1.0.0
  */
 
@@ -25,33 +24,28 @@ module.exports = {
 	extend: [],
 
 	/**
-	 * Constructor
-	 * {description}
-	 * @param VARTYPE $example description
-	 */	
-	constructor: function (args) {},
-
-	/**
 	 * PRIVATE
-	 *
-	 * Only get and set by their respectives get and set private functions.
-	 *
-	 * Example:
-	 * If has a property named $id.
-	 * It's getter function will be `this.getId`, and it's setter `this.setId`.
-	 * To define a PRIVILEGED function you put a underscore before the name.
 	 */
 	private: {},
 
 	/**
 	 * Public Variables
-	 * Can be accessed and defined directly.
 	 */
 	public: {},
 
 	/**
 	 * Methods
 	 */
-	methods: {}
+	methods: {
+
+		/**
+		 * Initializer.
+		 */	
+		init: function ()
+		{
+
+		}
+
+	}
 
 };
