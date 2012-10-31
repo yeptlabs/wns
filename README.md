@@ -53,28 +53,28 @@ WNS Framework.
 
  * The first step is to create a new application:
  
- Go to the folder where you downloaded the source of **WNS**
+ Go to the folder where you downloaded the source of **WNS**, then execute:
 
-     $ node index.js newapp [domain/ip] [path to the project]
+		$ node index.js newapp [domain/ip] [path to the project]
 
  Example:
 
-     $ node index.js newapp 127.0.0.1 app/helloworld
+		$ node index.js newapp 127.0.0.1 app/helloworld
    
- This will automatictally create a new application from the default inside that directory and bind the new application to the webNode loading configuration.
+ This will automatictally create a new application using the default structure on the the directory and bind the new application on WNS server configuration.
 
  * The second step is to start the **WNS** and see running your new application
  
- On the **webNode** directory just type:
+ On the **WNS** directory just type:
 
-     $ node index.js
+		$ node index.js
  
- And it's done! The **webNode server** will start runnning based on `config.json` configuration.
+ And it's done! The **WNS** will start runnning based on `config.json` configuration.
 
  * To view your application running just access:
 
-     `http://[domain/ipp of the application]`
+		http://[domain/ipp of the application]
 
-## Other information
+## More informations
 
- Soon.
+ See more at **http://wns.yept.net/**
