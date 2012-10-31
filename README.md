@@ -33,13 +33,13 @@ WNS.
 
  Just type the following command:
 
-     $ npm install https://github.com/yeptlabs/wnServer.git
+     $ npm install https://github.com/yeptlabs/wns.git
 
 ### @ Git mode
 
  This mode requires the installation of `git`
 
-     $ git clone https://github.com/yeptlabs/wnServer.git
+     $ git clone https://github.com/yeptlabs/wns.git
 
  Then type:
  
@@ -53,7 +53,7 @@ WNS.
 
  * The first step is to create a new application:
  
- Go to the folder where you downloaded the source of **webNode**
+ Go to the folder where you downloaded the source of **WNS**
 
      $ node index.js newapp [domain/ip] [path to the project]
 
@@ -63,7 +63,7 @@ WNS.
    
  This will automatictally create a new application from the default inside that directory and bind the new application to the webNode loading configuration.
 
- * The second step is to start the **webNode server** and see running your new application
+ * The second step is to start the **WNS** and see running your new application
  
  On the **webNode** directory just type:
 
