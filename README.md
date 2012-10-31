@@ -1,17 +1,25 @@
-WebNode Server 
+WNS.
 ========
-
 ##### NodeJS MVC Framework and HTTP Server based on the structure of the world's best PHP Framework: [Yii](http://yiiframework.com).
 
 
 ## Features
 
- - Based on [Yii Framework](http://yiiframework.com).
- - Full classes, libraries, configurations, environment customization
- - Model-View-Controller (MVC) design pattern
- - HTTP Server to multiple applications
- - High performance applications with multiple domains and subdomains.
- - Smart template engine.
+Resume in these words: `scalable, extendable, secure, customization, configurable, dynamic, smart, mvc, event, error, log, cache`
+
+ - Ispired on **[Yii Framework](http://yiiframework.com)**
+ - Build **high performance** applications
+ - Full *classes*, *libraries*, *configurations*, *environment* **global and private customization**
+ - *Model-View-Controller (MVC)* design pattern
+ - **1 to MANY**. One *HTTP server* to *multiple servers* and *multiple applications*
+ - Support **multiple domains** and **multiple subdomains**
+ - Fully **event-driven**. Total event manipulation
+ - Smart **template engine** and **customization**
+ - Smart and powerful **cache system**
+ - Complete **error handling** and **logging**
+ - **Separated console and log** for each application and each server
+ - Fully **scalable**
+ - Fully **extendable**
 
 ## Installation
 
