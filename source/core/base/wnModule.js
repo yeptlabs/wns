@@ -30,9 +30,8 @@ module.exports = {
 	 */	
 	constructor: function (parent,modulePath,config,classes)
 	{
-
 		this.setModulePath(modulePath || '');
-		super_ = parent || {};
+		this.setParent(parent);
 
 		this.preinit.apply(this,arguments); 
 
@@ -57,6 +56,8 @@ module.exports = {
 		this.preloadComponents();
 		this.preloadEvents();
 
+		this.importScripts();
+
 		this.getConfig('autoInit')!=false&&this.init.apply(this,arguments);
 	},
 
@@ -70,7 +71,6 @@ module.exports = {
 		_components: {},
 		_componentsConfig: {},
 		_modulesEvents: {},
-		super_: undefined
 	},
 
 	/**
@@ -140,9 +140,35 @@ module.exports = {
 						className = classes[c].split('.')[0],
 					 _class = fs.readFileSync(path+classes[c],'utf-8').toString();
 					eval(_class);
-					_c[className] = module.exports;
 					var cb = this.getComponent('classBuilder');
-					cb.classes[className]=cb.recompile(className,_c[className]);
+					cb.classes[className]=cb.recompile(className,module.exports);
+				}
+			}
+		},
+
+		/**
+		 * Import scripts sources from the module`s directory
+		 */
+		importScripts: function () {
+			var scriptPath = this.getConfig('path') && this.getConfig('path').scripts ? this.getConfig('path').scripts : 'scripts/',
+				path = this.modulePath+scriptPath;
+			if (fs.existsSync(path))
+			{
+				var scripts = fs.readdirSync(path);
+				for (s in scripts)
+				{
+					var module = {},
+						scriptName = scripts[s].split('.')[0],
+						scriptClassName = 'wnScript'+scriptName.substr(0,1).toUpperCase()+scriptName.substr(1).toLowerCase(),
+						scriptSet = {},
+						 _script = fs.readFileSync(path+scripts[s],'utf-8').toString();
+					eval(_script);
+					var cb = this.getComponent('classBuilder');
+					cb.classes[scriptClassName]=cb.recompile(scriptClassName,module.exports);
+					scriptSet[scriptName] = {
+						class: scriptClassName
+					};
+					this.setScripts(scriptSet);
 				}
 			}
 		},
@@ -167,26 +193,6 @@ module.exports = {
 			}
 			return false;
 		
-		},
-
-		/**
-		 * Returns the directory that contains the application modules.
-		 * @return string the directory that contains the application modules.
-		 */
-		getModulePath: function ()
-		{
-			return this.modulePath;
-		},
-
-		/**
-		 * Sets the directory that contains the application modules.
-		 * @param string $value the directory that contains the application modules.
-		 */
-		setModulePath: function (value)
-		{
-			value=cwd+value;
-			if (value != undefined && fs.statSync(value).isDirectory())
-				this.modulePath = value;
 		},
 
 		/**
@@ -242,6 +248,7 @@ module.exports = {
 					config.id = id;
 					config.autoInit = (config.autoInit == true);
 					var component = this.createComponent(className,config,this.c);
+					component.setParent(this);
 					(!config.autoInit)&&component.init(config);
 					_components[id] = component;
 					if (typeof config.alias == 'string')
@@ -467,12 +474,89 @@ module.exports = {
 		},
 
 		/**
-		 * Returns the parent object.
-		 * @returen object the parent object.
+		 * Set new properties to the respective scripts
+		 * @param OBJECT $scripts scripts configurations
 		 */
-		getParent: function ()
+		setScripts: function (scripts)
 		{
-			return super_;
+			var script = {};
+			for (s in scripts)
+			{
+				var ref=scripts[s],
+					scriptName = s.substr(0,1).toUpperCase()+s.substr(1).toLowerCase(),
+					s = 'script-'+s.replace('-','.');
+				script[s]=ref;
+				script[s].class='wnScript'+scriptName || 'wnScript';
+				_componentsConfig[s]=Object.extend(true,_componentsConfig[s] || {}, script[s]);
+			}
+		},
+
+		/**
+		 * Get a script class.
+		 * @param STRING $name scriptName
+		 * @return wnScript instance
+		 */
+		getScript: function (name)
+		{
+			return this.getComponent('script-'+name);
+		},
+
+		/**
+		 * Check if the script exists.
+		 */
+		hasScript: function (name)
+		{
+			return _components['script-'+name] != undefined;
+		},
+
+		/**
+		 * Check if the script exists.
+		 * @param $script string scriptname
+		 */
+		startScript: function (name)
+		{
+			var script;
+			if (script = this.getScript(name))
+			{
+				script.start();
+				return script;
+			}
+			return false;
+		},
+
+		/**
+		 * Stop a script, if it exists.
+		 * @param $name string script name
+		 */
+		stopScript: function (name)
+		{
+			var script;
+			if (script = this.getScript(name))
+			{
+				script.stop();
+				return script;
+			}
+			return false;
+		},
+
+		/**
+		 * Returns the directory that contains the application modules.
+		 * @return string the directory that contains the application modules.
+		 */
+		getModulePath: function ()
+		{
+			return this.modulePath;
+		},
+
+		/**
+		 * Sets the directory that contains the application modules.
+		 * @param string $value the directory that contains the application modules.
+		 */
+		setModulePath: function (value)
+		{
+			value=cwd+value;
+			if (value != undefined && fs.statSync(value).isDirectory())
+				this.modulePath = value;
 		},
 		
 		/**

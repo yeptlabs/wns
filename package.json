@@ -13,14 +13,8 @@
     "forever": "0.10.0"
   },
   "keywords": [
-    "web",
-    "framework",
-    "webnode",
-    "mvc",
-    "yii",
-    "app",
-    "http",
-    "server"
+    "web","yii","framework","wns","mvc",
+    "yii","app","http","server"
   ],
   "repository": "git://github.com/yeptlabs/wns",
   "main": "index",

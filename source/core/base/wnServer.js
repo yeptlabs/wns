@@ -118,8 +118,12 @@ module.exports = {
 		getApplication: function (id)
 		{
 			var app = this.getModule('app-'+id);
-			_app[id]=app;
-			return app;
+			if (app)
+			{
+				_app[id]=app;
+				return app;
+			} else
+				return false;
 		},
 
 		/**

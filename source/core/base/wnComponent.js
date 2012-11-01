@@ -41,7 +41,7 @@ module.exports = {
 	 */
 	private:
 	{
-	
+		_parent: {},
 		_initialized: false,
 		_config: {},
 		_events: {},
@@ -146,17 +146,6 @@ module.exports = {
 		},
 
 		/**
-		 * Create an class from the classSources.
-		 * @var string $className name of the class
-		 * @var object $config class configuration
-		 */
-		createClass: function (className,config)
-		{
-			var source = this.c || wns;
-			return new source[className](config);
-		},
-
-		/**
 		 * Preload all required events
 		 */
 		preloadEvents: function ()
@@ -169,6 +158,17 @@ module.exports = {
 				this.getEvent(e);
 			}
 			this.attachEventsHandlers();
+		},
+
+		/**
+		 * Create an class from the classSources.
+		 * @var string $className name of the class
+		 * @var object $config class configuration
+		 */
+		createClass: function (className,config)
+		{
+			var source = this.c || wns;
+			return new source[className](config);
 		},
 		
 		/**
@@ -255,7 +255,7 @@ module.exports = {
 		},
 
 		/**
-		 * Get all components from the list.
+		 * Get all events from the list.
 		 */
 		getEvents: function ()
 		{
@@ -283,6 +283,27 @@ module.exports = {
 					this.e.log('Invalid handler sent to event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
 			} else
 				this.e.log('Not existent event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
+		},
+
+		/**
+		 * Returns the parent object.
+		 * @returen object the parent object.
+		 */
+		getParent: function ()
+		{
+			return _parent;
+		},
+
+		/**
+		 * Set an object as components's parent
+		 * @param $newParent object new parent
+		 */
+		setParent: function (newParent)
+		{
+			if (typeof newParent == 'object')
+			{
+				_parent = newParent;
+			}
 		},
 
 		/**

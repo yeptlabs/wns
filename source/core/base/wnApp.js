@@ -51,11 +51,6 @@ module.exports = {
 		{
 			this.e.log("Starting application's components...");
 			this.startComponents();
-			if (this.getConfig('scripts') != undefined)
-			{
-				this.e.log("Starting application's scripts...");
-				this.startScripts();
-			}
 			this.e.log('Application `'+this.getConfig('id')+'` running...');
 		},
 

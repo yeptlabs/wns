@@ -193,6 +193,11 @@ wnBuild.prototype.buildClass = function (className) {
 			// Declare private vars
 			for (p in build.private) {
 				eval('var '+p+' = _builder.newValue(build.private[p]);');
+				if (className == 'wnScriptCapa')
+				{
+					console.log(p);
+				}
+
 			}
 
 			// Redeclare privileged methods
