@@ -81,12 +81,6 @@ module.exports = {
 				if (this.isEnabled() !== true)
 					return false;
 				this.once('release', function () {
-					console.log('adsad');
-					//console.log(app);
-					//app.e.log('Capa renderizada.');
-				});
-				this.once('release', function () {
-					console.log('asdad');
 					setTimeout(args,this.getInterval());
 				}.bind(this));
 				this.run();

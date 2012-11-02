@@ -78,7 +78,7 @@ module.exports = {
 				
 				args.unshift(evtObj);
 
-				var listeners = _listeners;
+				var listeners = _listeners.slice();
 				for (var i = 0, l = listeners.length; i < l; i++)
 				{
 					if (evtObj.stopPropagation != true)
@@ -152,7 +152,7 @@ module.exports = {
 		once: function (listener) {
 			if ('function' !== typeof listener) return false;
 			var self = this;
-			function g() {
+			var g = function () {
 				self.removeListener(g);
 				listener.apply(this, arguments);
 			};
@@ -166,20 +166,26 @@ module.exports = {
          */
         removeListener: function (listener)
 		{
+			if ('function' !== typeof listener)
+				return false;
 
-			var position = -1, list = _listeners;
-			for (var i = 0, length = list.length; i < length; i++) {
-			  if (list[i] === listener ||
-				  (list[i].listener && list[i].listener === listener))
-			  {
-				position = i;
-				break;
-			  }
+			var list = _listeners;
+
+			var position = -1;
+			for (var i = 0, length = list.length; i < length; i++)
+			{
+				if (list[i] === listener ||
+					(list[i].listener && list[i].listener === listener))
+				{
+					position = i;
+					break;
+				}
 			}
 
-			if (position < 0)
-				return this;
-			list.splice(position, 1);
+			if (position > -1)
+				list.splice(position, 1);
+
+			return this;
         },
 
 		/**
