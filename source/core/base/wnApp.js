@@ -27,16 +27,14 @@ module.exports = {
 	 * PRIVATE
 	 */
 	private: {
-
-		_controllers: {}
-	
+		_controllers: {},
+		_requests: {}
 	},
 
 	/**
 	 * Public Variables
 	 */
 	public: {
-
 	},
 
 	/**
@@ -61,16 +59,30 @@ module.exports = {
 		 */
 		createRequest: function (req,resp)
 		{
-			var reqConf = Object.extend(true,{},this.getComponentConfig('http'),{ request: req, response: resp, app: this });
-				httpRequest = this.createClass('wnHttpRequest',reqConf);
-				httpRequest.init();
-			try
+			var reqConf = Object.extend(true,{},this.getComponentConfig('http'),{ request: req, response: resp, app: this }),
+				httpRequest = this.createComponent('wnHttpRequest',reqConf);
+			httpRequest.init();
+			if (!_requests[req.url+''])
 			{
-				httpRequest.run();
-			}
-			catch (e)
+				try
+				{
+					_requests[req.url]=httpRequest;
+					httpRequest.run();
+				}
+				catch (e)
+				{
+					this.e.exception(e);
+				}
+			} else
 			{
-				this.e.exception(e);
+				var mainRequest = _requests[req.url];
+					mainRequest.once('end', function () {
+						delete _requests[httpRequest.info.url];
+						httpRequest.data = mainRequest.data;
+						httpRequest.code = mainRequest.code;
+						httpRequest.header = mainRequest.header;
+						httpRequest.send();
+					});
 			}
 		},
 
@@ -80,8 +92,8 @@ module.exports = {
 		 */
 		existsController: function (id)
 		{
-			this.getController(id);
-			return this.c[id.substr(0,1).toUpperCase()+id.substr(1)] != undefined;
+			var controller = this.getController(id);
+			return controller != false && controller != undefined;
 		},
 
 		/**
@@ -97,6 +109,8 @@ module.exports = {
 				var builder = this.getComponent('classBuilder');
 					_classSource = this.getFile(this.getConfig('path').controllers+id+'.js'),
 					module = {};
+				if (!_classSource)
+					return false;
 				eval(_classSource);
 				builder.classesSource[controllerName] = module.exports;
 				builder.classes[controllerName]=builder.buildClass(controllerName);
@@ -105,7 +119,7 @@ module.exports = {
 				this.c[controllerName]=builder.classes[controllerName];
 			}
 			var config = { controllerName: id, app: this, request: request, autoInit: true },
-				controller = this.createClass(controllerName,config);
+				controller = this.createComponent(controllerName,config);
 			_controllers[id]=controller;
 			return controller;
 		},

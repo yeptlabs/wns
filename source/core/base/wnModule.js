@@ -247,8 +247,7 @@ module.exports = {
 				{
 					config.id = id;
 					config.autoInit = (config.autoInit == true);
-					var component = this.createComponent(className,config,this.c);
-					component.setParent(this);
+					var component = this.createComponent(className,config);
 					(!config.autoInit)&&component.init(config);
 					_components[id] = component;
 					if (typeof config.alias == 'string')
@@ -265,9 +264,11 @@ module.exports = {
 		 * @param string $config application 
 		 * @return wnModule the module instance, false if the module is disabled or does not exist.
 		 */
-		createComponent: function (className,config,classes)
+		createComponent: function (className,config)
 		{
-			return new this.c[className](config,classes);
+			var component = new this.c[className](config,this.c);
+			component.setParent(this);
+			return component;
 		},
 
 		/**

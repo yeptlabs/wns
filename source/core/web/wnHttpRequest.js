@@ -51,7 +51,16 @@ module.exports = {
 		/**
 		 * @var object response's header
 		 */
-		header: {}
+		header: {},
+
+		/**
+		 * @var object events to be preloaded.
+		 */
+		defaultEvents: {
+			'open': {},
+			'end': {},
+			'error': {}
+		}
 
 	},
 
@@ -59,7 +68,6 @@ module.exports = {
 	 * Methods
 	 */
 	methods: {
-
 
 		/**
 		 * Initializer
@@ -69,7 +77,13 @@ module.exports = {
 			this.header = this.getConfig('header') || this.header;
 			this.info = this.getConfig('request');
 			this.response = this.getConfig('response');
-			this.app = this.getConfig('app');
+			this.app = this.getParent();
+			if (this.info == undefined)
+				return false;
+			this.initialTime = +(new Date);
+			this.addListener('end', function () {
+				this.app.e.log('Closed request: '+this.info.url+' (time: '+((+new Date)-this.initialTime)+')');
+			}.bind(this))
 		},
 
 		/**
@@ -89,13 +103,15 @@ module.exports = {
 				{
 					self.header['Content-Length']=buf.length;
 					self.response.writeHead(self.code,self.header);
+					self.e.end();
 					self.response.end(buf);
 				});
 			} else
 			{
 				this.header['Content-Length']=this.data.length;
 				this.response.writeHead(this.code,this.header);
-				this.response.end(http.data);		
+				this.e.end();
+				this.response.end(http.data);
 			}
 		},
 
@@ -110,9 +126,9 @@ module.exports = {
 			this.parsedUrl=url.parse(this.info.url);
 
 			this.route = this.app.getComponent('urlManager').parseRequest(this) || { translation: this.info.url, params: {}, template: '' };
-			var _template = this.route ? this.route.template : false;
+			var template = this.route ? this.route.template : false;
 
-			if (_template == '<file>')
+			if (template == '<file>')
 				return this.publicHandler();
 			else
 				return this.controllerHandler();
@@ -133,7 +149,7 @@ module.exports = {
 				_action=_plen>1&&_p[2]!=''?_p[2]:undefined,
 				controllerPath = this.app.modulePath+this.app.getConfig('path').controllers+_controller+'.js';
 
-			if (this.app.existsController(_controller))
+			if (!this.app.existsController(_controller))
 			{
 				this.app.e.log('Controller not found: '+_controller,'access');
 				this.errorHandler();

@@ -70,7 +70,7 @@ module.exports = {
 		 */
 		handler: function (request,response)
 		{
-			
+
 			var servername = request.headers.host,
 				app = this.getConfig('app'),
 				config = this.getConfig();

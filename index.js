@@ -15,11 +15,6 @@
  * @since 1.0.0
  */
 
-require('nodetime').profile({
-    accountKey: '5b2d22e893be4960fcae359e24f83ab89c6b764f', 
-    appName: 'wnServer'
-});
-
 (function () {
 
 	// Initialize the webNode.

@@ -255,7 +255,7 @@ module.exports = {
 		},
 
 		/**
-		 * Get all events from the list.
+		 * Get a list of all event loaded in this component
 		 */
 		getEvents: function ()
 		{
@@ -263,7 +263,7 @@ module.exports = {
 		},
 
 		/**
-		 * Check if the Event exists.
+		 * Check if the event exists in this component.
 		 */
 		hasEvent: function (name)
 		{
@@ -271,7 +271,7 @@ module.exports = {
 		},
 
 		/**
-		 * Add a new one-time-listener to the event if it exists
+		 * Add a new one-time-listener to the event, if it exists
 		 * @param string $eventName event name
 		 * @param function $handler event handler
 		 */
@@ -280,6 +280,21 @@ module.exports = {
 			if (event = this.getEvent(eventName))
 			{
 				if (!event.once(handler))
+					this.e.log('Invalid handler sent to event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
+			} else
+				this.e.log('Not existent event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
+		},
+
+		/**
+		 * Add a new listener to the event, if it exists
+		 * @param string $eventName event name
+		 * @param function $handler event handler
+		 */
+		addListener: function (eventName,handler) {
+			var event;
+			if (event = this.getEvent(eventName))
+			{
+				if (!event.addListener(handler))
 					this.e.log('Invalid handler sent to event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
 			} else
 				this.e.log('Not existent event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
@@ -320,7 +335,6 @@ module.exports = {
 		 */
 		init: function ()
 		{
-		
 		}
 
 	}
