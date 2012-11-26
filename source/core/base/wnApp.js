@@ -28,7 +28,8 @@ module.exports = {
 	 */
 	private: {
 		_controllers: {},
-		_requests: {}
+		_requests: {},
+		_requestCount: 0
 	},
 
 	/**
@@ -59,41 +60,37 @@ module.exports = {
 		 */
 		createRequest: function (req,resp)
 		{
-			var reqConf = Object.extend(true,{},this.getComponentConfig('http'),{ request: req, response: resp, app: this }),
-				httpRequest = this.createComponent('wnHttpRequest',reqConf);
-			httpRequest.init();
-			if (!_requests[req.url+''])
+			try
 			{
-				try
+				_requestCount++;
+				var reqConf = Object.extend(true,{},this.getComponentConfig('http'),{ id: 'request-'+_requestCount, request: req, response: resp }),
+					httpRequest = this.createComponent('wnHttpRequest',reqConf);
+				httpRequest.init();
+				if (!_requests[req.url+''])
 				{
-					_requests[req.url]=httpRequest;
+					this.e.log('Open request: '+req.url);
+					_requests[req.url+'']=httpRequest;
+					httpRequest.once('end',function (e,req) {
+						httpRequest.app.e.log('Closed request: '+req.info.originalUrl+' (time: '+((+new Date)-httpRequest.initialTime)+')');
+						delete _requests[req.info.originalUrl];
+					});
 					httpRequest.run();
-				}
-				catch (e)
+				} else
 				{
-					this.e.exception(e);
-				}
-			} else
-			{
-				var mainRequest = _requests[req.url];
-					mainRequest.once('end', function () {
-						delete _requests[httpRequest.info.url];
-						httpRequest.data = mainRequest.data;
-						httpRequest.code = mainRequest.code;
-						httpRequest.header = mainRequest.header;
+					var mainRequest = _requests[req.url];
+					mainRequest.once('end', function (e,req) {
+						httpRequest.data = req.data;
+						httpRequest.compressedData = req.compressedData;
+						httpRequest.code = req.code;
+						httpRequest.header = req.header;
 						httpRequest.send();
 					});
+				}
 			}
-		},
-
-		/**
-		 * Check if a controller class exists and it's loaded.
-		 * @param $id string controller's id
-		 */
-		existsController: function (id)
-		{
-			var controller = this.getController(id);
-			return controller != false && controller != undefined;
+			catch (e)
+			{
+				this.e.exception(e);
+			}
 		},
 
 		/**
@@ -117,10 +114,11 @@ module.exports = {
 				if (!builder.classes[controllerName])
 					this.e.exception(new Error('Could not build the controller class.'));
 				this.c[controllerName]=builder.classes[controllerName];
+				_controllers[id]=this.c[controllerName];
 			}
-			var config = { controllerName: id, app: this, request: request, autoInit: true },
+			var config = { controllerName: id, request: request, autoInit: false },
 				controller = this.createComponent(controllerName,config);
-			_controllers[id]=controller;
+			controller.init();
 			return controller;
 		},
 

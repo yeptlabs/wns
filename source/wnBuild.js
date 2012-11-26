@@ -137,16 +137,10 @@ wnBuild.prototype.buildClass = function (className) {
 	})(build.extend);
 	build.extend = _ext;
 
-	// Creating descriptor of the public properties and methods..
-	//var desc = this.createDescriptor(build);
-
 	// Get builder.
 	var _builder = this;
 	eval("var classBuilder = function "+className+"() { return this.build.apply(undefined,arguments); }");
 	eval("var klass = function "+className+"() {}");
-
-	// Importing descriptor.
-	//Object.defineProperties(klass.prototype,desc);
 
 	// Class builder.
 	classBuilder.prototype.build = function () {
@@ -193,11 +187,6 @@ wnBuild.prototype.buildClass = function (className) {
 			// Declare private vars
 			for (p in build.private) {
 				eval('var '+p+' = _builder.newValue(build.private[p]);');
-				if (className == 'wnScriptCapa')
-				{
-					console.log(p);
-				}
-
 			}
 
 			// Redeclare privileged methods
@@ -208,8 +197,9 @@ wnBuild.prototype.buildClass = function (className) {
 		})();
 
 		// Import constructor
-		if (build.propertyIsEnumerable('constructor'))
-			k.constructor = build.constructor;
+		k.constructor=build.constructor;
+		if (targetClass.propertyIsEnumerable('constructor'))
+			k.constructor = targetClass.constructor;
 
 		// Redeclare public vars
 		for (p in build.public) {
@@ -284,6 +274,7 @@ wnBuild.prototype.removeInvalidDependencies = function (extensions) {
  * @result ANY new instance of the data
  */
 wnBuild.prototype.newValue = function (property) {
+	if (property == null || property == undefined) return property;
 	var type = typeof property;
 	if (type != 'object') {
 		if (property==undefined || property==null) return property;

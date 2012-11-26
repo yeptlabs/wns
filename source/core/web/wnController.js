@@ -36,10 +36,7 @@ module.exports = {
 		/**
 		 * @var object list of query
 		 */
-		query: {
-			GET: {},
-			POST: {}
-		},
+		query: {},
 
 		/**
 		 * @var wnApp instance
@@ -84,13 +81,15 @@ module.exports = {
 		init: function ()
 		{
 			this.request=this.getConfig('request');
-			this.app=this.getConfig('app');
+			this.app=this.getParent();
 
 			if (this.request)
 			{
-				this.query=Object.extend(true,this.query,{ POST: this.request.info.body });
-				this.query=Object.extend(true,this.query,{ GET: this.request.parsedUrl.query });
-				this.query=Object.extend(true,this.query.GET, this.request.route.params);
+				this.query.GET = {};
+				this.query.POST = {};
+				Object.extend(true,this.query.POST, this.request.info.body);
+ 				Object.extend(true,this.query.GET, this.request.parsedUrl.query);
+				Object.extend(true,this.query.GET, this.request.route.params);
 			}
 
 			if (this.app)
@@ -150,7 +149,6 @@ module.exports = {
 		 * @param $data object data that will replaced in the template
 		 */
 		render: function (view,data) {
-
 			var _controller=this.getControllerName(),
 				_layout=this.layout;
 				_view=view;

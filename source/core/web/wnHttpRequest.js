@@ -44,6 +44,11 @@ module.exports = {
 		data: '',
 
 		/**
+		 * @var buffer compressed data
+		 */
+		compressedData: null,
+
+		/**
 		 * @var integer response's code.
 		 */
 		code: 200,
@@ -74,16 +79,14 @@ module.exports = {
 		 */	
 		init: function ()
 		{
+			this.initialTime = +(new Date);
+			this.getEvent('end').setConfig({'source': this});
 			this.header = this.getConfig('header') || this.header;
 			this.info = this.getConfig('request');
 			this.response = this.getConfig('response');
 			this.app = this.getParent();
 			if (this.info == undefined)
 				return false;
-			this.initialTime = +(new Date);
-			this.addListener('end', function () {
-				this.app.e.log('Closed request: '+this.info.url+' (time: '+((+new Date)-this.initialTime)+')');
-			}.bind(this))
 		},
 
 		/**
@@ -95,24 +98,35 @@ module.exports = {
 				acceptEncoding = this.info.headers['accept-encoding'];
 			if (!acceptEncoding) 
 				acceptEncoding = '';
-
-			if (acceptEncoding.match(/\bgzip\b/) || (typeof this.data == 'string' && Buffer.byteLength(this.data, 'utf8')>150))
+	
+			if (this.compressedData==null && (acceptEncoding.match(/\bgzip\b/) || (typeof this.data == 'string' && Buffer.byteLength(this.data, 'utf8')>150)))
 			{
-				this.header['Content-Encoding']='gzip';
 				zlib.gzip(new Buffer(this.data), function (e,buf)
 				{
+					self.header['Content-Encoding']='gzip';
 					self.header['Content-Length']=buf.length;
 					self.response.writeHead(self.code,self.header);
-					self.e.end();
+					self.compressedData = buf;
 					self.response.end(buf);
+					self.e.end(self);
 				});
+				return false;
+			}
+
+			if (this.compressedData)
+			{
+				var data = this.compressedData;
+				this.header['Content-Length'] = data.length;
+				this.header['Content-Encoding'] = 'gzip';
 			} else
 			{
-				this.header['Content-Length']=this.data.length;
-				this.response.writeHead(this.code,this.header);
-				this.e.end();
-				this.response.end(http.data);
+				var data = this.data;
+				delete this.header['Content-Length'] = data.length;
+				delete this.header['Content-Encoding'];
 			}
+			this.response.writeHead(this.code,this.header);
+			this.response.end(data);
+			this.e.end(this);
 		},
 
 		/**
@@ -120,18 +134,20 @@ module.exports = {
 		 */	
 		run: function ()
 		{
+			this.info.originalUrl = this.info.url;
+
 			if (this.info.url == '/')
 				this.info.url = '/'+this.getConfig('defaultController')+'/';
 
-			this.parsedUrl=url.parse(this.info.url);
+			this.parsedUrl=url.parse(this.info.url,true);
 
 			this.route = this.app.getComponent('urlManager').parseRequest(this) || { translation: this.info.url, params: {}, template: '' };
 			var template = this.route ? this.route.template : false;
 
 			if (template == '<file>')
-				return this.publicHandler();
+				this.publicHandler();
 			else
-				return this.controllerHandler();
+				this.controllerHandler();
 		},
 
 		/**
@@ -148,15 +164,15 @@ module.exports = {
 				_controller=_plen>0&&_p[1]!=''?_p[1]:this.getConfig('defaultController'),
 				_action=_plen>1&&_p[2]!=''?_p[2]:undefined,
 				controllerPath = this.app.modulePath+this.app.getConfig('path').controllers+_controller+'.js';
+				
+			this.controller=this.app.getController(_controller,this);
 
-			if (!this.app.existsController(_controller))
+			if (!this.controller)
 			{
 				this.app.e.log('Controller not found: '+_controller,'access');
 				this.errorHandler();
 				return false;
 			}
-			
-			this.controller=this.app.getController(_controller,this);
 
 			_action=this.action=(!_action?this.controller.defaultAction:_action);
 

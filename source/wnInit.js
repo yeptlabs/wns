@@ -33,6 +33,7 @@ try
 	global.path = _r('path');
 	global.url = _r('url');
 	global.zlib = _r('zlib');
+	global.crypto = _r('crypto');
 	global.stream = _r('stream');
 	global.util = _r('util');
 	global.emitter = _r('events').EventEmitter;

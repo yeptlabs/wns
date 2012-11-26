@@ -61,7 +61,7 @@ module.exports = {
 					eventObject = function ()
 					{
 						this.event = self;
-						this.owner = self.getConfig('source');
+						this.owner = self.getParent();
 						this.eventName = self.getEventName();
 						this.stopPropagation = false;
 					};

@@ -238,10 +238,12 @@ module.exports = {
 			else
 			{
 				var config = _eventsConfig[eventName] || {},
-						className = config.class;
+					className = config.class;
 					config.id = eventName;
-					config.source = this;
+					config.autoInit = false;
 					var evt = this.createClass(className,config);
+					evt.setParent(this);
+					evt.init();
 					if (hidden != false)
 					{
 						_events[eventName] = evt;
