@@ -1,0 +1,53 @@
+Loading WNS:
+ - Loading required node modules..
+ - Loading and compiling wnBuild class..
+ - Loading core required classes souces...
+  > Class found: wnMysqlSchema
+  > Class found: wnDbSchema
+  > Class found: wnDbQuery
+  > Class found: wnDbConnection
+  > Class found: wnDbCommand
+  > Class found: wnEvent
+  > Class found: wnComponent
+  > Class found: wnConsole
+  > Class found: wnModule
+  > Class found: wnScript
+  > Class found: wnApp
+  > Class found: wnServer
+  > Class found: wnConsoleCommand
+  > Class found: wnUrlRule
+  > Class found: wnController
+  > Class found: wnTemplate
+  > Class found: wnHttp
+  > Class found: wnView
+  > Class found: wnHttpRequest
+  > Class found: wnUrlManager
+  > Class found: wnCacheDependency
+  > Class found: wnCache
+ - Compiling required classes...
+[*] Initializing wnConsole...
+[*] Building new wnServer from `./`
+[server-1] Loading applications:
+[server-1] - Building new application: DM
+[app-DM] Starting application's components...
+[app-DM] - Starting component: http
+[app-DM] - Starting component: cache
+[app-DM] - Starting component: view
+[app-DM] - Starting component: urlManager
+[app-DM] - Starting component: database
+[app-DM] - Starting component: script-capa
+[app-DM] - Starting component: script-benchmark
+[app-DM] [BENCHMARK] Opening 1 connections to: http://187.45.214.195/capa/
+[app-DM] - Starting component: script-temperature
+[app-DM] Application `app-DM` running...
+[server-1] Starting `wnHttp`...
+[server-1] Listening HTTP server...
+[*] Console active in wnServer: SERVER#1
+Error: listen EADDRINUSE
+    at errnoException (net.js:782:11)
+    at Server._listen2 (net.js:921:14)
+    at listen (net.js:948:10)
+    at Server.listen (net.js:1005:9)
+    at dns.js:71:18
+    at process.startup.processNextTick.process._tickCallback (node.js:244:9)
+[app-DM] [BENCHMARK] End of benchmark.

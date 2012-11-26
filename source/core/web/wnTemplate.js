@@ -101,13 +101,14 @@ module.exports = {
 					this.match(o[n],path+n+'.');
 			} else if (this.validTypes.indexOf(type) != -1)
 			{
-				this._text=this._text.replace(new RegExp(this.prefix+path.substr(0,path.length-1)+this.suffix,'gim'), function (txt) {
+				var templateCheck = function (txt) {
 					if (txt.match(new RegExp(this.templateCheck,'gi')))
 					{
 						return (this.value+"");
 					} else
 						return txt;
-				}.bind({ value: o }));
+				}.bind({ value: o });
+				this._text=this._text.replace(new RegExp(this.prefix+path.substr(0,path.length-1)+this.suffix,'gim'),templateCheck);
 			}
 			if (path=='') 
 				return this._text;

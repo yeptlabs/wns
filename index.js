@@ -15,6 +15,11 @@
  * @since 1.0.0
  */
 
+require('nodetime').profile({
+    accountKey: '9894a4928414f215195d0cbe50df49b477415de1', 
+    appName: 'DM.com.br'
+  });
+
 (function () {
 
 	// Initialize the webNode.

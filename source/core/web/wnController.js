@@ -90,6 +90,10 @@ module.exports = {
 				Object.extend(true,this.query.POST, this.request.info.body);
  				Object.extend(true,this.query.GET, this.request.parsedUrl.query);
 				Object.extend(true,this.query.GET, this.request.route.params);
+				for (g in this.query.GET)
+				{
+					this.query.GET[g]=this.query.GET[g].replace(/\+/gi,' ')
+				}
 			}
 
 			if (this.app)
@@ -171,9 +175,9 @@ module.exports = {
 				// Renderiza a pagina temporaria.
 				var	_contentAll=this.view.render(),
 					_contentAll=new this.app.c.wnTemplate(_contentAll,false).match({
-						self: this,
-						app: this.app.getConfig(),
-						request: this.request.getConfig()
+						self: this.export(),
+						app: this.app.export(),
+						request: this.request.export()
 					});
 
 				// Substitui data vinda do controller.

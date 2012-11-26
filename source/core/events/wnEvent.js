@@ -83,7 +83,6 @@ module.exports = {
 					if (evtObj.stopPropagation != true)
 						listeners[i].apply(this, args);
 				}
-
 			}
         },
 
@@ -140,7 +139,8 @@ module.exports = {
          */
         prependListener: function (listener)
 		{
-			if ('function' !== typeof listener) return false;
+			if ('function' !== typeof listener)
+				return false;
 			_listeners.unshift(listener);
         },
 
@@ -149,9 +149,11 @@ module.exports = {
          * @param $listener function listener of the event
          */
 		once: function (listener) {
-			if ('function' !== typeof listener) return false;
+			if ('function' !== typeof listener)
+				return false;
 			var self = this;
-			var g = function () {
+			var g = function ()
+			{
 				self.removeListener(g);
 				listener.apply(this, arguments);
 			};
@@ -190,7 +192,8 @@ module.exports = {
 		/**
 		 * Return array of listeners functions
 		 */
-		getListeners: function () {
+		getListeners: function ()
+		{
 			return _listeners;
 		},
 

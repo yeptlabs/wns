@@ -94,7 +94,7 @@ module.exports = {
 				var dependency = value[1];
 				if (!dependency.getHasChanged())
 				{
-					this.getParent().e.log&&this.getParent().e.log('Serving `'+id+'` from cache','cache');
+					//this.getParent().e.log&&this.getParent().e.log('Serving `'+id+'` from cache','cache');
 					return value[0];
 				} else
 					return false;
@@ -129,7 +129,7 @@ module.exports = {
 					var dependency = new this.c[value[1]](value[2]);
 					if (!dependency.getHasChanged())
 					{
-						this.getParent().e.log&&this.getParent().e.log('Serving `'+id+'` from cache','cache');
+						//this.getParent().e.log&&this.getParent().e.log('Serving `'+id+'` from cache','cache');
 						value = value[0];
 					} else
 						value = false;
@@ -156,7 +156,7 @@ module.exports = {
 			var value,
 				dependency = dependency || null,
 				expire = expire || 0;
-			this.getParent().e.log&&this.getParent().e.log('Saving `'+id+'` to cache','cache');
+//			this.getParent().e.log&&this.getParent().e.log('Saving `'+id+'` to cache','cache');
 
 			if (dependency !== null)
 			{
@@ -183,7 +183,7 @@ module.exports = {
 			var value,
 				dependency = dependency || null,
 				expire = expire || 0;
-			this.getParent().e.log&&this.getParent().e.log('Saving `'+id+'` to cache','cache');
+//			this.getParent().e.log&&this.getParent().e.log('Saving `'+id+'` to cache','cache');
 
 			if (dependency !== null)
 			{
@@ -201,7 +201,7 @@ module.exports = {
 		 */
 		delete: function (id)
 		{
-			this.getParent().e.log&&this.getParent().e.log('Deleting `'+id+'` from cache','cache');
+//			this.getParent().e.log&&this.getParent().e.log('Deleting `'+id+'` from cache','cache');
 			return this.deleteValue(this.generateUniqueKey(id));
 		},
 

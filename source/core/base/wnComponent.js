@@ -303,6 +303,24 @@ module.exports = {
 		},
 
 		/**
+		 * Return an object with all attributes and configuration of this component
+		 */
+		export: function ()
+		{
+			var _export = {},
+				merge = {};
+			Object.extend(merge,this.getConfig(),this);
+			for (p in merge)
+			{
+				if (!((typeof merge[p] == 'object' || typeof merge[p] == 'function') && merge[p] != null && merge[p].instanceOf!=undefined))
+				{
+					_export[p] = merge[p];
+				}
+			}
+			return _export;
+		},
+
+		/**
 		 * Returns the parent object.
 		 * @returen object the parent object.
 		 */

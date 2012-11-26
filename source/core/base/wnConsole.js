@@ -200,7 +200,7 @@ module.exports = {
 			var prefix = '', sourceName = e.owner.getConfig('id');
 			if (sourceName) prefix = '['+sourceName+']'+' ';
 			console.log(prefix+''+data);
-			e.stopPropagation = true;
+			//e.stopPropagation = true;
 		},
 
 		/**

@@ -181,7 +181,12 @@ wnBuild.prototype.buildClass = function (className) {
 				})();
 		}
 
-		// Import private and privileged
+		// Import local build
+		Object.extend(true,build.public,targetClass.public);
+		Object.extend(true,build.methods,targetClass.methods);
+		Object.extend(true,build.private,targetClass.private);
+
+		// Redeclare;
 		(function () {
 		
 			// Declare private vars

@@ -197,7 +197,7 @@ module.exports = {
 		 * ...
  		 * @param $argN mixed argument
 		 */
-		logHandler: function (e,data)
+		logHandler: function (e,data,zone)
 		{
 		},
 

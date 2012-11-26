@@ -28,8 +28,11 @@ module.exports = {
 	 */
 	private: {
 		_controllers: {},
-		_requests: {},
-		_requestCount: 0
+		_requests: [],
+		_slaveRequests: {},
+		_requestCount: 0,
+		_localLogs: [],
+		_logId: 0
 	},
 
 	/**
@@ -60,37 +63,86 @@ module.exports = {
 		 */
 		createRequest: function (req,resp)
 		{
+			var httpRequest, reqConf, url = req.url+'';
 			try
 			{
+				reqConf = Object.extend(true,{},this.getComponentConfig('http'),{ id: 'request-'+_requestCount, request: req, response: resp }),
+				httpRequest = this.createComponent('wnHttpRequest',reqConf);
 				_requestCount++;
-				var reqConf = Object.extend(true,{},this.getComponentConfig('http'),{ id: 'request-'+_requestCount, request: req, response: resp }),
-					httpRequest = this.createComponent('wnHttpRequest',reqConf);
+				httpRequest.created = +new Date;
 				httpRequest.init();
-				if (!_requests[req.url+''])
+				httpRequest.prepare();
+				httpRequest.once('end',function () {					
+					for (r in _slaveRequests[url])
+					{
+						var sreq=_slaveRequests[url];
+						sreq.data = httpRequest.data;
+						sreq.compressedData = httpRequest.compressedData;
+						sreq.code = httpRequest.code;
+						sreq.header = httpRequest.header;
+						sreq.send();
+					}
+					_slaveRequests[url]=null;
+					reqConf = null;
+					_requestCount--;
+					_requests[url]=false;
+					httpRequest = null;
+				});
+				var self = this;
+				if (_requests[url]!=true && httpRequest.template != '<file>')
 				{
-					this.e.log('Open request: '+req.url);
-					_requests[req.url+'']=httpRequest;
-					httpRequest.once('end',function (e,req) {
-						httpRequest.app.e.log('Closed request: '+req.info.originalUrl+' (time: '+((+new Date)-httpRequest.initialTime)+')');
-						delete _requests[req.info.originalUrl];
-					});
+					_requests[url]=true;
+					httpRequest.run();
+					_slaveRequests[url]=[];
+				} else if (httpRequest.template == '<file>')
+				{
 					httpRequest.run();
 				} else
 				{
-					var mainRequest = _requests[req.url];
-					mainRequest.once('end', function (e,req) {
-						httpRequest.data = req.data;
-						httpRequest.compressedData = req.compressedData;
-						httpRequest.code = req.code;
-						httpRequest.header = req.header;
-						httpRequest.send();
-					});
+					_slaveRequests[url].push(httpRequest);
 				}
 			}
 			catch (e)
 			{
 				this.e.exception(e);
 			}
+		},
+
+		/**
+		 * Deletes request
+		 */
+		deleteRequest: function (req)
+		{
+			if (req == null)
+				return false;
+			_requests[req.info.url]=null;
+			req.deleted=true;
+			req = null;
+			_requestCount--;
+		},
+
+		/**
+		 * Return all opened requests..
+		 */
+		getRequests: function ()
+		{
+			return _requests;
+		},
+
+		/**
+		 * Return all opened requests..
+		 */
+		getRequestsCount: function ()
+		{
+			return _requestCount;
+		},
+
+		/**
+		 * Deletes request
+		 */
+		setRequestsCount: function (n)
+		{
+			_requestCount=new Number(n);
 		},
 
 		/**
@@ -144,9 +196,22 @@ module.exports = {
 		 * ...
  		 * @param $argN mixed argument
 		 */
-		logHandler: function (e,data)
+		logHandler: function (e,data,zone)
 		{
+			_localLogs.push([_logId,+new Date,data,zone||'']);
+			_logId++;
+			if (_localLogs.length > 100) {
+				_localLogs.shift();
+			}
 		},
+
+		/**
+		 * Return all logs..
+		 */
+		getLogs: function (e,data,zone)
+		{
+			return _localLogs;
+		},		
 
 		/**
 		 * Exception handler
@@ -164,6 +229,26 @@ module.exports = {
 			_stack.shift();
 			for (s in _stack)
 				e.owner.e.log(_stack[s],'stack');
+		},
+
+		flushControllers: function () {
+			for (c in _controllers)
+				this.c['wn'+(c.substr(0,1).toUpperCase()+c.substr(1))+'Controller']=undefined;
+			this.e.log('Limpou');
+		},
+
+		flushController: function (c) {
+			this.c['wn'+(c.substr(0,1).toUpperCase()+c.substr(1))+'Controller']=undefined;
+		},
+
+		run: function (cmd) {
+			try {
+				with (this) {
+					this.e.log(util.inspect(eval(cmd)));
+				}
+			} catch (e) {
+				this.e.exception(e);
+			}
 		}
 
 	}
