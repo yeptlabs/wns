@@ -8,9 +8,7 @@
   ],
   "main": "index",
   "dependencies": {
-    "node-mysql": "2.0.0-alpha3",
-    "mime":"1.2.7",
-    "forever": "0.10.0"
+    "mime":"1.2.7"
   },
   "keywords": [
     "web","yii","framework","wns","mvc",

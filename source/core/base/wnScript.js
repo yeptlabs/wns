@@ -27,7 +27,8 @@ module.exports = {
 	 * PRIVATE
 	 */
 	private: {
-		_enabled: false
+		_enabled: false,
+		_timeOut: -1
 	},
 
 	/**
@@ -81,7 +82,7 @@ module.exports = {
 				if (this.isEnabled() !== true)
 					return false;
 				this.once('release', function () {
-					setTimeout(args,this.getInterval());
+					_timeOut=setTimeout(args,this.getInterval());
 				}.bind(this));
 				this.run();
 			}.bind(this))();
@@ -100,6 +101,7 @@ module.exports = {
 		 */
 		stop: function ()
 		{
+			clearTimeout(_timeOut);
 			_enabled = false;
 		},
 

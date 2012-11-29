@@ -150,6 +150,7 @@ module.exports = {
 		 */
 		preloadEvents: function ()
 		{
+			this.e.log&&this.e.log('Preloading events...','system');
 			var preload = Object.extend(true,{},this.defaultEvents,this.getConfig().events);
 			if (preload != undefined)
 				this.setEvents(preload);
@@ -176,6 +177,7 @@ module.exports = {
 		 * of all events of this component.
 		 */
 		attachEventsHandlers: function () {
+			this.e.log&&this.e.log("Attaching default event's handlers...",'system');
 			var events = this.getEvents();
 			for (e in events)
 			{

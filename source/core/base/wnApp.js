@@ -39,6 +39,14 @@ module.exports = {
 	 * Public Variables
 	 */
 	public: {
+
+		/**
+		 * @var object events to be preloaded.
+		 */
+		defaultEvents: {
+			'newRequest': {}
+		}
+
 	},
 
 	/**
@@ -51,9 +59,8 @@ module.exports = {
 		 */	
 		init: function ()
 		{
-			this.e.log("Starting application's components...");
 			this.startComponents();
-			this.e.log('Application `'+this.getConfig('id')+'` running...');
+			this.e.log("Application `"+this.getConfig('id')+"` running...","system");
 		},
 
 		/**
@@ -109,40 +116,10 @@ module.exports = {
 		},
 
 		/**
-		 * Deletes request
+		 * Return opened requests list
 		 */
-		deleteRequest: function (req)
-		{
-			if (req == null)
-				return false;
-			_requests[req.info.url]=null;
-			req.deleted=true;
-			req = null;
-			_requestCount--;
-		},
-
-		/**
-		 * Return all opened requests..
-		 */
-		getRequests: function ()
-		{
+		getRequests: function () {
 			return _requests;
-		},
-
-		/**
-		 * Return all opened requests..
-		 */
-		getRequestsCount: function ()
-		{
-			return _requestCount;
-		},
-
-		/**
-		 * Deletes request
-		 */
-		setRequestsCount: function (n)
-		{
-			_requestCount=new Number(n);
 		},
 
 		/**
@@ -172,6 +149,24 @@ module.exports = {
 				controller = this.createComponent(controllerName,config);
 			controller.init();
 			return controller;
+		},
+
+		/**
+		 * Flush all application's controllers
+		 */
+		flushControllers: function () {
+			for (c in _controllers)
+				this.c['wn'+(c.substr(0,1).toUpperCase()+c.substr(1))+'Controller']=undefined;
+			this.e.log('All controllers has been flushed.','system');
+		},
+
+		/**
+		 * Flush application's controller
+		 * @param string $c controller's name
+		 */
+		flushController: function (c) {
+			this.c['wn'+(c.substr(0,1).toUpperCase()+c.substr(1))+'Controller']=undefined;
+			this.e.log('Controller ´'+c+'´ has been flushed.','system');
 		},
 
 		/**
@@ -206,9 +201,10 @@ module.exports = {
 		},
 
 		/**
-		 * Return all logs..
+		 * Return all logs
+		 * @return object log's storage
 		 */
-		getLogs: function (e,data,zone)
+		getLogs: function ()
 		{
 			return _localLogs;
 		},		
@@ -231,20 +227,16 @@ module.exports = {
 				e.owner.e.log(_stack[s],'stack');
 		},
 
-		flushControllers: function () {
-			for (c in _controllers)
-				this.c['wn'+(c.substr(0,1).toUpperCase()+c.substr(1))+'Controller']=undefined;
-			this.e.log('Limpou');
-		},
-
-		flushController: function (c) {
-			this.c['wn'+(c.substr(0,1).toUpperCase()+c.substr(1))+'Controller']=undefined;
-		},
-
+		/**
+		 * Execute an expression in the application scope.
+		 * @param string $cmd expression
+		 * @return result of the execution
+		 */
 		run: function (cmd) {
+			this.e.log('Executing: '+cmd,'result');
 			try {
 				with (this) {
-					this.e.log(util.inspect(eval(cmd)));
+					this.e.log(util.inspect(eval(cmd)),'result');
 				}
 			} catch (e) {
 				this.e.exception(e);
