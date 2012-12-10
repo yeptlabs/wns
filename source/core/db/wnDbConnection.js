@@ -80,42 +80,36 @@ module.exports = {
 		 */	
 		init: function ()
 		{
-			this.connect();
+			this.mysql = _r('mysql');
 		},
 
 		/**
 		 * Connect to the database
 		 */
-		connect: function ()
+		connect: function (cb)
 		{
-			if (!(this.connected==true))
-			{
-				this.failed = false;
-				this.connecting = true;
-				this.mysql = _r('mysql');
-				this.connection = this.mysql.createConnection(this.getConfig());
 
-				this.connection.once('error', function () {
-					this.close(true);
-				}.bind(this));
-					
-				this.connection.connect(function (err) {
-					if (err)
-					{
-						this.connected = false;
-						this.failed = true;
-						this.connecting = false;
-					} else
-					{
-						this.connected = true;
-						this.failed = false;
-						this.connecting = false;
-					}
-					this.e.connect(err);
-				}.bind(this));
+			var self = this,
+				con = this.mysql.createConnection(this.getConfig());
 
-			} else
-				this.e.connect();
+			/*con.on('error', function (err) {
+				if (!err.fatal) {
+					console.log('NON FATAL: '+err.code)
+				  return;
+				}
+				self.close(true);
+				self.connect();
+			});*/
+				
+			con.connect(function (err) {
+				if (err)
+				{
+					cb(null);
+				} else
+				{
+					cb(con);
+				}
+			});
 		},
 
 		/**
@@ -124,36 +118,36 @@ module.exports = {
 		 * @param $query string SQL to be query
 		 * @param $callback function callback function
 		 */
-		query: function (query,cb)
+		query: function (query,cb,id)
 		{
 			var self=this;
-			this.once('result', function (e,err,rows,fields) {
-				cb&&cb(err,rows,fields);
+			/*	queryClass = this.getParent().c.wnDbQuery,
+				queryObj = new queryClass({ autoInit: false },this.getParent().c,query);
+			queryObj.init();
+			queryObj.once('result', function (e,err,rows,fields) {
+					cb&&cb(err,rows,fields);
+			});*/
+			
+			this.connect(function (con) {
+				if (con == null)
+					return false;
+				//self.e.query(query,cb);
+				con.query(query,function (err,rows,fields) {
+					cb&&cb(err,rows,fields);
+					/*self.e.result(err,rows,fields);
+					queryObj.e.result(err,rows,fields,query);
+					queryObj=null;*/
+					con.destroy();
+				});
 			});
-			if (!this.connecting && this.connected)
-			{
-				this.e.query(query,cb);
-				this.connection.query(query,function (err,rows,fields) {
-					this.e.result(err,rows,fields);
-				}.bind(this));
-			} else
-			{
-				this.once('connect',function (e,err) {
-					this.e.query(query,cb);
-					this.connection.query(query,function (err,rows,fields) {
-						this.e.result(err,rows,fields);
-					}.bind(this));
-				}.bind(this));
-				this.connect();
-			}
-		},
+		}
 
 		/**
 		 * Terminate the connection
-		 */
+		 *
 		close: function ()
 		{
-			if (this.connection)
+			if (this.connection!=undefined && this.connect._connectCalled)
 			{
 				this.connection.destroy();
 				this.connecting = false;
@@ -161,7 +155,7 @@ module.exports = {
 				this.failed = false;
 				this.e.close();
 			}
-		}
+		}*/
 	
 	}
 

@@ -27,7 +27,8 @@ module.exports = {
 	 * Constructor
 	 * {description}
 	 */	
-	constructor: function (text) {
+	constructor: function (text)
+	{
 		this.text = text || '';
 	},
 
@@ -67,7 +68,12 @@ module.exports = {
 		/**
 		 * @var string check if the match is valid.
 		 */
-		templateCheck: '[\w|\.|\-]'
+		templateCheck: '[\w|\.|\-]',
+
+		/**
+		 * @var string type object properties that may be replaced
+		 */
+		validTypes: 'string,number,boolean,date'
 
 	},
 
@@ -81,29 +87,39 @@ module.exports = {
 		 * @param object $object object to be matched.
 		 * @param string $path path to the object as string (example: core.property)
 		 */
-		match: function (o,path) {
-			if (!path) {
+		match: function (o,path)
+		{
+			var type = typeof o;
+			if (!path)
+			{
 				var path='';
-				this._text=this.text;
+				this._text=this.text+'';
 			}
-			if (typeof o == 'object' && path.split('.').length < 5) {
-				for(n in o) this.match(o[n],path+n+'.');
-			} else {
-				this._text=new String(this._text).replace(new RegExp(this.prefix+path.substr(0,path.length-1)+this.suffix,'gim'), function (txt) {
-					// Prevent to match JSON format.
-					if (txt.match(new RegExp(this.templateCheck,'gi'))) {
+			if (type == 'object' && path.split('.').length < 5)
+			{
+				for(n in o)
+					this.match(o[n],path+n+'.');
+			} else if (this.validTypes.indexOf(type) != -1)
+			{
+				var templateCheck = function (txt) {
+					if (txt.match(new RegExp(this.templateCheck,'gi')))
+					{
 						return (this.value+"");
-					} else return txt;
-				}.bind({ value: o }));
+					} else
+						return txt;
+				}.bind({ value: o });
+				this._text=this._text.replace(new RegExp(this.prefix+path.substr(0,path.length-1)+this.suffix,'gim'),templateCheck);
 			}
-			if (path=='') { return this._text; }
+			if (path=='') 
+				return this._text;
 		},
 		
 		/**
 		 * Set the suffix of the template.
 		 * @param string $reg regular expression
 		 */
-		setSuffix: function (reg) {
+		setSuffix: function (reg)
+		{
 			this.suffix = reg || this.suffix;
 			return this;
 		},
@@ -112,7 +128,8 @@ module.exports = {
 		 * Set the prefix of the template.
 		 * @param string $reg regular expression
 		 */
-		setPrefix: function (reg) {
+		setPrefix: function (reg)
+		{
 			this.prefix = reg || this.prefix;
 			return this;
 		}

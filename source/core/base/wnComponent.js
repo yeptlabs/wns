@@ -150,6 +150,7 @@ module.exports = {
 		 */
 		preloadEvents: function ()
 		{
+			this.e.log&&this.e.log('Preloading events...','system');
 			var preload = Object.extend(true,{},this.defaultEvents,this.getConfig().events);
 			if (preload != undefined)
 				this.setEvents(preload);
@@ -176,6 +177,7 @@ module.exports = {
 		 * of all events of this component.
 		 */
 		attachEventsHandlers: function () {
+			this.e.log&&this.e.log("Attaching default event's handlers...",'system');
 			var events = this.getEvents();
 			for (e in events)
 			{
@@ -238,10 +240,12 @@ module.exports = {
 			else
 			{
 				var config = _eventsConfig[eventName] || {},
-						className = config.class;
+					className = config.class;
 					config.id = eventName;
-					config.source = this;
+					config.autoInit = false;
 					var evt = this.createClass(className,config);
+					evt.setParent(this);
+					evt.init();
 					if (hidden != false)
 					{
 						_events[eventName] = evt;
@@ -255,7 +259,7 @@ module.exports = {
 		},
 
 		/**
-		 * Get all events from the list.
+		 * Get a list of all event loaded in this component
 		 */
 		getEvents: function ()
 		{
@@ -263,7 +267,7 @@ module.exports = {
 		},
 
 		/**
-		 * Check if the Event exists.
+		 * Check if the event exists in this component.
 		 */
 		hasEvent: function (name)
 		{
@@ -271,7 +275,7 @@ module.exports = {
 		},
 
 		/**
-		 * Add a new one-time-listener to the event if it exists
+		 * Add a new one-time-listener to the event, if it exists
 		 * @param string $eventName event name
 		 * @param function $handler event handler
 		 */
@@ -283,6 +287,39 @@ module.exports = {
 					this.e.log('Invalid handler sent to event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
 			} else
 				this.e.log('Not existent event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
+		},
+
+		/**
+		 * Add a new listener to the event, if it exists
+		 * @param string $eventName event name
+		 * @param function $handler event handler
+		 */
+		addListener: function (eventName,handler) {
+			var event;
+			if (event = this.getEvent(eventName))
+			{
+				if (!event.addListener(handler))
+					this.e.log('Invalid handler sent to event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
+			} else
+				this.e.log('Not existent event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
+		},
+
+		/**
+		 * Return an object with all attributes and configuration of this component
+		 */
+		export: function ()
+		{
+			var _export = {},
+				merge = {};
+			Object.extend(merge,this.getConfig(),this);
+			for (p in merge)
+			{
+				if (!((typeof merge[p] == 'object' || typeof merge[p] == 'function') && merge[p] != null && merge[p].instanceOf!=undefined))
+				{
+					_export[p] = merge[p];
+				}
+			}
+			return _export;
 		},
 
 		/**
@@ -320,7 +357,26 @@ module.exports = {
 		 */
 		init: function ()
 		{
-		
+		},
+
+		/**
+		 * Execute an expression in this component's context.
+		 * @param string $cmd expression
+		 * @return mixed result of the eval
+		 */
+		run: function (cmd)
+		{
+			this.e.log&&this.e.log('Executing: '+cmd,'result');
+			try
+			{
+				with (this)
+				{
+					this.e.log&&this.e.log(util.inspect(eval(cmd)),'result');
+				}
+			} catch (e)
+			{
+				this.e.exception&&this.e.exception(e);
+			}
 		}
 
 	}

@@ -44,6 +44,15 @@ module.exports = {
 		 */
 		activeServer: -1,
 
+		/**
+		 * @var object events to be preloaded.
+		 */
+		defaultEvents: {
+			'log': {
+				handler: 'logHandler'
+			}
+		}
+
 	},
 
 	/**
@@ -67,18 +76,12 @@ module.exports = {
 		 * Listen to the console input
 		 */
 		listenInput: function () {
+			var self = this;
 			process.stdin.resume();
 			process.stdin.setEncoding('utf8');
 			process.stdin.on('data', function (chunk) {
-			  this.exec(chunk.substr(0,chunk.length-1).split(' '));
-			}.bind(this));
-		},
-		
-		/**
-		 * Executes the console command.
-		 */
-		exec: function (args) {
-			console.log(args);
+			  self.run(chunk.substr(0,chunk.length-1).split(' '));
+			});
 		},
 
 		/**
@@ -200,7 +203,7 @@ module.exports = {
 			var prefix = '', sourceName = e.owner.getConfig('id');
 			if (sourceName) prefix = '['+sourceName+']'+' ';
 			console.log(prefix+''+data);
-			e.stopPropagation = true;
+			//e.stopPropagation = true;
 		},
 
 		/**

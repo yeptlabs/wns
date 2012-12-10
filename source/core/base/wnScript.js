@@ -1,4 +1,4 @@
-/**
+   /**
  * Source of the wnScript class.
  * 
  * @author: Pedro Nasser
@@ -27,7 +27,8 @@ module.exports = {
 	 * PRIVATE
 	 */
 	private: {
-		_enabled: false
+		_enabled: false,
+		_timeOut: -1
 	},
 
 	/**
@@ -76,14 +77,20 @@ module.exports = {
 		start: function ()
 		{
 			_enabled = true;
+			var self = this;
 			(function () {
 				var args = arguments.callee.bind(this);
 				if (this.isEnabled() !== true)
 					return false;
 				this.once('release', function () {
-					setTimeout(args,this.getInterval());
+					_timeOut=setTimeout(args,this.getInterval());
 				}.bind(this));
-				this.run();
+				try {
+				 self.run();
+				} catch (e) {
+				 self.getParent().e.exception&&self.getParent().e.exception(e);
+				 self.e.release();
+				}
 			}.bind(this))();
 		},
 
@@ -100,6 +107,7 @@ module.exports = {
 		 */
 		stop: function ()
 		{
+			clearTimeout(_timeOut);
 			_enabled = false;
 		},
 
