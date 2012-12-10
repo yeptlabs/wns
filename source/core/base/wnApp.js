@@ -8,7 +8,7 @@
  */
 
 /**
- * Description coming soon.
+ * wnApp is the base class for all applications. 
  *
  * @author Pedro Nasser
  * @package system.core
@@ -64,15 +64,22 @@ module.exports = {
 		},
 
 		/**
-		 * Create a new httpRequest handler.
-		 * @param $request object
-		 * @param $response object
+		 * Handles a new httpRequest and build a new wnRequest.
+		 * @param $req HttpRequest's object
+		 * @param $res HttpResponse's object
+		 * @error throw an exception
 		 */
 		createRequest: function (req,resp)
 		{
 			var httpRequest, reqConf, url = req.url+'';
 			try
 			{
+				if (url == '/capa/index?ping=1')
+				{
+					this.e.newRequest(req);
+					resp.end('');
+					return false;
+				}
 				reqConf = Object.extend(true,{},this.getComponentConfig('http'),{ id: 'request-'+_requestCount, request: req, response: resp }),
 				httpRequest = this.createComponent('wnHttpRequest',reqConf);
 				_requestCount++;
@@ -116,16 +123,17 @@ module.exports = {
 		},
 
 		/**
-		 * Return opened requests list
+		 * Return all opened request on this application.
 		 */
 		getRequests: function () {
 			return _requests;
 		},
 
 		/**
-		 * Get new or cached instance from a controller.
+		 * Get a new or cached instance from a controller.
 		 * @param $id string controller's id
 		 * @param $request wnRequest instance
+		 * @return wnController
 		 */
 		getController: function (id,request)
 		{
@@ -152,7 +160,7 @@ module.exports = {
 		},
 
 		/**
-		 * Flush all application's controllers
+		 * Flush all loaded application's controllers cache
 		 */
 		flushControllers: function () {
 			for (c in _controllers)
@@ -161,7 +169,7 @@ module.exports = {
 		},
 
 		/**
-		 * Flush application's controller
+		 * Flush an application's controller cache
 		 * @param string $c controller's name
 		 */
 		flushController: function (c) {
@@ -186,23 +194,22 @@ module.exports = {
 		/**
 		 * Local Log Handler
 		 * @param $e eventObject object of this event emition
-		 * @param $arg1 mixed argument
-		 * @param $arg2 mixed argument
-		 * ...
- 		 * @param $argN mixed argument
+		 * @param $data string log message
+		 * @param $zone string log zone
 		 */
 		logHandler: function (e,data,zone)
 		{
 			_localLogs.push([_logId,+new Date,data,zone||'']);
 			_logId++;
-			if (_localLogs.length > 100) {
+			if (_localLogs.length > 100)
+			{
 				_localLogs.shift();
 			}
 		},
 
 		/**
-		 * Return all logs
-		 * @return object log's storage
+		 * Return all stored logs messages
+		 * @return object all stored log messages
 		 */
 		getLogs: function ()
 		{
@@ -212,10 +219,7 @@ module.exports = {
 		/**
 		 * Exception handler
 		 * @param $e eventObject object of this event emition
-		 * @param $arg1 mixed argument
-		 * @param $arg2 mixed argument
-		 * ...
- 		 * @param $argN mixed argument
+		 * @param $err mixed argument
 		 */
 		exceptionHandler: function (e,err)
 		{
@@ -225,22 +229,6 @@ module.exports = {
 			_stack.shift();
 			for (s in _stack)
 				e.owner.e.log(_stack[s],'stack');
-		},
-
-		/**
-		 * Execute an expression in the application scope.
-		 * @param string $cmd expression
-		 * @return result of the execution
-		 */
-		run: function (cmd) {
-			this.e.log('Executing: '+cmd,'result');
-			try {
-				with (this) {
-					this.e.log(util.inspect(eval(cmd)),'result');
-				}
-			} catch (e) {
-				this.e.exception(e);
-			}
 		}
 
 	}

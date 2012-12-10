@@ -357,6 +357,26 @@ module.exports = {
 		 */
 		init: function ()
 		{
+		},
+
+		/**
+		 * Execute an expression in this component's context.
+		 * @param string $cmd expression
+		 * @return mixed result of the execution
+		 */
+		run: function (cmd)
+		{
+			this.e.log&&this.e.log('Executing: '+cmd,'result');
+			try
+			{
+				with (this)
+				{
+					this.e.log&&this.e.log(util.inspect(eval(cmd)),'result');
+				}
+			} catch (e)
+			{
+				this.e.exception&&this.e.exception(e);
+			}
 		}
 
 	}
