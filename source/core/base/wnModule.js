@@ -51,7 +51,8 @@ module.exports = {
 			this.setConfig(config);
 		if (fs.existsSync(defaultConfig))
 			this.configureFromFile(defaultConfig);
-		this.configureFromFile(this.modulePath + this.configFile);
+		if (fs.existsSync(this.modulePath + this.configFile))
+			this.configureFromFile(this.modulePath + this.configFile);
 
 		this.importCustomClasses();
 

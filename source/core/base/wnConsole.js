@@ -44,6 +44,15 @@ module.exports = {
 		 */
 		activeServer: -1,
 
+		/**
+		 * @var object events to be preloaded.
+		 */
+		defaultEvents: {
+			'log': {
+				handler: 'logHandler'
+			}
+		}
+
 	},
 
 	/**
@@ -59,6 +68,12 @@ module.exports = {
 		{
 			this.setConfig({ id: '*' });
 			this.e.log('Initializing wnConsole...');
+			if (process.argv.length>2)
+			{
+				var cmd = process.argv.slice(2).join(' ');
+				this.run(cmd);
+				process.exit();
+			}
 			this.listenInput();
 			process.on('uncaughtException', function (e) { console.log(e.stack); });
 		},
@@ -67,18 +82,12 @@ module.exports = {
 		 * Listen to the console input
 		 */
 		listenInput: function () {
+			var self = this;
 			process.stdin.resume();
 			process.stdin.setEncoding('utf8');
 			process.stdin.on('data', function (chunk) {
-			  this.exec(chunk.substr(0,chunk.length-1).split(' '));
-			}.bind(this));
-		},
-		
-		/**
-		 * Executes the console command.
-		 */
-		exec: function (args) {
-			console.log(args);
+			  self.run(chunk.substr(0,chunk.length-1).split(' '));
+			});
 		},
 
 		/**

@@ -15,6 +15,8 @@
  * @since 1.0.0
  */
 
+/* THIS IS A DEFAULT WAY TO LOAD IT */
+
 (function () {
 
 	// Initialize the webNode.

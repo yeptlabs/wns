@@ -20,8 +20,8 @@ console.log('Loading WNS:');
 // Loading requirements..
 try
 {
-	global.sourcePath = 'source/';
-	global.cwd = process.cwd()+'/';
+	global.sourcePath = (global.sourcePath || (__dirname.indexOf('source/')!=-1 ? 'source/':''));
+	global.cwd = __dirname+'/';
 	global._r = require;
 	global._walk = _r(cwd+sourcePath+'util/recursiveReadDir');
 	Object.extend = _r(cwd+sourcePath+'util/extend');

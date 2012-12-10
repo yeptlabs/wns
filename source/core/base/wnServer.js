@@ -51,9 +51,13 @@ module.exports = {
 			this.loadApplications();
 			this.e.log('Starting `wnHttp`...');
 			this.http = this.getComponent('http');
-			this.http.setConfig({ app: this.getApplications() })
-			this.e.log('Listening HTTP server...');
-			this.http.listen();
+			if (this.http)
+			{
+				this.http.setConfig({ app: this.getApplications() })
+				this.e.log('Listening HTTP server...');
+				this.http.listen();
+			} else
+				this.e.log('An error has occurrend while loading http component.');
 		},
 
 		/**
