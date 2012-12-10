@@ -362,7 +362,7 @@ module.exports = {
 		/**
 		 * Execute an expression in this component's context.
 		 * @param string $cmd expression
-		 * @return mixed result of the execution
+		 * @return mixed result of the eval
 		 */
 		run: function (cmd)
 		{
