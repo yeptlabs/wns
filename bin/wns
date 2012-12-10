@@ -1,4 +1,11 @@
 #!/usr/bin/env node
 
 sourcePath = '../source/';
-require('../source/wnInit');
+require(sourcePath+'/wnInit');
+
+if (process.argv.length>2)
+{
+	var cmd = process.argv.slice(2).join(' ');
+	wns.console.run(cmd);
+	process.exit();
+}

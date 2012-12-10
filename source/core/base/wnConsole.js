@@ -68,12 +68,6 @@ module.exports = {
 		{
 			this.setConfig({ id: '*' });
 			this.e.log('Initializing wnConsole...');
-			if (process.argv.length>2)
-			{
-				var cmd = process.argv.slice(2).join(' ');
-				this.run(cmd);
-				process.exit();
-			}
 			this.listenInput();
 			process.on('uncaughtException', function (e) { console.log(e.stack); });
 		},
