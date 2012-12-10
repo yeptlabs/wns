@@ -36,10 +36,7 @@ module.exports = {
 		/**
 		 * @var object list of query
 		 */
-		query: {
-			GET: {},
-			POST: {}
-		},
+		query: {},
 
 		/**
 		 * @var wnApp instance
@@ -84,13 +81,19 @@ module.exports = {
 		init: function ()
 		{
 			this.request=this.getConfig('request');
-			this.app=this.getConfig('app');
+			this.app=this.getParent();
 
 			if (this.request)
 			{
-				this.query=Object.extend(true,this.query,{ POST: this.request.info.body });
-				this.query=Object.extend(true,this.query,{ GET: this.request.parsedUrl.query });
-				this.query=Object.extend(true,this.query.GET, this.request.route.params);
+				this.query.GET = {};
+				this.query.POST = {};
+				Object.extend(true,this.query.POST, this.request.info.body);
+ 				Object.extend(true,this.query.GET, this.request.parsedUrl.query);
+				Object.extend(true,this.query.GET, this.request.route.params);
+				for (g in this.query.GET)
+				{
+					this.query.GET[g]=this.query.GET[g].replace(/\+/gi,' ')
+				}
 			}
 
 			if (this.app)
@@ -150,7 +153,6 @@ module.exports = {
 		 * @param $data object data that will replaced in the template
 		 */
 		render: function (view,data) {
-
 			var _controller=this.getControllerName(),
 				_layout=this.layout;
 				_view=view;
@@ -173,9 +175,9 @@ module.exports = {
 				// Renderiza a pagina temporaria.
 				var	_contentAll=this.view.render(),
 					_contentAll=new this.app.c.wnTemplate(_contentAll,false).match({
-						self: this,
-						app: this.app.getConfig(),
-						request: this.request.getConfig()
+						self: this.export(),
+						app: this.app.export(),
+						request: this.request.export()
 					});
 
 				// Substitui data vinda do controller.

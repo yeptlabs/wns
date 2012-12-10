@@ -8,7 +8,7 @@
  */
 
 /**
- * Description coming soon.
+ * wnApp is the base class for all applications. 
  *
  * @author Pedro Nasser
  * @package system.core
@@ -27,15 +27,25 @@ module.exports = {
 	 * PRIVATE
 	 */
 	private: {
-
-		_controllers: {}
-	
+		_controllers: {},
+		_requests: [],
+		_slaveRequests: {},
+		_requestCount: 0,
+		_localLogs: [],
+		_logId: 0
 	},
 
 	/**
 	 * Public Variables
 	 */
 	public: {
+
+		/**
+		 * @var object events to be preloaded.
+		 */
+		defaultEvents: {
+			'newRequest': {}
+		}
 
 	},
 
@@ -49,24 +59,62 @@ module.exports = {
 		 */	
 		init: function ()
 		{
-			this.e.log("Starting application's components...");
 			this.startComponents();
-			this.e.log('Application `'+this.getConfig('id')+'` running...');
+			this.e.log("Application `"+this.getConfig('id')+"` running...","system");
 		},
 
 		/**
-		 * Create a new httpRequest handler.
-		 * @param $request object
-		 * @param $response object
+		 * Handles a new httpRequest and build a new wnRequest.
+		 * @param $req HttpRequest's object
+		 * @param $res HttpResponse's object
+		 * @error throw an exception
 		 */
 		createRequest: function (req,resp)
 		{
-			var reqConf = Object.extend(true,{},this.getComponentConfig('http'),{ request: req, response: resp, app: this });
-				httpRequest = this.createClass('wnHttpRequest',reqConf);
-				httpRequest.init();
+			var httpRequest, reqConf, url = req.url+'';
 			try
 			{
-				httpRequest.run();
+				if (url == '/capa/index?ping=1')
+				{
+					this.e.newRequest(req);
+					resp.end('');
+					return false;
+				}
+				reqConf = Object.extend(true,{},this.getComponentConfig('http'),{ id: 'request-'+_requestCount, request: req, response: resp }),
+				httpRequest = this.createComponent('wnHttpRequest',reqConf);
+				_requestCount++;
+				httpRequest.created = +new Date;
+				httpRequest.init();
+				httpRequest.prepare();
+				httpRequest.once('end',function () {					
+					for (r in _slaveRequests[url])
+					{
+						var sreq=_slaveRequests[url];
+						sreq.data = httpRequest.data;
+						sreq.compressedData = httpRequest.compressedData;
+						sreq.code = httpRequest.code;
+						sreq.header = httpRequest.header;
+						sreq.send();
+					}
+					_slaveRequests[url]=null;
+					reqConf = null;
+					_requestCount--;
+					_requests[url]=false;
+					httpRequest = null;
+				});
+				var self = this;
+				if (_requests[url]!=true && httpRequest.template != '<file>')
+				{
+					_requests[url]=true;
+					httpRequest.run();
+					_slaveRequests[url]=[];
+				} else if (httpRequest.template == '<file>')
+				{
+					httpRequest.run();
+				} else
+				{
+					_slaveRequests[url].push(httpRequest);
+				}
 			}
 			catch (e)
 			{
@@ -75,19 +123,17 @@ module.exports = {
 		},
 
 		/**
-		 * Check if a controller class exists and it's loaded.
-		 * @param $id string controller's id
+		 * Return all opened request on this application.
 		 */
-		existsController: function (id)
-		{
-			this.getController(id);
-			return this.c[id.substr(0,1).toUpperCase()+id.substr(1)] != undefined;
+		getRequests: function () {
+			return _requests;
 		},
 
 		/**
-		 * Get new or cached instance from a controller.
+		 * Get a new or cached instance from a controller.
 		 * @param $id string controller's id
 		 * @param $request wnRequest instance
+		 * @return wnController
 		 */
 		getController: function (id,request)
 		{
@@ -97,17 +143,38 @@ module.exports = {
 				var builder = this.getComponent('classBuilder');
 					_classSource = this.getFile(this.getConfig('path').controllers+id+'.js'),
 					module = {};
+				if (!_classSource)
+					return false;
 				eval(_classSource);
 				builder.classesSource[controllerName] = module.exports;
 				builder.classes[controllerName]=builder.buildClass(controllerName);
 				if (!builder.classes[controllerName])
 					this.e.exception(new Error('Could not build the controller class.'));
 				this.c[controllerName]=builder.classes[controllerName];
+				_controllers[id]=this.c[controllerName];
 			}
-			var config = { controllerName: id, app: this, request: request, autoInit: true },
-				controller = this.createClass(controllerName,config);
-			_controllers[id]=controller;
+			var config = { controllerName: id, request: request, autoInit: false },
+				controller = this.createComponent(controllerName,config);
+			controller.init();
 			return controller;
+		},
+
+		/**
+		 * Flush all loaded application's controllers cache
+		 */
+		flushControllers: function () {
+			for (c in _controllers)
+				this.c['wn'+(c.substr(0,1).toUpperCase()+c.substr(1))+'Controller']=undefined;
+			this.e.log('All controllers has been flushed.','system');
+		},
+
+		/**
+		 * Flush an application's controller cache
+		 * @param string $c controller's name
+		 */
+		flushController: function (c) {
+			this.c['wn'+(c.substr(0,1).toUpperCase()+c.substr(1))+'Controller']=undefined;
+			this.e.log('Controller ´'+c+'´ has been flushed.','system');
 		},
 
 		/**
@@ -127,22 +194,32 @@ module.exports = {
 		/**
 		 * Local Log Handler
 		 * @param $e eventObject object of this event emition
-		 * @param $arg1 mixed argument
-		 * @param $arg2 mixed argument
-		 * ...
- 		 * @param $argN mixed argument
+		 * @param $data string log message
+		 * @param $zone string log zone
 		 */
-		logHandler: function (e,data)
+		logHandler: function (e,data,zone)
 		{
+			_localLogs.push([_logId,+new Date,data,zone||'']);
+			_logId++;
+			if (_localLogs.length > 100)
+			{
+				_localLogs.shift();
+			}
 		},
+
+		/**
+		 * Return all stored logs messages
+		 * @return object all stored log messages
+		 */
+		getLogs: function ()
+		{
+			return _localLogs;
+		},		
 
 		/**
 		 * Exception handler
 		 * @param $e eventObject object of this event emition
-		 * @param $arg1 mixed argument
-		 * @param $arg2 mixed argument
-		 * ...
- 		 * @param $argN mixed argument
+		 * @param $err mixed argument
 		 */
 		exceptionHandler: function (e,err)
 		{

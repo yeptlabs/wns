@@ -31,6 +31,12 @@
 			"errorPage": ""
 		},
 
+		// wnCache.
+		"cache": {
+			"class": "wnCache",
+			"alias": "cache"
+		},
+
 		// wnView default configuration
 		"view": {
 			"class": "wnView",
