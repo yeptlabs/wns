@@ -1,0 +1,20 @@
+// WNS configuration
+{
+
+  // wnApp loading paths
+	"app": {
+		"default": {
+			"appPath": "default/",
+			"domain": "127.0.0.1"
+		}
+	},
+
+	"components": {
+		// wnHttp configuration
+		"http": {	
+			// Listening port
+			"listen":[80,'127.0.0.1']
+		}
+	}
+
+}
