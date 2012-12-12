@@ -33,7 +33,9 @@ WNS Framework.
 
  Just type the following command:
 
-     $ npm install wns
+     $ npm install wnserver
+
+ Then move the `wnserver` folder from inside of the `node_modules` folder to where you want.
 
 ### @ Git mode
 
@@ -41,7 +43,7 @@ WNS Framework.
 
      $ git clone https://github.com/yeptlabs/wns.git
 
- Then to install all dependencies, type:
+ Then to install all dependencies, just typing inside the wns folder:
  
      $ npm install
 
