@@ -13,7 +13,7 @@
 		// wnHttp configuration
 		"http": {	
 			// Listening port
-			"listen":[80,'127.0.0.1']
+			"listen":[80,"127.0.0.1"]
 		}
 	}
 
