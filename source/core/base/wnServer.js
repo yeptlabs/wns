@@ -52,6 +52,7 @@ module.exports = {
 			
 			this.e.log('Starting `wnHttp`...');
 			this.http = this.getComponent('http');
+
 			if (this.http!=false)
 			{
 				this.http.setConfig({ app: this.getApplications() })

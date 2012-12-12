@@ -20,6 +20,7 @@ console.log('Loading WNS:');
 // Loading requirements..
 try
 {
+
 	global.sourcePath = 'source/';
 	global.cwd = __dirname+'/../';
 	global._r = require;
