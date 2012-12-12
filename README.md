@@ -43,7 +43,7 @@ WNS Framework.
 
      $ git clone https://github.com/yeptlabs/wns.git
 
- Then to install all dependencies, type:
+ Then to install all dependencies, just typing inside the wns folder:
  
      $ npm install
 
