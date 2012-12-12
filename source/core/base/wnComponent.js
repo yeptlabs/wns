@@ -137,6 +137,7 @@ module.exports = {
 		 * @param $filePath string file's path
 		 */
 		getFile: function (filePath,binary) {
+			console.log(filePath);
 			var realPath = this.instanceOf('wnModule')?this.modulePath+filePath:filePath;
 			if (fs&&fs.existsSync(realPath)) {
 				var file = fs.readFileSync(realPath);

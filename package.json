@@ -8,7 +8,8 @@
   ],
   "main": "index",
   "dependencies": {
-    "mime":"1.2.7"
+    "mime": "*",
+    "wrench": "*"
   },
   "keywords": [
     "web","yii","framework","wns","mvc",

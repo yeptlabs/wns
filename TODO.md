@@ -1,4 +1,4 @@
- SQTODO LIST
+TODO LIST
 ==============
 (In order of priority)
 

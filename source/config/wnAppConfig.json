@@ -2,7 +2,7 @@
 {
 
 	// Application Name
-	"title": "WebApp",
+	"title": "Default WNS WebApp",
 
 	// Path to respective directories
 	"path": {
@@ -10,7 +10,8 @@
 		"lib": "lib/",
 		"controllers": "controllers/",
 		"public": "public/",
-		"views": "views/"
+		"views": "views/",
+		"classes": "classes"
 	},
 
 	// Components
@@ -27,8 +28,8 @@
 
 			"defaultController":"site",
 			"contentType": {},
-			"serveralias": "",
-			"errorPage": ""
+			"serveralias": "127.0.0.1",
+			"errorPage": "site/error"
 		},
 
 		// wnCache.
