@@ -20,8 +20,9 @@ console.log('Loading WNS:');
 // Loading requirements..
 try
 {
-	global.sourcePath = (global.sourcePath || (__dirname.indexOf('source/')!=-1 ? 'source/':''));
-	global.cwd = __dirname+'/';
+
+	global.sourcePath = 'source/';
+	global.cwd = __dirname+'/../';
 	global._r = require;
 	global._walk = _r(cwd+sourcePath+'util/recursiveReadDir');
 	Object.extend = _r(cwd+sourcePath+'util/extend');
@@ -39,6 +40,7 @@ try
 	global.emitter = _r('events').EventEmitter;
 	global.Buffer = _r('buffer').Buffer;
 	global.mime = _r('mime');
+	global.wrench = _r('wrench');
 } catch (e) {
 	throw e;
 	process.exit();

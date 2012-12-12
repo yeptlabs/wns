@@ -49,15 +49,23 @@ module.exports = {
 		init: function ()
 		{
 			this.loadApplications();
+			
 			this.e.log('Starting `wnHttp`...');
 			this.http = this.getComponent('http');
-			if (this.http)
+
+			if (this.http!=false)
 			{
 				this.http.setConfig({ app: this.getApplications() })
 				this.e.log('Listening HTTP server...');
 				this.http.listen();
 			} else
 				this.e.log('An error has occurrend while loading http component.');
+
+			if (!fs.existsSync(this.getConfig('appDirectory')))
+			{
+				this.e.log("Creating server's applications directory.");
+				fs.mkdir(this.getConfig('appDirectory'),755);
+			}
 		},
 
 		/**
@@ -93,8 +101,19 @@ module.exports = {
 				modules[a].appName=appName;
 				modules[a].class='wnApp';
 				modules[a].autoInit=false;
+				this.buildApplication(appName,modules[a].modulePath);
 			}
 			this.setModules(modules);
+		},
+
+		/**
+		 * Build an application directory
+		 */
+		buildApplication: function (appName, appPath)
+		{
+			if (fs.existsSync(appPath))
+				return false;
+			wrench.copyDirSyncRecursive(cwd+sourcePath+'app/',appPath);
 		},
 
 		/**
@@ -111,7 +130,6 @@ module.exports = {
 			else
 				this.setModule('app-'+id,application);
 		},
-
 		/**
 		 * Retrieves the named application.
 		 * The component has to be declared in the global components list. A new instance will be created

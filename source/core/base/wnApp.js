@@ -74,12 +74,10 @@ module.exports = {
 			var httpRequest, reqConf, url = req.url+'';
 			try
 			{
-				if (url == '/capa/index?ping=1')
-				{
-					this.e.newRequest(req);
-					resp.end('');
+				this.e.newRequest(req,resp);
+				if (resp.closed)
 					return false;
-				}
+
 				reqConf = Object.extend(true,{},this.getComponentConfig('http'),{ id: 'request-'+_requestCount, request: req, response: resp }),
 				httpRequest = this.createComponent('wnHttpRequest',reqConf);
 				_requestCount++;
