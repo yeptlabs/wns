@@ -27,13 +27,13 @@ WNS Framework.
 
 ### @ Requirement
 
- * NodeJS v0.8.8 ([how to install](https://github.com/joyent/node))
+ * NodeJS ([how to install](https://github.com/joyent/node))
 
 ### @ NPM mode
 
  Just type the following command:
 
-     $ npm install https://github.com/yeptlabs/wns.git
+     $ npm install wns
 
 ### @ Git mode
 
@@ -41,39 +41,27 @@ WNS Framework.
 
      $ git clone https://github.com/yeptlabs/wns.git
 
- Then type:
+ Then to install all dependencies, type:
  
      $ npm install
 
 ### @ Manual mode
 
- Just download the zip file on the top right and unzip somewhere.
+ Just download the zip file and unzip somewhere.
 
 ## Quick start and play
 
- * The first step is to create a new application:
- 
- Go to the folder where you downloaded the source of **WNS**, then execute:
-
-		$ node index.js newapp [domain/ip] [path to the project]
+ * The first step is to create a new application is to run the WNS:
 
  Example:
-
-		$ node index.js newapp 127.0.0.1 app/helloworld
+ 
+		$ node index
    
- This will automatictally create a new application using the default structure on the the directory and bind the new application on WNS server configuration.
-
- * The second step is to start the **WNS** and see running your new application
- 
- On the **WNS** directory just type:
-
-		$ node index.js
- 
- And it's done! The **WNS** will start runnning based on `config.json` configuration.
+ This will automatictally create a new application using the default structure.
 
  * To view your application running just access:
 
-		http://[domain/ipp of the application]
+		http://127.0.0.1/
 
 ## More informations
 
