@@ -136,9 +136,11 @@ module.exports = {
 		 * The file's path is relative to the module's path.
 		 * @param $filePath string file's path
 		 */
-		getFile: function (filePath,binary) {
+		getFile: function (filePath,binary)
+		{
 			var realPath = this.instanceOf('wnModule')?this.modulePath+filePath:filePath;
-			if (fs&&fs.existsSync(realPath)) {
+			if (fs&&fs.existsSync(realPath))
+			{
 				var file = fs.readFileSync(realPath);
 				return (binary===true) ? file : file.toString();
 			}

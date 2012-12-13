@@ -146,6 +146,7 @@ module.exports = {
 				eval(_classSource);
 				builder.classesSource[controllerName] = module.exports;
 				builder.classes[controllerName]=builder.buildClass(controllerName);
+				builder.makeDoc(controllerName,_classSource);
 				if (!builder.classes[controllerName])
 					this.e.exception(new Error('Could not build the controller class.'));
 				this.c[controllerName]=builder.classes[controllerName];

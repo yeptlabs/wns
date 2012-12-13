@@ -31,7 +31,7 @@
 			</div>
 
 			<div id="bottom">
-				© {self.title} - All rights reserved
+				© {app.title} - All rights reserved
 			</div>
 	
 		</div>
