@@ -278,27 +278,72 @@ wnBuild.prototype.removeInvalidDependencies = function (extensions) {
  * @param ANY $property
  * @result ANY new instance of the data
  */
-wnBuild.prototype.newValue = function (property) {
+wnBuild.prototype.newValue = function (property)
+{
 	if (property == null || property == undefined) return property;
 	var type = typeof property;
-	if (type != 'object') {
+	if (type != 'object')
+	{
 		if (property==undefined || property==null) return property;
-		if (type === 'function') return property;
-		if (type === 'boolean') return property == true;
-		if (type == 'string') return property + "";
+		if (type === 'function')
+			return property;
+		if (type === 'boolean')
+			return property == true;
+		if (type == 'string')
+			return property + "";
 		var _i = new (global[type.substr(0,1).toUpperCase()+type.substr(1).toLowerCase()])(property);
 		return (type == 'number') && _i.toValue ? _i.toValue() : _i;
 	}
 	else {
-		if (property.length != undefined) {
+		if (property.length != undefined)
+		{
 			var obj = new Array;
-			for (p in property) obj.push(property[p]);
+			for (p in property)
+				obj.push(property[p]);
 			return obj;
-		} else {
+		} else
+		{
 			var obj=new Object;
-			for (p in property) obj[p]=property[p];
+			for (p in property)
+				obj[p]=property[p];
 			return obj;
 
 		}
 	}
+};
+
+wnBuild.prototype.makeDoc = function (className, docSource)
+{
+
+	if (this.classes[className]==undefined)
+		return false;
+
+	var comments = docSource.match(/\/\*[\s\S]+?\*\//gim),
+		blackList = 'methods extend private public';
+	for (c in comments)
+		if (c < 2)
+			docSource=docSource.replace(comments[c],'');
+
+	var findIt = new RegExp('','gim'),
+		matchDoc = new RegExp('','gim'),
+		matches = docSource.match(/\/\*[\s\S]+?\*\/\s+\w+\:/gim);
+
+	var props = {};
+	for (m in matches)
+	{
+		var	def = matches[m],
+			getDoc = def.match(/[\/\*\*](\W|\w)+[\*\/]/gim)[0],
+			prop = def.replace(/[\/\*\*](\W|\w)+[\*\/]/gim,'').replace(/\W/gim,'');
+		if (blackList.indexOf(prop)!=-1)
+			continue;
+		props[prop] = getDoc;
+	}
+
+	Object.defineProperty(this.classes[className], 'doc', {
+		value: props,
+		writable: true,
+		configurable: true,
+		enumerable: false
+	});
+
 };
