@@ -116,17 +116,21 @@ module.exports = {
 		importClasses: function ()
 		{
 			this.e.log&&this.e.log('Importing core classes...','system');
-			var _c = {};
+			var _c = {},
+				_cSource = {};
 			for (c in global.coreClasses)
 			{
 				var module = {},
 				 _class = global.coreClasses[c];
 				eval(_class);
 				_c[c] = module.exports;
+				_cSource[c]=_class;
 			}
 			var classBuilder = new wns.wnBuild(_c);
 			this.setComponent('classBuilder',classBuilder);
 			classBuilder.build();
+			for (c in global.coreClasses)
+				classBuilder.makeDoc(c,_cSource[c]);
 		},
 		
 		/**
@@ -149,6 +153,7 @@ module.exports = {
 					eval(_class);
 					var cb = this.getComponent('classBuilder');
 					cb.classes[className]=cb.recompile(className,module.exports);
+					cb.makeDoc(className,_class);
 					_customClasses[className]=cb.classes[className];
 				}
 			}
@@ -170,7 +175,7 @@ module.exports = {
 				var cb = this.getComponent('classBuilder');
 				cb.classes[className]=cb.recompile(c,module.exports);
 			}
-			this.e.log&&this.e.log('All custom components has been reloaded.','system');
+			this.e.log&&this.e.log('All custom classes has been reloaded.','system');
 		},
 
 		/**
@@ -194,6 +199,7 @@ module.exports = {
 					eval(_script);
 					var cb = this.getComponent('classBuilder');
 					cb.classes[scriptClassName]=cb.recompile(scriptClassName,module.exports);
+					cb.makeDoc(scriptClassName,_script);
 					scriptSet[scriptName] = {
 						class: scriptClassName
 					};

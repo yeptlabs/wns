@@ -41,7 +41,7 @@
 		// wnView default configuration
 		"view": {
 			"class": "wnView",
-			"titleTemplate": "{app.title} - {self.title}",
+			"titleTemplate": "{self.title} - {app.title}",
 			"language": "en",
 			"menu": {},
 			"menuTemplate":"<ul>{list}</ul>",
