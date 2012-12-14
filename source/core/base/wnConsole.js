@@ -80,7 +80,8 @@ module.exports = {
 			process.stdin.resume();
 			process.stdin.setEncoding('utf8');
 			process.stdin.on('data', function (chunk) {
-			  self.run(chunk.substr(0,chunk.length-1).split(' '));
+			  self.run(chunk.substr(0,chunk.length-1));
+			  return false;
 			});
 		},
 
@@ -203,7 +204,6 @@ module.exports = {
 			var prefix = '', sourceName = e.owner.getConfig('id');
 			if (sourceName) prefix = '['+sourceName+']'+' ';
 			console.log(prefix+''+data);
-			//e.stopPropagation = true;
 		},
 
 		/**

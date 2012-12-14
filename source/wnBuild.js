@@ -8,7 +8,8 @@
  */
 
 /**
- * Description coming soon.
+ * This class it's the main class of WNS.
+ * It converts JSON, in the correct format, to WNS classes.
  *
  * @author Pedro Nasser
  * @package system
