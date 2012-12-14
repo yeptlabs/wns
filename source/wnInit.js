@@ -15,7 +15,7 @@
  * @since 1.0.0
  */
 
-console.log('Loading WNS:');
+console.log('Welcome to WNS!');
 
 // Loading requirements..
 try
@@ -24,6 +24,8 @@ try
 	global.sourcePath = 'source/';
 	global.cwd = __dirname+'/../';
 	global._r = require;
+
+	console.log(' - Loading utilities..');
 	global._walk = _r(cwd+sourcePath+'util/recursiveReadDir');
 	Object.extend = _r(cwd+sourcePath+'util/extend');
 	Object.extend(true,Object,_r(cwd+sourcePath+'util/object'));
@@ -37,11 +39,14 @@ try
 	global.crypto = _r('crypto');
 	global.stream = _r('stream');
 	global.util = _r('util');
-	global.emitter = _r('events').EventEmitter;
-	global.Buffer = _r('buffer').Buffer;
 	global.mime = _r('mime');
 	global.wrench = _r('wrench');
+	global.events = _r('events');
+	global.buffer = _r('buffer');
+	global.emitter = events.EventEmitter;
+	global.Buffer = buffer.Buffer;
 } catch (e) {
+	console.log('Failed to load some dependencies...');
 	throw e;
 	process.exit();
 }
