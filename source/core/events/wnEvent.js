@@ -50,7 +50,8 @@ module.exports = {
 		},
 	
         /**
-         * Push anything to the exception stack.
+         * Raises the event.
+         * Push event and arguments to all event's listeners.
          */
         push: function ()
 		{

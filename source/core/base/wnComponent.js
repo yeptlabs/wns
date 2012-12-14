@@ -8,7 +8,20 @@
  */
 
 /**
- * Description coming soon.
+ * wnComponent is the class that extend almost every component in WNS
+ * It implements the creation of classes, events and some default methods.
+ * 
+ * The event can be set by configuring the config file or editing the defaultEvents
+ * properties. Doing the event be preloaded.
+ *
+ * An event is builded by the {@link wnEvent} class.
+ *
+ * With the event loaded, you can attach handlers to listen when the event raise.
+ * An event handler can be attached with the methods {@link once} and {@link addListener}.
+ * 
+ * To raise the event inside the component context, you can just use the method with the
+ * event name inside the {@link e} property.
+ * Or just get the event object than use the {@link push} method.
  *
  * @author Pedro Nasser
  * @package system.core.base
@@ -25,7 +38,6 @@ module.exports = {
 
 	/**
 	 * Constructor
-	 * DO NOT OVERWRITE this.
 	 */	
 	constructor: function (config,classes)
 	{
@@ -37,17 +49,48 @@ module.exports = {
 	},
 
 	/**
-	 * PRIVATE
+	 * Private
 	 */
 	private:
 	{
+		/**
+		 * @var private object parent's reference
+		 */
 		_parent: {},
+
+		/**
+		 * @var private boolean its the component loaded?
+		 */
 		_initialized: false,
+
+		/**
+		 * @var private object component's configuration object
+		 */
 		_config: {},
+
+		/**
+		 * @var private object component's events object
+		 */
 		_events: {},
+
+		/**
+		 * @var private object component's events config
+		 */
 		_eventsConfig: {},
+
+		/**
+		 * @var private object component's class builder reference.
+		 */
 		_classBuilder: {},
+
+		/**
+		 * @var private string component's classname
+		 */
 		_className: '',
+
+		/**
+		 * @var private array component's extension list
+		 */
 		_extend: []
 	
 	},
@@ -57,24 +100,22 @@ module.exports = {
 	 */
 	public:
 	{
-
 		/**
-		 * @var object loaded events.
+		 * @var object component's events aliases object
 		 */
 		e: {
 			log: function () {}
 		},
 
 		/**
-		 * @var object imported classes.
+		 * @var object component's classes's builder object
 		 */
 		c: {},
 
 		/**
-		 * @var object events to be preloaded.
+		 * @var object events to be preloaded. 
 		 */
 		defaultEvents: {}
-
 	},
 
 	/**
@@ -84,7 +125,7 @@ module.exports = {
 	{
 
 		/**
-		 * Get this modules class name
+		 * Get the class name of this component
 		 * @return string class name
 		 */
 		getClassName: function ()
@@ -94,7 +135,7 @@ module.exports = {
 
 		/**
 		 * Get list of extend of this component.
-		 * @return array list of extend.
+		 * @return array list of extend
 		 */
 		getExtend: function ()
 		{
@@ -102,7 +143,7 @@ module.exports = {
 		},
 
 		/**
-		 * Check if this component is instance of an specific class.
+		 * Check if this component is an instance of a specific class.
 		 * @return boolean if this component is instance of a class.
 		 */
 		instanceOf: function (name)
