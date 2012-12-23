@@ -100,6 +100,19 @@ module.exports = {
 				modules[a].modulePath=this.getConfig('appDirectory')+(modules[a].appPath || modules[a].modulePath);
 				modules[a].appName=appName;
 				modules[a].class='wnApp';
+				if (fs.existsSync(modules[a].modulePath+appName+'.js'))
+				{
+					modules[a].class='wnApp_'+appName;
+					var module = {},
+						className = modules[a].class,
+					 _class = fs.readFileSync(modules[a].modulePath+appName+'.js','utf-8').toString();
+					eval(_class);
+					var cb = this.getComponent('classBuilder'),
+						appClass = cb.classesSource['wnApp'];
+					appClass = Object.extend(true,appClass,module.exports);
+					cb.classesSource[className] = appClass;
+					cb.classes[className]=cb.buildClass(className);
+				}
 				modules[a].autoInit=false;
 				this.buildApplication(appName,modules[a].modulePath);
 			}

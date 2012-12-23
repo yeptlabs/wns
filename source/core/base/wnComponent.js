@@ -41,11 +41,21 @@ module.exports = {
 	 */	
 	constructor: function (config,classes)
 	{
+		var self = this;
 		Object.defineProperty(this,'c',{ value: (classes || {}), enumerable:false, writable: false });
 		this.setConfig(config);
+		this.setEvents({ 'ready': {} });
 		this.preloadEvents();
-		this.getConfig('autoInit')!=false&&this.init.apply(this,arguments); 
-		_initialized=true;
+
+		this.once('ready',function () {
+			var args = Array.prototype.slice.call(arguments);
+			args.shift();
+			self.init.apply(self,args);
+			_initialized=true;
+		});
+
+		this.getConfig('autoInit')!=false&&
+			this.e.ready.apply(this,arguments);
 	},
 
 	/**
@@ -56,7 +66,9 @@ module.exports = {
 		/**
 		 * @var private object parent's reference
 		 */
-		_parent: {},
+		_parent: {
+			e: {}
+		},
 
 		/**
 		 * @var private boolean its the component loaded?
@@ -115,7 +127,8 @@ module.exports = {
 		/**
 		 * @var object events to be preloaded. 
 		 */
-		defaultEvents: {}
+		defaultEvents: {
+		}
 	},
 
 	/**
@@ -407,7 +420,7 @@ module.exports = {
 		 * @param string $cmd expression
 		 * @return mixed result of the eval
 		 */
-		run: function (cmd)
+		exec: function (cmd)
 		{
 			this.e.log&&this.e.log('Executing: '+cmd,'result');
 			try

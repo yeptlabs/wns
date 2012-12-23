@@ -49,23 +49,38 @@ module.exports = {
 		connected: false,
 
 		/**
-		 * @var DATABASE_OBJECT where it will be stored the connection
+		 * @var CONNECTION_OBJECT database connection
 		 */
 		connection: undefined,
 
 		/**
-		 * @var integer setInterval UID
+		 * @var boolean connect again every query?
 		 */
-		keepAlive: -1,
+		alwaysConnect: false,
+
+		/**
+		 * @var wnDataObject instance of the selected data object
+		 */
+		dataObject: undefined,
+
+		/**
+		 * @var query caching duration
+		 */
+		queryCacheDuration: undefined,
+
+		/**
+		 * @var query caching dependency
+		 */
+		queryCacheDependency: undefined,
 
 		/**
 		 * @var object events to be preloaded.
 		 */
 		defaultEvents: {
+			'result': {},
+			'ready': {},
 			'connect': {},
-			'close': {},
-			'query': {},
-			'result': {}
+			'close': {}
 		}
 	
 	},
@@ -80,82 +95,110 @@ module.exports = {
 		 */	
 		init: function ()
 		{
-			this.mysql = _r('mysql');
+			var self = this;
+			this.createDataObject();
+			if (this.dataObject)
+			{
+				this.dataObject.addListener('ready',function (e,err) {					
+					self.e.ready.apply(self,arguments);
+				});
+				this.dataObject.addListener('connect', function () {
+					self.e.connect.apply(self,arguments);
+				});
+				this.dataObject.addListener('close', function () {
+					self.e.close.apply(self,arguments);
+				});
+				this.dataObject.addListener('result', function () {
+					self.e.result.apply(self,arguments);
+				});
+				this.dataObject._open();
+			}
+		},
+
+		createDataObject: function ()
+		{
+			var config = this.getConfig();
+			if (config.engine)
+			{
+				var engine = config.engine,
+					dsnClass = 'wn'+engine.substr(0,1).toUpperCase()+engine.substr(1)+'DataObject';
+				this.dataObject = new this.c[dsnClass]({ autoInit: false }, this.c);
+				this.dataObject.setConfig(this.getConfig());
+				this.dataObject.init();
+			} else {
+				this.getParent().e.exception&&
+					this.getParent().e.exception('wnDbConnection.createDataObject: Engine configuration cannot be empty.');
+			}
+		},
+
+		/**
+		 * Sets the parameters for query caching.
+		 * @param integer $duration duration of the cache lifetime
+		 * @param wnCacheDependency $dependency the dependency to save the cache
+		 * @return wnDbConnection instance of itself
+		 */
+		cache: function (duration, dependency)
+		{
+			this.queryCacheDuration=duration;
+			this.queryCacheDependency=dependency;
+			return this;  
 		},
 
 		/**
 		 * Connect to the database
+		 * @param $cb function connection callback
 		 */
 		connect: function (cb)
 		{
-
-			var self = this,
-				con = this.mysql.createConnection(this.getConfig());
-
-			/*con.on('error', function (err) {
-				if (!err.fatal) {
-					console.log('NON FATAL: '+err.code)
-				  return;
-				}
-				self.close(true);
-				self.connect();
-			});*/
-				
-			con.connect(function (err) {
-				if (err)
-				{
-					cb(null);
-				} else
-				{
-					cb(con);
-				}
-			});
+			if (this.dataObject)
+			{
+				this.dataObject.once('connect',function () {
+					cb&&cb();
+				});
+				this.dataObject.open.apply(this.dataObject,arguments);
+			}
 		},
 
 		/**
-		 * Method that query the database and when the response comes,
-		 * send the data to the callback function.
-		 * @param $query string SQL to be query
-		 * @param $callback function callback function
+		 * Terminate the database connection
+		 * @param $cb function termination callback
 		 */
-		query: function (query,cb,id)
+		close: function (cb)
 		{
-			var self=this;
-			/*	queryClass = this.getParent().c.wnDbQuery,
-				queryObj = new queryClass({ autoInit: false },this.getParent().c,query);
-			queryObj.init();
-			queryObj.once('result', function (e,err,rows,fields) {
-					cb&&cb(err,rows,fields);
-			});*/
-			
-			this.connect(function (con) {
-				if (con == null)
-					return false;
-				//self.e.query(query,cb);
-				con.query(query,function (err,rows,fields) {
-					cb&&cb(err,rows,fields);
-					/*self.e.result(err,rows,fields);
-					queryObj.e.result(err,rows,fields,query);
-					queryObj=null;*/
-					con.destroy();
+			if (this.dataObject)
+			{
+				this.dataObject.once('close',function () {
+					cb&&cb();
 				});
-			});
-		}
+				this.dataObject.close.apply(this.dataObject,arguments);
+			}
+		},
 
 		/**
-		 * Terminate the connection
-		 *
-		close: function ()
+		 * Execute a data request
+		 * @param $params object parameters
+		 * @param $cb function callback
+		 */
+		execute: function (params,cb)
 		{
-			if (this.connection!=undefined && this.connect._connectCalled)
+			if (this.dataObject)
 			{
-				this.connection.destroy();
-				this.connecting = false;
-				this.connected = false;
-				this.failed = false;
-				this.e.close();
+				this.dataObject.execute.apply(this.dataObject,arguments);
 			}
-		}*/
+		},
+
+		/**
+		 * Execute a query
+		 * @param $query string query
+		 * @param $cb function callback
+		 */
+		query: function (query,cb)
+		{
+			if (this.dataObject)
+			{
+				this.dataObject.query.apply(this.dataObject,arguments);
+			}
+		}
 	
 	}
 
