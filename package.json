@@ -1,7 +1,7 @@
 {
   "name": "wnserver",
   "description": "A NodeJS MVC Framework and HTTP Server",
-  "version": "1.0.0-rc2",
+  "version": "1.0.1",
   "author": "Pedro Nasser <pedronasser@gmail.com>",
   "contributors": [ 
     { "name": "Pedro Nasser", "email": "pedronasser@gmail.com" }
