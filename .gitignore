@@ -3,3 +3,4 @@
 /node_modules
 /app/*
 /config.json
+/index.js
