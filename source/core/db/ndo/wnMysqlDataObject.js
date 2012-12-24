@@ -51,7 +51,7 @@ module.exports = {
 		 * Create mongodb connection then extend this class
 		 * with all the Server object.
 		 */
-		open: function ()
+		_open: function ()
 		{
 			this.setConfig(_serverConfig);
 			this.e.ready();
@@ -62,7 +62,7 @@ module.exports = {
 		 * When it cannects it calls the callback function
 		 * @param $cb function callback function
 		 */
-		connect: function (cb)
+		_connect: function (cb)
 		{
 			var self = this,
 				con = this.driver.createConnection(this.getConfig());
@@ -84,7 +84,7 @@ module.exports = {
 		 * @param $params object parameters
 		 * @param $cb function callback
 		 */
-		execute: function (params,cb)
+		_execute: function (params,cb)
 		{
 			cb&&cb();
 		},
@@ -94,9 +94,9 @@ module.exports = {
 		 * @param $query string query
 		 * @param $cb function callback
 		 */
-		query: function (query,cb)
+		_query: function (query,cb)
 		{
-			this.connect(function (err,con) {
+			this._connect(function (err,con) {
 				if (con)
 				{
 					con.query(function (err,rows,fields) {

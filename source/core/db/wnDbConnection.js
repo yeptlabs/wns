@@ -155,7 +155,7 @@ module.exports = {
 				this.dataObject.once('connect',function () {
 					cb&&cb();
 				});
-				this.dataObject.open.apply(this.dataObject,arguments);
+				this.dataObject._open.apply(this.dataObject,arguments);
 			}
 		},
 
@@ -170,7 +170,7 @@ module.exports = {
 				this.dataObject.once('close',function () {
 					cb&&cb();
 				});
-				this.dataObject.close.apply(this.dataObject,arguments);
+				this.dataObject._close.apply(this.dataObject,arguments);
 			}
 		},
 
@@ -183,7 +183,7 @@ module.exports = {
 		{
 			if (this.dataObject)
 			{
-				this.dataObject.execute.apply(this.dataObject,arguments);
+				this.dataObject._execute.apply(this.dataObject,arguments);
 			}
 		},
 
@@ -196,7 +196,7 @@ module.exports = {
 		{
 			if (this.dataObject)
 			{
-				this.dataObject.query.apply(this.dataObject,arguments);
+				this.dataObject._query.apply(this.dataObject,arguments);
 			}
 		}
 	
