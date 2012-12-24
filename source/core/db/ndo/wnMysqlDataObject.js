@@ -99,7 +99,7 @@ module.exports = {
 			this._connect(function (err,con) {
 				if (con)
 				{
-					con.query(function (err,rows,fields) {
+					con.query(query,function (err,rows,fields) {
 						self.e.result(err, rows, fields);
 						cb&&cb(err,rows,fields);
 					});
