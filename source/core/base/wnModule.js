@@ -30,6 +30,8 @@ module.exports = {
 	 */	
 	constructor: function (parent,modulePath,config,classes)
 	{
+		var self = this;
+
 		this.e.log&&this.e.log('Constructing new `'+this.className+'`...','system');
 
 		this.setModulePath(modulePath || '');
@@ -46,7 +48,7 @@ module.exports = {
 			Object.defineProperty(this,'c',{ value: classes, enumerable:false, writable: false });
 		}
 		
-		var defaultConfig = sourcePath+'config/'+className+'Config.json';
+		var defaultConfig = sourcePath+'config/'+className.split('_')[0]+'Config.json';
 		if (config)
 			this.setConfig(config);
 		if (fs.existsSync(defaultConfig))
@@ -61,7 +63,18 @@ module.exports = {
 
 		this.importScripts();
 
-		this.getConfig('autoInit')!=false&&this.init.apply(this,arguments);
+		this.setEvents({ 'ready': {} });
+		var ready=this.getEvent('ready');
+		ready.once(function () {
+			var args = Array.prototype.slice.call(arguments);
+			args.shift();
+			self.init.apply(self,args);
+			self.run.apply(self,args);
+			_initialized=true;
+		});
+
+		this.getConfig('autoInit')!=false&&
+			this.e.ready.apply(this,arguments);
 	},
 
 	/**
@@ -305,7 +318,7 @@ module.exports = {
 					config.id = id;
 					config.autoInit = (config.autoInit == true);
 					var component = this.createComponent(className,config);
-					(!config.autoInit)&&component.init(config);
+					component.e.ready(config);
 					_components[id] = component;
 					if (typeof config.alias == 'string')
 						this[config.alias] = _components[id]
@@ -452,7 +465,7 @@ module.exports = {
 					var module = this.createModule(className,modulePath,config)
 					_modules[id] = module;
 					this.attachModuleEvents(id);
-					!(config.autoInit)&&module.init(modulePath,config);
+					module.e.ready(modulePath,config);
 					return _modules[id];
 				} else
 					return false;
@@ -639,9 +652,17 @@ module.exports = {
 		},
 		
 		/**
-		 * This methods is called before the real initialization of the module
+		 * This method is called before the real initialization of the module
 		 */
 		preinit: function ()
+		{
+
+		},
+
+		/**
+		 * This method runs after the module's initialization.
+		 */
+		run: function ()
 		{
 
 		}

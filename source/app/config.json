@@ -6,4 +6,20 @@
 	// "source/config/wnAppConfig.json"
 	// And edit.
 
+	"components": {
+		"urlManager": {
+			"rules": {
+				"<controller:api>/<action:class>/<name:.*>":"<controller>/<action>"
+			}
+		},
+		"db": {
+			"class": "wnDbConnection",
+			"engine": "mongo",
+			"address": "localhost",
+			"port": 27017,
+			"database": "teste"
+			//"port": 
+		}
+	}
+
 }
