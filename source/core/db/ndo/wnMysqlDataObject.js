@@ -96,6 +96,7 @@ module.exports = {
 		 */
 		_query: function (query,cb)
 		{
+			var self = this;
 			this._connect(function (err,con) {
 				if (con)
 				{
