@@ -80,7 +80,7 @@ module.exports = {
 			process.stdin.resume();
 			process.stdin.setEncoding('utf8');
 			process.stdin.on('data', function (chunk) {
-			  self.run(chunk.substr(0,chunk.length-1));
+			  self.exec(chunk.substr(0,chunk.length-1));
 			  return false;
 			});
 		},

@@ -1,5 +1,5 @@
 /**
- * Source of the wnDbConnection class.
+ * Source of the wnModel class.
  * 
  * @author: Pedro Nasser
  * @link: http://wns.yept.net/
@@ -9,9 +9,9 @@
 
 /**
  * Description coming soon.
- *
+ * 
  * @author Pedro Nasser
- * @package system.core.db
+ * @package system.core.base
  * @since 1.0.0
  */
 
@@ -27,22 +27,12 @@ module.exports = {
 	 * PRIVATE
 	 */
 	private: {
-		_query: '',
-		_queryHash: ''
 	},
 
 	/**
 	 * Public Variables
 	 */
 	public: {
-
-		/**
-		 * @var object events to be preloaded.
-		 */
-		defaultEvents: {
-			'result': {}
-		}
-	
 	},
 
 	/**
@@ -51,22 +41,13 @@ module.exports = {
 	methods: {
 
 		/**
-		 * Initializer.
+		 * Initializer
 		 */	
-		init: function (config,c,query)
+		init: function ()
 		{
-			this.setQuery(query);
-		},
 
-		/**
-		 * Connect to the database
-		 */
-		setQuery: function (query)
-		{
-			_query = query+'';
-			_queryHash = crypto.createHash('md5').update(_query).digest("hex");
 		}
-	
+		
 	}
 
 };
