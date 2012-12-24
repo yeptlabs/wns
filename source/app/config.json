@@ -12,8 +12,9 @@
 				"<controller:api>/<action:class>/<name:.*>":"<controller>/<action>"
 			}
 		},
-		"db": {
+		"database": {
 			"class": "wnDbConnection",
+			"alias": "db",
 			"engine": "mongo",
 			"address": "localhost",
 			"port": 27017,
