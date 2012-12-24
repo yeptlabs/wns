@@ -41,21 +41,11 @@ module.exports = {
 	 */	
 	constructor: function (config,classes)
 	{
-		var self = this;
 		Object.defineProperty(this,'c',{ value: (classes || {}), enumerable:false, writable: false });
 		this.setConfig(config);
-		this.setEvents({ 'ready': {} });
 		this.preloadEvents();
-
-		this.once('ready',function () {
-			var args = Array.prototype.slice.call(arguments);
-			args.shift();
-			self.init.apply(self,args);
-			_initialized=true;
-		});
-
-		this.getConfig('autoInit')!=false&&
-			this.e.ready.apply(this,arguments);
+		this.getConfig('autoInit')!=false&&this.init.apply(this,arguments); 
+		_initialized=true;
 	},
 
 	/**

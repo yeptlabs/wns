@@ -318,7 +318,7 @@ module.exports = {
 					config.id = id;
 					config.autoInit = (config.autoInit == true);
 					var component = this.createComponent(className,config);
-					component.e.ready(config);
+					(!config.autoInit)&&component.init(config);
 					_components[id] = component;
 					if (typeof config.alias == 'string')
 						this[config.alias] = _components[id]
