@@ -4,3 +4,4 @@
 /app/*
 /config.json
 /index.js
+*.log
