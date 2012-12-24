@@ -77,7 +77,7 @@ module.exports = {
 		/**
 		 * Data Object open connection.
 		 */
-		open: function ()
+		_open: function ()
 		{
 		},
 
@@ -86,7 +86,7 @@ module.exports = {
 		 * @param $params object parameters
 		 * @param $cb function callback
 		 */
-		execute: function (params,cb)
+		_execute: function (params,cb)
 		{
 			cb&&cb();
 		},
@@ -96,7 +96,7 @@ module.exports = {
 		 * @param $query string query
 		 * @param $cb function callback
 		 */
-		query: function (query,cb)
+		_query: function (query,cb)
 		{
 			cb&&cb();
 		}
