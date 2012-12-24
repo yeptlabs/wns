@@ -103,6 +103,7 @@ module.exports = {
 					con.query(query,function (err,rows,fields) {
 						self.e.result(err, rows, fields);
 						cb&&cb(err,rows,fields);
+						con.destroy();
 					});
 				} else
 				{

@@ -1,0 +1,88 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'c:\\Program Files\\nodejs\\node.exe',
+1 verbose cli   'c:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js',
+1 verbose cli   'publish',
+1 verbose cli   'wnserver' ]
+2 info using npm@1.1.66
+3 info using node@v0.8.15
+4 verbose publish [ 'wnserver' ]
+5 verbose read json c:\Users\pedroncs\wns\wnserver\package.json
+6 verbose cache add [ 'wnserver', null ]
+7 silly cache add name=undefined spec="wnserver" args=["wnserver",null]
+8 verbose parsed url { pathname: 'wnserver', path: 'wnserver', href: 'wnserver' }
+9 silly lockFile b5940929-wnserver wnserver
+10 verbose lock wnserver C:\Users\pedroncs\AppData\Roaming\npm-cache\b5940929-wnserver.lock
+11 silly lockFile b5940929-wnserver wnserver
+12 verbose addNamed [ 'wnserver', '' ]
+13 verbose addNamed [ null, '' ]
+14 silly lockFile c07a2b2e-wnserver wnserver@
+15 verbose lock wnserver@ C:\Users\pedroncs\AppData\Roaming\npm-cache\c07a2b2e-wnserver.lock
+16 silly addNameRange { name: 'wnserver', range: '', hasData: false }
+17 verbose url raw wnserver
+18 verbose url resolving [ 'https://registry.npmjs.org/', './wnserver' ]
+19 verbose url resolved https://registry.npmjs.org/wnserver
+20 info trying registry request attempt 1 at 00:28:02
+21 verbose etag "8KD8PNBY53NMGH0XFIZI4SQ8B"
+22 http GET https://registry.npmjs.org/wnserver
+23 http 304 https://registry.npmjs.org/wnserver
+24 silly registry.get cb [ 304,
+24 silly registry.get   { server: 'CouchDB/1.2.0 (Erlang OTP/R15B)',
+24 silly registry.get     etag: '"8KD8PNBY53NMGH0XFIZI4SQ8B"',
+24 silly registry.get     date: 'Mon, 24 Dec 2012 02:26:58 GMT',
+24 silly registry.get     'content-length': '0' } ]
+25 verbose etag wnserver from cache
+26 silly addNameRange number 2 { name: 'wnserver', range: '', hasData: true }
+27 silly addNameRange versions [ 'wnserver', [ '1.0.0rc1' ] ]
+28 verbose addNamed [ 'wnserver', '1.0.0rc1' ]
+29 verbose addNamed [ '1.0.0rc1', '1.0.0rc1' ]
+30 silly lockFile 66c53bff-wnserver-1-0-0rc1 wnserver@1.0.0rc1
+31 verbose lock wnserver@1.0.0rc1 C:\Users\pedroncs\AppData\Roaming\npm-cache\66c53bff-wnserver-1-0-0rc1.lock
+32 verbose read json C:\Users\pedroncs\AppData\Roaming\npm-cache\wnserver\1.0.0rc1\package\package.json
+33 silly lockFile 66c53bff-wnserver-1-0-0rc1 wnserver@1.0.0rc1
+34 silly lockFile c07a2b2e-wnserver wnserver@
+35 silly publish { name: 'wnserver',
+35 silly publish   description: 'A NodeJS MVC Framework and HTTP Server',
+35 silly publish   version: '1.0.0rc1',
+35 silly publish   author: { name: 'Pedro Nasser', email: 'pedronasser@gmail.com' },
+35 silly publish   contributors: [ { name: 'Pedro Nasser', email: 'pedronasser@gmail.com' } ],
+35 silly publish   main: 'index',
+35 silly publish   dependencies: { mime: '*', wrench: '*' },
+35 silly publish   keywords:
+35 silly publish    [ 'web',
+35 silly publish      'yii',
+35 silly publish      'framework',
+35 silly publish      'wns',
+35 silly publish      'mvc',
+35 silly publish      'yii',
+35 silly publish      'app',
+35 silly publish      'http',
+35 silly publish      'server' ],
+35 silly publish   repository: { type: 'git', url: 'git://github.com/yeptlabs/wns' },
+35 silly publish   engines: { node: '*' },
+35 silly publish   readme: 'WNS Framework.\r\n========\r\n##### NodeJS MVC Framework and HTTP Server inspired on the structure of the [world\'s best PHP Framework: Yii](http://yiiframework.com).\r\n\r\n\r\n## Features\r\n\r\n - **NODEJS** - `Builded on top of Node.js`\r\n - **INSPIRED** - `Ispired on Yii Framework`\r\n - **PERFORMANCE** - `Build high performance applications`\r\n - **PRIVATE-CUSTOMIZATION** - `Full classes, libraries, configurations, environment global and private customization`\r\n - **MVC** - `Model-View-Controller (MVC) design pattern`\r\n - **1:N** - `One HTTP server to multiple servers and multiple applications`\r\n - **DOMAIN** - `Support multiple domains and subdomains`\r\n - **EVENT** - `Fully event-driven. Total event manipulation`\r\n - **TEMPLATE** - `Smart template engine and customization`\r\n - **CACHE** - `Smart and powerful cache system`\r\n - **ERROR-LOG** - `Complete error handling and logging`\r\n - **CONSOLE** - `Private console to each application`\r\n - **WEBCONSOLE** - `A powerful private web console`\r\n - **SCALABLE** - `Fully scalable`\r\n - **EXTENDABLE** - `Fully extendable`\r\n - **ROUTABLE** - `Fully routable`\r\n - **MUCH-MORE** - `See yourself...`\r\n\r\n## Installation\r\n\r\n### @ Requirement\r\n\r\n * NodeJS ([how to install](https://github.com/joyent/node))\r\n\r\n### @ NPM mode\r\n\r\n Just type the following command:\r\n\r\n     $ npm install wnserver\r\n\r\n Then move the `wnserver` folder from inside of the `node_modules` folder to where you want.\r\n\r\n### @ Git mode\r\n\r\n This mode requires the installation of `git`\r\n\r\n     $ git clone https://github.com/yeptlabs/wns.git\r\n\r\n Then to install all dependencies, just typing inside the wns folder:\r\n \r\n     $ npm install\r\n\r\n### @ Manual mode\r\n\r\n Just download the zip file and unzip somewhere.\r\n\r\n## Quick start and play\r\n\r\n * The first step is to create a new application is to run the WNS:\r\n\r\n Example:\r\n \r\n\t\t$ node index\r\n   \r\n This will automatictally create a new application using the default structure.\r\n\r\n * To view your application running just access:\r\n\r\n\t\thttp://127.0.0.1/\r\n\r\n## More informations\r\n\r\n See more at **http://wns.yept.net/**\r\n',
+35 silly publish   readmeFilename: 'README.md',
+35 silly publish   _id: 'wnserver@1.0.0rc1' }
+36 info prepublish wnserver@1.0.0rc1
+37 verbose url raw wnserver
+38 verbose url resolving [ 'https://registry.npmjs.org/', './wnserver' ]
+39 verbose url resolved https://registry.npmjs.org/wnserver
+40 info trying registry request attempt 1 at 00:28:03
+41 http PUT https://registry.npmjs.org/wnserver
+42 http 409 https://registry.npmjs.org/wnserver
+43 verbose url raw wnserver
+44 verbose url resolving [ 'https://registry.npmjs.org/', './wnserver' ]
+45 verbose url resolved https://registry.npmjs.org/wnserver
+46 info trying registry request attempt 1 at 00:28:05
+47 http GET https://registry.npmjs.org/wnserver
+48 http 200 https://registry.npmjs.org/wnserver
+49 error publish fail Cannot publish over existing version.
+49 error publish fail Bump the 'version' field, set the --force flag, or
+49 error publish fail     npm unpublish 'wnserver@1.0.0rc1'
+49 error publish fail and try again
+50 error System Windows_NT 6.2.9200
+51 error command "c:\\Program Files\\nodejs\\node.exe" "c:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js" "publish" "wnserver"
+52 error cwd c:\Users\pedroncs\wns
+53 error node -v v0.8.15
+54 error npm -v 1.1.66
+55 error code EPUBLISHCONFLICT
+56 verbose exit [ 1, true ]
