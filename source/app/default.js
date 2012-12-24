@@ -32,12 +32,9 @@ module.exports = {
 			// Send a log to the application console
 			this.e.log('Hello world! (this log is inside `default.js` in the app dir)');
 
-			// Gets the database component.
-			var db = this.getComponent('db');
-
 			// Add an one-time event listener to the database handler
 			// Once it connect.
-			db.once('connect',function (e,err,con) {
+			this.db.once('connect',function (e,err,con) {
 
 				// Check connection
 				if (err) 
