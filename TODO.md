@@ -2,15 +2,15 @@ TODO LIST
 ==============
 (In order of priority)
 
-## v1.0.0 ALPHA
-
+## Global TODO
+- **Code** and **docs** revision.
 - `wnBuild` class revision with focus on **memory** and **performance**.
+
+## v1.0.2 ALPHA
+
 - Create a `wnSession` class to control user sessions.
 - Better `wnTemplate` class.
 - Finish `wnConsole` class.
-- Fully develop `wnCache` and `wnDependency` classes.
+- Finish `wnCache` and `wnDependency` class.
 - Work with Less.JS.
 - Work with Sequelize.
-- Work with MongoDB.
-- Review `wnDatabase` to work with any database.
-- **Code** and **docs** revision.
