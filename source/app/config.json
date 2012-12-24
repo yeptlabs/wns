@@ -17,8 +17,7 @@
 			"engine": "mongo",
 			"address": "localhost",
 			"port": 27017,
-			"database": "teste"
-			//"port": 
+			"database": "test"
 		}
 	}
 
