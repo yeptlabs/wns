@@ -1,4 +1,4 @@
-WNS Framework.
+WNS Framework @ v1.0.1a
 ========
 ##### NodeJS MVC Framework and HTTP Server inspired on the structure of the [world's best PHP Framework: Yii](http://yiiframework.com).
 
@@ -17,7 +17,6 @@ WNS Framework.
  - **CACHE** - `Smart and powerful cache system`
  - **ERROR-LOG** - `Complete error handling and logging`
  - **CONSOLE** - `Private console to each application`
- - **WEBCONSOLE** - `A powerful private web console`
  - **SCALABLE** - `Fully scalable`
  - **EXTENDABLE** - `Fully extendable`
  - **ROUTABLE** - `Fully routable`
@@ -45,7 +44,7 @@ WNS Framework.
 
  Then to install all dependencies, just typing inside the wns folder:
  
-     $ npm install
+     $ npm install -d
 
 ### @ Manual mode
 
@@ -53,18 +52,40 @@ WNS Framework.
 
 ## Quick start and play
 
- * The first step is to create a new application is to run the WNS:
+ * The first step is to make a copy of `default-config.json` and `default-index.js` from inside the WNS folder, and rename it to `config.json` and `index.js`.
+ * The second step is to edit the `config.json` file and configure your application. The server default configuration is something like this:
+```js
+// THIS IS THE DEFAULT SERVER CONFIGURATION
+{
+	"app": {
+		"{APPLICATION NAME}": {
+			"appPath": "{APPLICATION DIRECTORY PATH}",
+			"domain": "127.0.0.1,
+			"dbEngine": "{DATABASE ENGINE - CAN BE mysql or mongodb, for now}"
+		}
+	},
+	"components": {
+		"http":
+			"listen":[{SERVER PORT},"127.0.0.1"]
+		}
+	}
+}
+// {Those} are the important things that your need to edit.
+```
+
+* Then you just run the WNS server, just typing inside the wnserver directory:
 
  Example:
  
 		$ node index
    
- This will automatictally create a new application using the default structure.
+ This will automatically create a new application using the default application structure.
+
 
  * To view your application running just access:
 
-		http://127.0.0.1/
+		http://127.0.0.1:{SERVER PORT}/
 
-## More informations
+## More information
 
  See more at **http://wns.yept.net/**
