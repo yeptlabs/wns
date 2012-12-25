@@ -71,7 +71,7 @@ module.exports = {
 		handler: function (request,response)
 		{
 
-			var servername = request.headers.host,
+			var servername = request.headers.host.split(':')[0],
 				app = this.getConfig('app'),
 				config = this.getConfig();
 
