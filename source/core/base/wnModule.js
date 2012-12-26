@@ -418,8 +418,9 @@ module.exports = {
 			var cps=this.getComponentsConfig();
 			for (c in cps)
 			{
-				this.e.log&&this.e.log('- Starting component: '+c,'system');
-				this.getComponent(c);
+				var cpnt=this.getComponent(c);
+				if (cpnt)
+					this.e.log&&this.e.log('- Starting component: '+c+(cpnt.getConfig('alias')?' (as '+cpnt.getConfig('alias')+')':''),'system');
 			}
 		},
 

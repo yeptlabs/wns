@@ -60,8 +60,8 @@ WNS Framework @ v1.0.1a
 	"app": {
 		"{APPLICATION NAME}": {
 			"appPath": "{APPLICATION DIRECTORY PATH}",
-			"domain": "127.0.0.1,
-			"dbEngine": "{DATABASE ENGINE - CAN BE mysql or mongodb, for now}"
+			"domain": "127.0.0.1",
+			"dbEngine": "{DATABASE ENGINE | CAN BE mysql or mongodb | NULL if no database engine}"
 		}
 	},
 	"components": {

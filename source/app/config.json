@@ -15,10 +15,9 @@
 		"database": {
 			"class": "wnDbConnection",
 			"alias": "db",
-			"engine": "mongo",
+			"engine": "{dbEngine}",
 			"address": "localhost",
-			"port": 27017,
-			"database": "test"
+			"port": 1234
 		}
 	}
 

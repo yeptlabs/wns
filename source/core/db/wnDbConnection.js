@@ -117,17 +117,17 @@ module.exports = {
 
 		createDataObject: function ()
 		{
-			var config = this.getConfig();
-			if (config.engine)
+			var config = this.getConfig(),
+				engine = config.engine,
+				dsnClass = 'wn'+engine.substr(0,1).toUpperCase()+engine.substr(1)+'DataObject';
+			if (config.engine && this.c[dsnClass])
 			{
-				var engine = config.engine,
-					dsnClass = 'wn'+engine.substr(0,1).toUpperCase()+engine.substr(1)+'DataObject';
 				this.dataObject = new this.c[dsnClass]({ autoInit: false }, this.c);
 				this.dataObject.setConfig(this.getConfig());
 				this.dataObject.init();
 			} else {
 				this.getParent().e.exception&&
-					this.getParent().e.exception('wnDbConnection.createDataObject: Engine configuration cannot be empty.');
+					this.getParent().e.exception('wnDbConnection.createDataObject: Invalid database engine configuration.');
 			}
 		},
 

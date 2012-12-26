@@ -127,6 +127,14 @@ module.exports = {
 			if (fs.existsSync(appPath))
 				return false;
 			wrench.copyDirSyncRecursive(cwd+sourcePath+'app/',appPath);
+			if (this.getConfig('app')[appName].dbEngine!=undefined)
+			{
+				var config = this.getFile(appPath+'config.json');
+				config = new this.c.wnTemplate(config).match({
+					dbEngine: this.getConfig('app')[appName].dbEngine
+				});
+				fs.writeFileSync(appPath+'config.json',config,'utf8');
+			}
 		},
 
 		/**
