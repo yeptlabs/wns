@@ -227,6 +227,9 @@ module.exports = {
 		 */
 		exceptionHandler: function (e,err)
 		{
+			if (typeof err == 'string' || typeof err != 'object' || err.stack == undefined)
+				err = new Error(err);
+
 			e.owner.e.log('ERROR: '+err.message,'exception');
 
 			var _stack = err.stack.split("\n");
