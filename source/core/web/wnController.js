@@ -146,6 +146,16 @@ module.exports = {
 		{
 			return this.getConfig('controllerName');
 		},
+
+		/**
+		 * Get view file and return it.
+		 * @param $view string name of the view to be rendered.
+		 */
+		getView: function (view)
+		{
+			var view = this.app.getFile(this.app.getConfig('path').views+this.getControllerName()+'/'+view+'.tpl');
+			return view;
+		},
 	
 		/**
 		 * Renders the view.
@@ -156,7 +166,7 @@ module.exports = {
 			var _controller=this.getControllerName(),
 				_layout=this.layout;
 				_view=view,
-				_viewTpl=this.app.getFile(this.app.getConfig('path').views+_controller+'/'+view+'.tpl')
+				_viewTpl=this.getView(view);
 
 			// Verifica se a view realmente existe...
 			if (_viewTpl!==false) {
