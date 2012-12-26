@@ -155,16 +155,17 @@ module.exports = {
 		render: function (view,data) {
 			var _controller=this.getControllerName(),
 				_layout=this.layout;
-				_view=view;
+				_view=view,
+				_viewTpl=this.app.getFile(this.app.getConfig('path').views+_controller+'/'+view+'.tpl')
 
 			// Verifica se a view realmente existe...
-			if (_viewtpl=this.app.getFile(this.app.getConfig('path').views+_controller+'/'+view+'.tpl')) {
+			if (_viewTpl!==false) {
 
 				// Buscando templates...
-				var _layouttpl=this.app.getFile(this.app.getConfig('path').views+'layouts/'+_layout+'.tpl');
+				var _layoutTpl=this.app.getFile(this.app.getConfig('path').views+'layouts/'+_layout+'.tpl');
 
 					// Importa o layout...
-					this.view.layout = (new this.app.c.wnTemplate(_layouttpl?_layouttpl:'{conteudo}',false)).match({'content':_viewtpl});
+					this.view.layout = (new this.app.c.wnTemplate(_layoutTpl?_layoutTpl:'{conteudo}',false)).match({'content':_viewTpl});
 
 					// Load the language from configuration
 					this.view.language = this.app.getConfig('components').view.language;

@@ -67,7 +67,7 @@ WNS Framework @ v1.0.1a
 		}
 	},
 	"components": {
-		"http":
+		"http": {
 			"listen":[{SERVER PORT},"127.0.0.1"]
 		}
 	}
