@@ -62,6 +62,8 @@ WNS Framework @ v1.0.1a
 			"appPath": "{APPLICATION DIRECTORY PATH}",
 			"domain": "127.0.0.1",
 			"dbEngine": "{DATABASE ENGINE | CAN BE mysql or mongodb | NULL if no database engine}"
+			// YOU CAN EDIT THE REST OF THE DATABASE CONFIGURATION EDITING THE FILE
+			// config.json FROM INSIDE THE APPLICATION DIRECTORY THAT WILL BE CREATED.
 		}
 	},
 	"components": {
@@ -70,7 +72,7 @@ WNS Framework @ v1.0.1a
 		}
 	}
 }
-// {Those} are the important things that your need to edit.
+// {Those} are the important things that you need to edit.
 ```
 
 * Then you just run the WNS server, just typing inside the wnserver directory:
