@@ -82,6 +82,7 @@ module.exports = {
 		{
 			this.request=this.getConfig('request');
 			this.app=this.getParent();
+			this.controllerName = this.getControllerName();
 
 			if (this.request)
 			{
@@ -151,9 +152,10 @@ module.exports = {
 		 * Get view file and return it.
 		 * @param $view string name of the view to be rendered.
 		 */
-		getView: function (view)
+		getView: function (view,data)
 		{
 			var view = this.app.getFile(this.app.getConfig('path').views+this.getControllerName()+'/'+view+'.tpl');
+				view = (new this.app.c.wnTemplate(view,false)).match(data?data:{});
 			return view;
 		},
 	
@@ -162,28 +164,22 @@ module.exports = {
 		 * @param $view string name of the view to be rendered
 		 * @param $data object data that will replaced in the template
 		 */
-		render: function (view,data) {
+		render: function (view,data)
+		{
 			var _controller=this.getControllerName(),
 				_layout=this.layout;
 				_view=view,
-				_viewTpl=this.getView(view);
+				_viewTpl=this.getView(view,data);
 
-			// Verifica se a view realmente existe...
-			if (_viewTpl!==false) {
-
-				// Buscando templates...
+			if (_viewTpl!==false)
+			{
 				var _layoutTpl=this.app.getFile(this.app.getConfig('path').views+'layouts/'+_layout+'.tpl');
 
-					// Importa o layout...
-					this.view.layout = (new this.app.c.wnTemplate(_layoutTpl?_layoutTpl:'{conteudo}',false)).match({'content':_viewTpl});
+				this.view.name = view;
+				this.view.layout = (new this.app.c.wnTemplate(_layoutTpl?_layoutTpl:'{conteudo}',false)).match({'content':_viewTpl});
+				this.view.language = this.app.getConfig('components').view.language;
+				this.view.title = this.app.getConfig('components').view.titleTemplate;
 
-					// Load the language from configuration
-					this.view.language = this.app.getConfig('components').view.language;
-
-					// Load the title template from configuration
-					this.view.title = this.app.getConfig('components').view.titleTemplate;
-
-				// Renderiza a pagina temporaria.
 				var	_contentAll=this.view.render(),
 					_contentAll=new this.app.c.wnTemplate(_contentAll,false).match({
 						self: this.export(),
@@ -191,17 +187,10 @@ module.exports = {
 						request: this.request.export()
 					});
 
-				// Substitui data vinda do controller.
-				_contentAll = (new this.app.c.wnTemplate(_contentAll,false)).match(data?data:{});
-
-				// Salva o resultado..
 				this.request.data+=_contentAll;
-
-				// Envia resposta ao usuário.
 				this.request.send();
-
-			} else {
-				// Se não, retorna um erro e não modifica a resposta...
+			} else
+			{
 				this.app.e.log('View template not found: '+_controller+'/'+view,404);
 				this.request.send();
 			}
