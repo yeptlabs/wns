@@ -11,7 +11,7 @@
 		"controllers": "controllers/",
 		"public": "public/",
 		"views": "views/",
-		"classes": "classes"
+		"classes": "classes/"
 	},
 
 	// Components

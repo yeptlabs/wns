@@ -78,7 +78,7 @@ module.exports = {
 			for (a in app)
 			{
 				var appConfig = app[a].getConfig();
-				if (servername == a || (appConfig.components.http.serveralias+'').indexOf(new String(servername)) != -1)
+				if (servername == a || this.getParent().getConfig('app')[a].domain == servername || (appConfig.components.http.serveralias+'').indexOf(new String(servername)) != -1)
 				{
 					app[a].createRequest.apply(app[a],arguments);
 					return false;

@@ -93,7 +93,8 @@ module.exports = {
 			// Menu
 			var	_menu = '',
 				_tplMenu = new this.controller.app.c.wnTemplate(this.controller.app.getConfig('components').view.menuItemTemplate);
-			for (m in this.controller.app.getConfig('components').view.menu) {
+			for (m in this.controller.app.getConfig('components').view.menu)
+			{
 				_menu += _tplMenu.match({'label':m,'url':this.controller.app.getConfig('components').view.menu[m][0]});
 			}
 			this.menu = new this.controller.app.c.wnTemplate(this.controller.app.getConfig('components').view.menuTemplate).match({'list':_menu});

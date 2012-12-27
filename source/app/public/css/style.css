@@ -43,6 +43,7 @@ ul#menu li {
 	display: block;
 	float: left;
 	height: 22px;
+	margin-right:5px;
 }
 
 ul#menu li a {
@@ -82,54 +83,4 @@ ul#menu li a {
 	background: #E9E9E9;
 	border-top: 1px dotted #CCC;
 	padding: 11px;
-}
-
-.line {
-	display: block;
-	width: 100%;
-	height: 1px;
-	background-color: #E0E0E0;
-}
-
-.prop {
-	background-color: #EFEFEF;
-	padding: 10px;
-	margin: 10px 0px;
-}
-
-div.prop h4 {
-	font-size: 15px;
-	margin: 0;
-	padding: 0;
-}
-
-.className {
-	color: #333;
-	letter-spacing: 1px;
-	border-bottom: 1px solid #D0D0D0;
-	margin-bottom: 15px;
-}
-
-.classExtend {
-	margin-bottom: 10px;
-}
-
-.extends {
-	height: 25px;
-	padding-bottom: 10px;
-}
-
-.extends li {
-	display: inline;
-}
-
-.extends li a {
-	padding: 5px;
-	background-color: #F0F0F0;
-	margin-right: 5px;
-	color: black;
-}
-
-.extends li a:hover {
-	background-color: #E0E0E0;
 }

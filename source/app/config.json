@@ -6,11 +6,15 @@
 	// "source/config/wnAppConfig.json"
 	// And edit.
 
+	// Application Name
+	"title": "Default WNS WebApp",
+
+	// Other components configuration
 	"components": {
-		"urlManager": {
-			"rules": {
-				"<controller:api>/<action:class>/<name:.*>":"<controller>/<action>"
-			}
+		"http": {
+			"serveralias": "localhost",
+			"errorPage": "site/error",
+			"defaultController":"site"
 		},
 		"database": {
 			"class": "wnDbConnection",
