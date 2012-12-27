@@ -5,7 +5,8 @@
 	"app": {
 		"default": {
 			"appPath": "default/",
-			"domain": "127.0.0.1"
+			"domain": "127.0.0.1",
+			"dbEngine": "mongo"
 		}
 	},
 
