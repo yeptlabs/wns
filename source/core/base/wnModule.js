@@ -456,20 +456,29 @@ module.exports = {
 				return _modules[id];
 			else if (this.hasComponent('classBuilder'))
 			{
-				var config = _modulesConfig[id] || {},
-					modulePath = config.modulePath || id,
-					className = config.class;
-				if (fs.existsSync(modulePath) && className != undefined)
+				try {
+
+					var config = _modulesConfig[id] || {},
+						modulePath = config.modulePath || id,
+						className = config.class;
+					if (fs.existsSync(modulePath) && className != undefined)
+					{
+						config.id = id;
+						config.autoInit = !(config.autoInit == false);
+						var module = this.createModule(className,modulePath,config)
+						_modules[id] = module;
+						this.attachModuleEvents(id);
+						module.e.ready(modulePath,config);
+						return _modules[id];
+					} else
+						return false;
+				} catch (e)
 				{
-					config.id = id;
-					config.autoInit = !(config.autoInit == false);
-					var module = this.createModule(className,modulePath,config)
-					_modules[id] = module;
-					this.attachModuleEvents(id);
-					module.e.ready(modulePath,config);
-					return _modules[id];
-				} else
-					return false;
+					this.e.log&&
+						this.e.log('wnModule.getModule: Error at loading `'+id+'`');
+					this.e.exception&&
+						this.e.exception(e);
+				}
 			}
 		},
 
