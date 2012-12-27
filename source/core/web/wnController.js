@@ -187,6 +187,8 @@ module.exports = {
 						request: this.request.export()
 					});
 
+				_contentAll = (new this.app.c.wnTemplate(_contentAll,false)).match(data?data:{});
+
 				this.request.data+=_contentAll;
 				this.request.send();
 			} else
