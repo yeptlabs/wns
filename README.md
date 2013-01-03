@@ -1,17 +1,16 @@
-Welcome to WNS
-========
+## Welcome to WNS
 
-## Build a Fast, Scalable and Powerful web application
+### Build a Fast, Scalable and Powerful web application
 
-#### **WNS** is a framework built on **[Node.JS](http://nodejs.org)** machine for easily building high performance web applications. 
+##### **WNS** is a framework built on **[Node.JS](http://nodejs.org)** machine for easily building high performance web applications. 
 
-### - Why WNS? [READ](http://wns.yept.net/)
-### - How to WNS? [READ](http://wns.yept.net/site/guide)
-### - Made of WNS? [READ](http://wns.yept.net/site/cases)
-### - Show me WNS! [READ](http://wns.yept.net/site/examples)
-### - Who WNS? [READ](http://wns.yept.net/site/community)
-### - API of WNS? [READ](http://wns.yept.net/api/)
-### - FAQ you, WNS? [READ](http://wns.yept.net/site/FAQ)
+- Why? [LOOK HERE](http://wns.yept.net/)
+- How to? [LOOK HERE](http://wns.yept.net/site/guide)
+- Who uses? [LOOK HERE](http://wns.yept.net/site/cases)
+- Show me one! [LOOK HERE](http://wns.yept.net/site/examples)
+- Am I alone? [LOOK HERE](http://wns.yept.net/site/community)
+- How it works? [LOOK HERE](http://wns.yept.net/api/)
+- FAQ you? [LOOK HERE](http://wns.yept.net/site/FAQ)
 
 ## License 
 
