@@ -10,7 +10,7 @@
 - Show me one! [LOOK HERE](http://wns.yept.net/site/examples)
 - Am I alone? [LOOK HERE](http://wns.yept.net/site/community)
 - How it works? [LOOK HERE](http://wns.yept.net/api/)
-- FAQ you? [LOOK HERE](http://wns.yept.net/site/FAQ)
+- FAQ you? [LOOK HERE](http://wns.yept.net/site/faq/)
 
 ## License 
 
