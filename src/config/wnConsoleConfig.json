@@ -1,0 +1,35 @@
+// wnConsole default configuration.
+{
+
+	// Components
+	"components": {
+
+	},
+
+	// Events
+	"events": {
+	
+		"log": {
+			"zone": {
+				"*": true,
+				"access": true,
+				"mysql": true,
+				"notfound": true,
+				"trace": true,
+				"exception": true,
+				"stack": true
+			},
+			"eventName": "wnLog",
+			"handler": "logHandler",
+			"listenEvent": "module.log",
+			"filters": ["filterLog"]
+		},
+
+		"exception": {
+			"handler": "exceptionHandler",
+			"eventName": "wnException"
+		}
+
+	}
+
+}

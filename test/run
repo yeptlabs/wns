@@ -1,0 +1,82 @@
+/**
+ * @WebNode - A NodeJS MVC Framework and HTTP Server
+ * 
+ * @author: Pedro Nasser
+ * @link: http://pedroncs.com/projects/webnode/
+ * @license: http://pedroncs.com/projects/webnode/#license
+ * @copyright: Copyright &copy; 2012 WebNode Server
+ */
+
+/**
+ * Loads all tests and return the result.
+ *
+ * @author Pedro Nasser
+ * @version $Id$
+ * @since 1.0.0
+ */
+
+var sourcePath = '../source/',
+	validTests = 0,
+	lastErrors = 0,
+	passedTests = 0;
+
+require(sourcePath+'/wnInit');
+
+console.log('[*] Running tests...');
+
+wns.console.setEvents({
+	'endTest': {}
+});
+
+wns.console.getEvent('log').clearListeners();
+
+wns.console.errors=0;
+wns.console.addListener('exception', function () {
+	wns.console.errors++;
+	wns.console.e.endTest();
+});
+
+_walk('./test',function (err,tests) {
+
+	if (err)
+		process.exit(-1);
+
+	var i = 0;
+	(function () {
+
+		if(tests.length == i)
+		{
+			console.log('');
+			console.log('[*] '+validTests+' tests performed');
+			console.log('[*] '+passedTests+' have been successfully executed');
+			console.log('[*] '+(validTests-passedTests)+' failed')
+			process.exit(wns.console.errors);
+		}
+
+		var args = arguments;
+		if (tests[i].split('.').pop()!='js')
+		{
+			i++;
+			args.callee();
+		} else {
+			wns.console.getEvent('endTest').once(function () {
+				if (lastErrors == wns.console.errors)
+					passedTests++;
+				i++;
+				validTests++;
+				args.callee();
+			});
+			try {
+				console.log('[*] Running: '+tests[i]);
+				lastErrors = wns.console.errors;
+				wns.console.exec(wns.console.getFile(tests[i]));
+			} catch (e)
+			{
+				wns.console.errors++;
+				wns.console.e.endTest();
+			}
+		}
+
+	})(i);
+
+});
