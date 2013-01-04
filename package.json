@@ -17,5 +17,8 @@
   ],
   "repository": "git://github.com/yeptlabs/wns",
   "main": "index",
+  "scripts": {
+    "test": "node test/run"
+  },
   "engines": { "node": "*" }
 }
