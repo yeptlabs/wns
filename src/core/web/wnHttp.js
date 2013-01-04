@@ -83,15 +83,15 @@ module.exports = {
 		handler: function (e,request,response)
 		{
 			var servername = request.headers.host.split(':')[0],
-				app = this.getConfig('app'),
-				config = this.getConfig();
-
+				config = this.getParent().getConfig(),
+				app = config['app'];
+				
 			for (a in app)
 			{
 				var appConfig = app[a].getConfig();
 				if (servername == a || this.getParent().getConfig('app')[a].domain == servername || (appConfig.components.http.serveralias+'').indexOf(new String(servername)) != -1)
 				{
-					app[a].createRequest.apply(app[a],arguments);
+					app[a].createRequest.apply(app[a],[request,response]);
 					return false;
 				} 
 			}

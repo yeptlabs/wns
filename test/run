@@ -15,7 +15,7 @@
  * @since 1.0.0
  */
 
-var sourcePath = '../source/',
+var sourcePath = '../src/',
 	validTests = 0,
 	lastErrors = 0,
 	passedTests = 0;

@@ -21,7 +21,7 @@ console.log('Welcome to WNS!');
 try
 {
 
-	global.sourcePath = 'source/';
+	global.sourcePath = 'src/';
 	global.cwd = __dirname+'/../';
 	global._r = require;
 
