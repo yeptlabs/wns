@@ -42,9 +42,8 @@ module.exports = {
 		 * @var object events to be preloaded.
 		 */
 		defaultEvents: {
-			'open': {
-				handler: 'handler'
-			}
+			'open': {},
+			'redirect': {}
 		}
 
 	},
@@ -61,8 +60,15 @@ module.exports = {
 		init: function ()
 		{
 			var self = this;
-			this.connection=http.createServer(function (req,resp) {
-				self.e.open(req,resp);
+			this.connection=http.createServer(self.e.open);
+			this.addListener('open',function (e,req,resp) {
+				self.handler(req,resp);
+			});
+			this.addListener('redirect', function (e,app,req,resp) {
+				if (!app)
+					response.end('Invalid hostname access.');
+				else
+					app.createRequest.apply(app,[req,resp]);
 			});
 		},
 
@@ -80,23 +86,23 @@ module.exports = {
 		 * @param $request Request request of the http connection
 		 * @param $response Reponse response of the http connection
 		 */
-		handler: function (e,request,response)
+		handler: function (request,response)
 		{
 			var servername = request.headers.host.split(':')[0],
-				config = this.getParent().getConfig(),
-				app = config['app'];
-				
+				serverConfig = this.getParent().getConfig('app'),
+				app = this.getConfig('app');
+
 			for (a in app)
 			{
 				var appConfig = app[a].getConfig();
-				if (servername == a || this.getParent().getConfig('app')[a].domain == servername || (appConfig.components.http.serveralias+'').indexOf(new String(servername)) != -1)
+				if (servername == a || serverConfig[a].domain == servername || (appConfig.components.http.serveralias+'').indexOf(new String(servername)) != -1)
 				{
-					app[a].createRequest.apply(app[a],[request,response]);
+					this.e.redirect(app[a],request,response);
 					return false;
 				} 
 			}
 
-			response.end('Invalid hostname access.');
+			this.e.redirect();
 
 		}
 

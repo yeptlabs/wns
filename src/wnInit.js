@@ -34,6 +34,8 @@ try
 	global.http = _r('http');
 	global.fs = _r('fs');
 	global.path = _r('path');
+	if (fs.existsSync == undefined)
+		fs.existsSync = path.existsSync;
 	global.url = _r('url');
 	global.zlib = _r('zlib');
 	global.crypto = _r('crypto');

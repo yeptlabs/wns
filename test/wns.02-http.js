@@ -23,23 +23,21 @@ for (a in app)
 
 for (a in app)
 {
+
 	appConfig[a].domain = 'localhost';
-	req = http.get('http://localhost:'+httpComponent.getConfig('listen')[0]+'/',
-		function (resp) {
-			resp.on('data', function (data) {
-				testedApp++;
-				if (testedApp == totalApps)
-					self.e.endTest();
-			});
-		});
-	req.setTimeout(5000, function () {
-		self.errors++;
-		self.e.endTest();
+	var req = new http.ClientRequest({ agent: false }),
+		resp = new http.ServerResponse(req);
+
+	req.headers={};
+	req.headers['host'] = appConfig[a].domain;
+	req.url = '/';
+
+	httpComponent.once('redirect', function () {
+		testedApp++;
+		if (testedApp == totalApps)
+			self.e.endTest();
 	});
-	req.on('error', function (e) {
-		throw e;
-		self.errors++;
-		self.e.endTest();
-	});
+	httpComponent.e.open(req,resp);
+	
 	appConfig[a].domain='notvalid';
 }
