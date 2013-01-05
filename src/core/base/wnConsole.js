@@ -97,10 +97,10 @@ module.exports = {
 				return false;
 
 			fs.writeFileSync(cwd+serverPath+'config.json',
-				fs.readFileSync(cwd+sourcePath+'../default-config.json')
+				fs.readFileSync(cwd+sourcePath+'/default-config.json')
 			);
 
-			var defaultIndex = fs.readFileSync(cwd+sourcePath+'../default-index.js');
+			var defaultIndex = fs.readFileSync(cwd+sourcePath+'/default-index.js');
 			defaultIndex = new this.c.wnTemplate(defaultIndex).match({
 				sourcePath: './'+relativeSourcePath.replace(/\\/g,'/'),
 				serverPath: serverPath.replace(/\\/g,'/')
