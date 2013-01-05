@@ -6,8 +6,13 @@
 
 ##### **WNS** is a framework built on **[Node.JS](http://nodejs.org)** machine for easily building high performance web applications. 
 
-- Why? [LOOK HERE](http://wns.yept.net/)
+## First steps?
+
 - How to? [LOOK HERE](http://wns.yept.net/site/guide)
+
+## More information:
+
+- Why? [LOOK HERE](http://wns.yept.net/)
 - Who uses? [LOOK HERE](http://wns.yept.net/site/cases)
 - Show me one! [LOOK HERE](http://wns.yept.net/site/examples)
 - Am I alone? [LOOK HERE](http://wns.yept.net/site/community)
