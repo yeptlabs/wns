@@ -28,7 +28,7 @@
 
 			"defaultController":"site",
 			"contentType": {},
-			"serveralias": "127.0.0.1",
+			"serveralias": "",
 			"errorPage": "site/error"
 		},
 

@@ -34,8 +34,11 @@ module.exports = {
 
 		this.e.log&&this.e.log('Constructing new `'+this.className+'`...','system');
 
-		this.setModulePath(modulePath || '');
+		if (modulePath==undefined)
+			modulePath = cwd;
+
 		this.setParent(parent);
+		this.setModulePath(path.resolve(parent.modulePath,modulePath)+'/');
 
 		this.preinit.apply(this,arguments); 
 
@@ -47,8 +50,8 @@ module.exports = {
 		{
 			Object.defineProperty(this,'c',{ value: classes, enumerable:false, writable: false });
 		}
-		
-		var defaultConfig = sourcePath+'config/'+className.split('_')[0]+'Config.json';
+
+		var defaultConfig = cwd+sourcePath+'config/'+className.split('_')[0]+'Config.json';
 		if (config)
 			this.setConfig(config);
 		if (fs.existsSync(defaultConfig))
@@ -656,7 +659,6 @@ module.exports = {
 		 */
 		setModulePath: function (value)
 		{
-			value=cwd+value;
 			if (value != undefined && fs.statSync(value).isDirectory())
 				this.modulePath = value;
 		},
