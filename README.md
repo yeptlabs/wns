@@ -1,4 +1,6 @@
-## Welcome to WNS
+[![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
+
+## Welcome to WNS (v1.0.11)
 
 ### Build a Fast, Scalable and Powerful web application
 

@@ -66,7 +66,7 @@ module.exports = {
 			});
 			this.addListener('redirect', function (e,app,req,resp) {
 				if (!app)
-					response.end('Invalid hostname access.');
+					resp.end('Invalid hostname access.');
 				else
 					app.createRequest.apply(app,[req,resp]);
 			});
@@ -102,7 +102,7 @@ module.exports = {
 				} 
 			}
 
-			this.e.redirect();
+			this.e.redirect(null,request,response);
 
 		}
 

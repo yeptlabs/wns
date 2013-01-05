@@ -84,6 +84,33 @@ module.exports = {
 		},
 
 		/**
+		 * Build a new server structure on the given directory
+		 * @param string $serverPath directory of the new server
+		 * @return boolean successfully builded?
+		 */
+		buildServer: function (serverPath)
+		{
+			var serverPath = path.relative(cwd,process.cwd()+"/"+serverPath)+'/',
+				relativeSourcePath = path.relative(process.cwd(),cwd+sourcePath)+'/';
+
+			if (!fs.existsSync(cwd+serverPath))
+				return false;
+
+			fs.writeFileSync(cwd+serverPath+'config.json',
+				fs.readFileSync(cwd+sourcePath+'../default-config.json')
+			);
+
+			var defaultIndex = fs.readFileSync(cwd+sourcePath+'../default-index.js');
+			defaultIndex = new this.c.wnTemplate(defaultIndex).match({
+				sourcePath: './'+relativeSourcePath.replace(/\\/g,'/'),
+				serverPath: serverPath.replace(/\\/g,'/')
+			});
+			fs.writeFileSync(cwd+serverPath+'index.js',defaultIndex);
+
+			return true;
+		},
+
+		/**
 		 * Set new properties to the respective servers
 		 * @param OBJECT $servers servers configurations
 		 */
