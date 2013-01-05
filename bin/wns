@@ -1,11 +1,19 @@
 #!/usr/bin/env node
 
-sourcePath = '../src/';
+var sourcePath = '../src/',
+	autoExit;
 require(sourcePath+'/wnInit');
 
 if (process.argv.length>2)
 {
 	var cmd = process.argv.slice(2).join(' ');
-	wns.console.run(cmd);
-	process.exit();
+	if (fs.existsSync(cmd))
+	{
+		cmd = "this.buildServer('"+cmd+"')";
+		autoExit = true;
+	}
+	wns.console.exec(cmd);
 }
+
+if (autoExit)
+	process.exit();

@@ -47,6 +47,8 @@ try
 	global.buffer = _r('buffer');
 	global.emitter = events.EventEmitter;
 	global.Buffer = buffer.Buffer;
+	cwd=path.normalize(cwd);
+	sourcePath=path.normalize(sourcePath);
 } catch (e) {
 	console.log('Failed to load some dependencies...');
 	throw e;
@@ -118,4 +120,4 @@ _walk(cwd+sourcePath+'core', function (err, classes) {
 Object.defineProperty(global, 'coreClasses', { value: _coreClasses, writable: false, configurable: false });
 
 // Create a new console
-wns.console = new wns.wnConsole();
+wns.console = new wns.wnConsole({ modulePath: cwd }, './');
