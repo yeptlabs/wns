@@ -44,10 +44,22 @@ module.exports = {
 	methods: {
 
 		/**
+		 * Before initialization
+		 */	
+		preinit: function () {
+		},
+
+		/**
 		 * Initializer
 		 */	
 		init: function ()
 		{
+			if (!fs.existsSync(this.modulePath+this.getConfig('appDirectory')))
+			{
+				this.e.log("Creating server's applications directory.");
+				fs.mkdir(this.getConfig('appDirectory'),755);
+			}
+
 			this.loadApplications();
 			
 			this.e.log('Starting `wnHttp`...');
@@ -60,12 +72,6 @@ module.exports = {
 				this.http.listen();
 			} else
 				this.e.log('An error has occurrend while loading http component.');
-
-			if (!fs.existsSync(this.getConfig('appDirectory')))
-			{
-				this.e.log("Creating server's applications directory.");
-				fs.mkdir(this.getConfig('appDirectory'),755);
-			}
 		},
 
 		/**
