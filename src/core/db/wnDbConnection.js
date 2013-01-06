@@ -97,7 +97,7 @@ module.exports = {
 		{
 			var self = this;
 			this.createDataObject();
-			if (this.dataObject)
+			if (this.dataObject.driver)
 			{
 				this.dataObject.addListener('ready',function (e,err) {					
 					self.e.ready.apply(self,arguments);
