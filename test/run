@@ -23,16 +23,15 @@ var validTests = 0,
 	testTimeout = -1,
 	testDir=cwd+'test/tmp';
 
-wrench.rmdirSyncRecursive(testDir, function () {});
+if (fs.existsSync(testDir))
+	wrench.rmdirSyncRecursive(testDir, function () {});
 fs.mkdirSync(testDir,0755);
 
-console.log('[*] Running tests...');
+console.log('[*] Running tests on `'+testDir+'`...');
 
 wns.console.setEvents({
 	'endTest': {}
 });
-
-//wns.console.getEvent('log').clearListeners();
 
 wns.console.errors=0;
 wns.console.addListener('exception', function () {
@@ -53,8 +52,9 @@ _walk('./test',function (err,tests) {
 			console.log('');
 			console.log('[*] '+validTests+' tests performed');
 			console.log('[*] '+passedTests+' have been successfully executed');
-			console.log('[*] '+(validTests-passedTests)+' failed')
-			wrench.rmdirSyncRecursive(testDir, function () {});
+			console.log('[*] '+(validTests-passedTests)+' failed');
+			if (fs.existsSync(testDir))
+				wrench.rmdirSyncRecursive(testDir, function () {});
 			process.exit(wns.console.errors);
 		}
 
