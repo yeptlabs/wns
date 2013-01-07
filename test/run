@@ -32,7 +32,7 @@ wns.console.setEvents({
 	'endTest': {}
 });
 
-wns.console.getEvent('log').clearListeners();
+//wns.console.getEvent('log').clearListeners();
 
 wns.console.errors=0;
 wns.console.addListener('exception', function () {
