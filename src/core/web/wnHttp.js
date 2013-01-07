@@ -79,7 +79,6 @@ module.exports = {
 		{
 			var config = this.getConfig();
 			try {
-				asidjaskd.ausbdas();
 				this.connection.listen(config.listen[0] || 80,config.listen[1]);
 			} catch (e) {
 				this.getParent().e.log
