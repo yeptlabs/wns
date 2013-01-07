@@ -25,7 +25,7 @@ for (a in app)
 {
 
 	appConfig[a].domain = 'localhost';
-	var req = new http.ClientRequest({ agent: false }),
+	var req = { headers: {}, parsedUrl: {}, url: '' },
 		resp = new http.ServerResponse(req);
 
 	req.headers={};
