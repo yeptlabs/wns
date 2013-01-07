@@ -39,6 +39,10 @@ wns.console.addListener('exception', function () {
 	wns.console.e.endTest();
 });
 
+setTimeout(function () {
+	process.exit(1);
+},60*5);
+
 _walk('./test',function (err,tests) {
 
 	if (err)
