@@ -51,7 +51,7 @@ module.exports = {
 			if (!fs.existsSync(this.modulePath+this.getConfig('appDirectory')))
 			{
 				this.e.log("Creating server's applications directory.");
-				fs.mkdir(this.modulePath+this.getConfig('appDirectory'),755);
+				fs.mkdirSync(this.modulePath+this.getConfig('appDirectory'));
 			}
 
 			this.loadApplications();
