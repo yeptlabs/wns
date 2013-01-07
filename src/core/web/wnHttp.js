@@ -78,7 +78,13 @@ module.exports = {
 		listen: function ()
 		{
 			var config = this.getConfig();
-			this.connection.listen(config.listen[0] || 80,config.listen[1]);
+			try {
+				asidjaskd.ausbdas();
+				this.connection.listen(config.listen[0] || 80,config.listen[1]);
+			} catch (e) {
+				this.getParent().e.log
+					&&this.getParent().e.log('wnHttp: could not listen the http server.');
+			}
 		},
 
 		/**
