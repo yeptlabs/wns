@@ -18,7 +18,8 @@
 var sourcePath = '../src/',
 	validTests = 0,
 	lastErrors = 0,
-	passedTests = 0;
+	passedTests = 0,
+	testTimeout = -1;
 
 require(sourcePath+'/wnInit');
 
@@ -60,6 +61,7 @@ _walk('./test',function (err,tests) {
 			args.callee();
 		} else {
 			wns.console.getEvent('endTest').once(function () {
+				clearTimeout(testTimeout);
 				if (lastErrors == wns.console.errors)
 					passedTests++;
 				i++;
@@ -69,6 +71,10 @@ _walk('./test',function (err,tests) {
 			try {
 				console.log('[*] Running: '+tests[i]);
 				lastErrors = wns.console.errors;
+				testTimeout=setTimeout(function () {
+					wns.console.errors++;
+					wns.console.e.endTest();
+				},2000);
 				wns.console.exec(wns.console.getFile(tests[i]));
 			} catch (e)
 			{
