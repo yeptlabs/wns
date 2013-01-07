@@ -42,13 +42,6 @@ module.exports = {
 	 */
 	methods: {
 
-		/**
-		 * Initializer.
-		 */	
-		init: function ()
-		{
-		},
-	
         /**
          * Raises the event.
          * Push event and arguments to all event's listeners.
@@ -149,7 +142,7 @@ module.exports = {
          * Add a new one-time-listener to this event.
          * @param $listener function listener of the event
          */
-		once: function (listener) {
+		once: function (listener, prepend) {
 			if ('function' !== typeof listener)
 				return false;
 			var self = this;
@@ -159,7 +152,11 @@ module.exports = {
 				listener.apply(this, arguments);
 			};
 			g.listener = listener;
-			self.on(g);
+			
+			if (prepend)
+				_listeners.unshift(g);
+			else
+				_listeners.push(g);
 		},
 
         /**

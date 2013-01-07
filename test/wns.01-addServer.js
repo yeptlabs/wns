@@ -4,18 +4,19 @@
  *
  * @author Pedro Nasser
  * @version $Id$
- * @since 1.0.0
+ * @since 1.0.12
  */
 
 var serverConfig = {},
 	consoleID = this.getServerModules().length+1;
 	serverConfig[consoleID] = {
-		"modulePath": "./",
+		"modulePath": "./test/tmp",
 		"serverID": consoleID,
 		"app": {
 			"wns-test": {
 				"appPath": "wns-test/",
-				"domain": "127.0.0.1"
+				"domain": "127.0.0.1",
+				"dbEngine": "mongo"
 			}
 		},
 		"components": {
