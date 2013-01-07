@@ -97,9 +97,6 @@ module.exports = {
 					appName = a,
 					a = 'app-'+a;
 				modules[a]=ref;
-				console.log(this.modulePath+this.getConfig('appDirectory'));
-				console.log(fs.existsSync(this.modulePath));
-				console.log(fs.existsSync(this.modulePath+this.getConfig('appDirectory')));
 				modules[a].modulePath=this.getConfig('appDirectory')+(modules[a].appPath || modules[a].modulePath);
 				modules[a].appName=appName;
 				modules[a].class='wnApp';
@@ -137,10 +134,8 @@ module.exports = {
 				config = new this.c.wnTemplate(config).match({
 					dbEngine: this.getConfig('app')[appName].dbEngine
 				});
-				console.log(this.modulePath+appPath+'config.json');
 				fs.writeFileSync(this.modulePath+appPath+'config.json',config,'utf8');
 			}
-			console.log(fs.existsSync(this.modulePath+appPath));
 		},
 
 		/**
