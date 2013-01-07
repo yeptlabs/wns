@@ -127,6 +127,7 @@ module.exports = {
 			if (fs.existsSync(this.modulePath+appPath))
 				return false;
 			this.e.log('- Creating new application: '+appName+' on `'+appPath+'`');
+			console.log(cwd+sourcePath+'app/');
 			wrench.copyDirSyncRecursive(cwd+sourcePath+'app/',this.modulePath+appPath);
 			if (this.getConfig('app')[appName].dbEngine!=undefined)
 			{
