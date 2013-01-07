@@ -58,7 +58,7 @@ _walk('./test',function (err,tests) {
 			console.log('[*] '+passedTests+' have been successfully executed');
 			console.log('[*] '+(validTests-passedTests)+' failed');
 			if (fs.existsSync(testDir))
-				wrench.rmdirSyncRecursive(testDir, function () {});
+				wrench.rmdirSyncRecursive(testDir);
 			process.exit(wns.console.errors);
 		}
 

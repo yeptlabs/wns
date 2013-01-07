@@ -135,7 +135,7 @@ module.exports = {
 				config = new this.c.wnTemplate(config).match({
 					dbEngine: this.getConfig('app')[appName].dbEngine
 				});
-				console.log(config);
+				console.log(this.modulePath+appPath+'config.json');
 				fs.writeFileSync(this.modulePath+appPath+'config.json',config,'utf8');
 			}
 			console.log(fs.existsSync(this.modulePath+appPath));
