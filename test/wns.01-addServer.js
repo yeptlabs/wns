@@ -13,7 +13,7 @@ var serverConfig = {},
 		"modulePath": "./test/tmp",
 		"serverID": consoleID,
 		"app": {
-			"wns-test": {
+			"test": {
 				"appPath": "wns-test/",
 				"domain": "127.0.0.1",
 				"dbEngine": "mongo"
@@ -33,7 +33,7 @@ console.log('[SERVER CONFIG] -------------------');
 console.log(util.inspect(server.getConfig()));
 console.log(' ')
 console.log('[APP CONFIG] -------------------');
-console.log(util.inspect(server.getApplication('wns-test').getConfig()));
+console.log(util.inspect(server.getApplication('test').getConfig()));
 console.log(' ')
 this.selectServer(consoleID);
 
