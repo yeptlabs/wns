@@ -20,7 +20,7 @@ var serverConfig = {},
 		},
 		"components": {
 			"http": {	
-				"listen":[80,"127.0.0.1"]
+				"listen":[80]
 			}
 		}
 	};
