@@ -44,12 +44,6 @@ module.exports = {
 	methods: {
 
 		/**
-		 * Before initialization
-		 */	
-		preinit: function () {
-		},
-
-		/**
 		 * Initializer
 		 */	
 		init: function ()
@@ -57,7 +51,7 @@ module.exports = {
 			if (!fs.existsSync(this.modulePath+this.getConfig('appDirectory')))
 			{
 				this.e.log("Creating server's applications directory.");
-				fs.mkdir(this.getConfig('appDirectory'),755);
+				fs.mkdir(this.modulePath+this.getConfig('appDirectory'),755);
 			}
 
 			this.loadApplications();
@@ -130,16 +124,16 @@ module.exports = {
 		 */
 		buildApplication: function (appName, appPath)
 		{
-			if (fs.existsSync(appPath))
+			if (fs.existsSync(this.modulePath+appPath))
 				return false;
-			wrench.copyDirSyncRecursive(cwd+sourcePath+'app/',appPath);
+			wrench.copyDirSyncRecursive(cwd+sourcePath+'app/',this.modulePath+appPath);
 			if (this.getConfig('app')[appName].dbEngine!=undefined)
 			{
 				var config = this.getFile(appPath+'config.json');
 				config = new this.c.wnTemplate(config).match({
 					dbEngine: this.getConfig('app')[appName].dbEngine
 				});
-				fs.writeFileSync(appPath+'config.json',config,'utf8');
+				fs.writeFileSync(this.modulePath+appPath+'config.json',config,'utf8');
 			}
 		},
 

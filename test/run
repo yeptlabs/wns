@@ -12,16 +12,19 @@
  *
  * @author Pedro Nasser
  * @version $Id$
- * @since 1.0.0
+ * @since 1.0.12
  */
 
-var sourcePath = '../src/',
-	validTests = 0,
+require('../src/wnInit');
+
+var validTests = 0,
 	lastErrors = 0,
 	passedTests = 0,
-	testTimeout = -1;
+	testTimeout = -1,
+	testDir=cwd+'test/tmp';
 
-require(sourcePath+'/wnInit');
+wrench.rmdirSyncRecursive(testDir, function () {});
+fs.mkdirSync(testDir,0755);
 
 console.log('[*] Running tests...');
 
@@ -51,6 +54,7 @@ _walk('./test',function (err,tests) {
 			console.log('[*] '+validTests+' tests performed');
 			console.log('[*] '+passedTests+' have been successfully executed');
 			console.log('[*] '+(validTests-passedTests)+' failed')
+			wrench.rmdirSyncRecursive(testDir, function () {});
 			process.exit(wns.console.errors);
 		}
 

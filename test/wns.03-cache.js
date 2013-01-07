@@ -3,7 +3,7 @@
  *
  * @author Pedro Nasser
  * @version $Id$
- * @since 1.0.0
+ * @since 1.0.12
  */
 
 var server = this.getServer(1),

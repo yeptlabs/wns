@@ -69,8 +69,8 @@ module.exports = {
 				this.driver = _r(this.driverModule);
 			} catch (e)
 			{
-				this.getParent().e.exception&&
-					this.getParent().e.exception('Could not load the database driver. ['+this.driverName+']');
+				this.getParent().e.log&&
+					this.getParent().e.log('wnDataObject.init: Could not load the database driver. ['+this.driverName+']');
 			}
 		},
 

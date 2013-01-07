@@ -97,7 +97,7 @@ module.exports = {
 		{
 			var self = this;
 			this.createDataObject();
-			if (this.dataObject.driver)
+			if (this.dataObject && this.dataObject.driver)
 			{
 				this.dataObject.addListener('ready',function (e,err) {					
 					self.e.ready.apply(self,arguments);
@@ -126,8 +126,8 @@ module.exports = {
 				this.dataObject.setConfig(this.getConfig());
 				this.dataObject.init();
 			} else {
-				this.getParent().e.exception&&
-					this.getParent().e.exception('wnDbConnection.createDataObject: Invalid database engine configuration.');
+				this.getParent().e.log&&
+					this.getParent().e.log('wnDbConnection.createDataObject: Invalid database engine configuration.');
 			}
 		},
 

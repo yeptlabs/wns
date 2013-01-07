@@ -412,7 +412,7 @@ module.exports = {
 		 */
 		exec: function (cmd)
 		{
-			this.e.log&&this.e.log('Executing: '+cmd,'result');
+			//this.e.log&&this.e.log('Executing: '+cmd,'result');
 			try
 			{
 				with (this)
