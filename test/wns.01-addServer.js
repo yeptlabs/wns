@@ -14,7 +14,7 @@ var serverConfig = {},
 		"serverID": consoleID,
 		"app": {
 			"test": {
-				"appPath": "wns-test/",
+				"appPath": "test/",
 				"domain": "127.0.0.1",
 				"dbEngine": "mongo"
 			}

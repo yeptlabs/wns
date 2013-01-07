@@ -464,7 +464,7 @@ module.exports = {
 					var config = _modulesConfig[id] || {},
 						modulePath = config.modulePath || id,
 						className = config.class;
-					if (fs.existsSync(modulePath) && className != undefined)
+					if (fs.existsSync(this.modulePath+modulePath) && className != undefined)
 					{
 						config.id = id;
 						config.autoInit = !(config.autoInit == false);
