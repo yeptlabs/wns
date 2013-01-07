@@ -41,7 +41,7 @@ wns.console.addListener('exception', function () {
 
 setTimeout(function () {
 	process.exit(1);
-},60*5);
+},60000*5);
 
 _walk('./test',function (err,tests) {
 
