@@ -4,7 +4,7 @@
  *
  * @author Pedro Nasser
  * @version $Id$
- * @since 1.0.0
+ * @since 1.0.12
  */
 
 var self = this,
@@ -25,18 +25,19 @@ for (a in app)
 {
 
 	appConfig[a].domain = 'localhost';
-	var req = { headers: {}, parsedUrl: {}, url: '' },
+	var req = new http.ClientRequest({ agent: false }),
 		resp = new http.ServerResponse(req);
 
 	req.headers={};
 	req.headers['host'] = appConfig[a].domain;
 	req.url = '/';
 
-	httpComponent.once('redirect', function () {
+	httpComponent.getEvent('redirect').once(function (e) {
+		e.stopPropagation=true;
 		testedApp++;
 		if (testedApp == totalApps)
 			self.e.endTest();
-	});
+	}, true);
 	httpComponent.e.open(req,resp);
 	
 	appConfig[a].domain='notvalid';

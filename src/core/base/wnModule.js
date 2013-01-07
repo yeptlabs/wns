@@ -52,12 +52,12 @@ module.exports = {
 		}
 
 		var defaultConfig = cwd+sourcePath+'config/'+className.split('_')[0]+'Config.json';
-		if (config)
-			this.setConfig(config);
 		if (fs.existsSync(defaultConfig))
 			this.configureFromFile(defaultConfig);
 		if (fs.existsSync(this.modulePath + this.configFile))
 			this.configureFromFile(this.modulePath + this.configFile);
+		if (config)
+			this.setConfig(config);
 
 		this.importCustomClasses();
 
