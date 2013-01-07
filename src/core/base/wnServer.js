@@ -97,6 +97,7 @@ module.exports = {
 					appName = a,
 					a = 'app-'+a;
 				modules[a]=ref;
+				console.log(fs.existsSync(this.modulePath+this.getConfig('appDirectory')));
 				modules[a].modulePath=this.getConfig('appDirectory')+(modules[a].appPath || modules[a].modulePath);
 				modules[a].appName=appName;
 				modules[a].class='wnApp';
@@ -137,7 +138,7 @@ module.exports = {
 				console.log(config);
 				fs.writeFileSync(this.modulePath+appPath+'config.json',config,'utf8');
 			}
-			fs.existsSync(this.modulePath+appPath);
+			console.log(fs.existsSync(this.modulePath+appPath));
 		},
 
 		/**
