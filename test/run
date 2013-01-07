@@ -74,7 +74,7 @@ _walk('./test',function (err,tests) {
 				testTimeout=setTimeout(function () {
 					wns.console.errors++;
 					wns.console.e.endTest();
-				},2000);
+				},10000);
 				wns.console.exec(wns.console.getFile(tests[i]));
 			} catch (e)
 			{
