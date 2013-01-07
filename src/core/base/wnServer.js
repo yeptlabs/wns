@@ -127,7 +127,6 @@ module.exports = {
 			if (fs.existsSync(this.modulePath+appPath))
 				return false;
 			this.e.log('- Creating new application: '+appName+' on `'+appPath+'`');
-			console.log(cwd+sourcePath+'app/');
 			wrench.copyDirSyncRecursive(cwd+sourcePath+'app/',this.modulePath+appPath);
 			if (this.getConfig('app')[appName].dbEngine!=undefined)
 			{
@@ -135,8 +134,10 @@ module.exports = {
 				config = new this.c.wnTemplate(config).match({
 					dbEngine: this.getConfig('app')[appName].dbEngine
 				});
+				console.log(config);
 				fs.writeFileSync(this.modulePath+appPath+'config.json',config,'utf8');
 			}
+			fs.existsSync(this.modulePath+appPath);
 		},
 
 		/**
