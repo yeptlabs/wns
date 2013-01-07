@@ -7,7 +7,7 @@
  */
 
 var server = this.getServer(1),
-	app = server.getApplication('wns-test'),
+	app = server.getApplication('test'),
 	cache = app.getComponent('cache'),
 	testValue = Math.random();
 

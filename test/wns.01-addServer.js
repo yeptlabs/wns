@@ -13,14 +13,14 @@ var serverConfig = {},
 		"modulePath": "./test/tmp",
 		"serverID": consoleID,
 		"app": {
-			"wns-test": {
-				"appPath": "wns-test/",
+			"test": {
+				"appPath": "test/",
 				"domain": "127.0.0.1",
 				"dbEngine": "mongo"
 			}
 		},
 		"components": {
-			"http": {	
+			"http": {
 				"listen":[80]
 			}
 		}
@@ -28,6 +28,13 @@ var serverConfig = {},
 
 this.setServers(serverConfig);
 var server = this.createServer(consoleID);
+console.log(' ')
+console.log('[SERVER CONFIG] -------------------');
+console.log(util.inspect(server.getConfig()));
+console.log(' ')
+console.log('[APP CONFIG] -------------------');
+console.log(util.inspect(server.getApplication('test').getConfig()));
+console.log(' ')
 this.selectServer(consoleID);
 
 this.e.endTest();

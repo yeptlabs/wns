@@ -8,7 +8,7 @@
  */
 
 var server = this.getServer(1),
-	app = server.getApplication('wns-test'),
+	app = server.getApplication('test'),
 	urlManager = app.getComponent('urlManager'),
 	urlTests = [
 		'/test.jpg', '/test/site'
