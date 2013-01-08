@@ -1,10 +1,16 @@
-[![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
+## Welcome to WNS (v1.0.12) [![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
 
-## Welcome to WNS (v1.0.12)
+##### WNS is a high-performance component-based middleware framework
 
-### Build a Fast, Scalable and Powerful web application
+## Philosophy
 
-##### **WNS** is a framework built on **[Node.JS](http://nodejs.org)** machine for easily building high performance web applications. 
+- Intuitiveness
+- Performance
+- Speed
+- Professional
+- Security
+- Modules and components
+- As you like
 
 ## First steps?
 
