@@ -1,6 +1,6 @@
 {
   "name": "wnserver",
-  "description": "A NodeJS MVC Framework and HTTP Server",
+  "description": "A high-performance component-based, class-based middleware framework",
   "version": "1.0.12",
   "author": "Pedro Nasser <pedronasser@gmail.com>",
   "contributors": [ 
@@ -13,7 +13,9 @@
   },
   "keywords": [
     "web","yii","framework","wns","mvc",
-    "yii","app","http","server"
+    "database","app","http","server","middleware",
+    "component","module","model","view",
+    "controller","route","static"
   ],
   "repository": "git://github.com/yeptlabs/wns",
   "main": "index",
@@ -21,5 +23,5 @@
   "scripts": {
     "test": "node test/run"
   },
-  "engines": { "node": "*" }
+  "engines": { "node": ">= 0.5.0" }
 }
