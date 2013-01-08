@@ -1,6 +1,6 @@
 ## Welcome to WNS (v1.0.12) [![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
 
-##### WNS is a high-performance component-based middleware framework
+##### WNS is a high-performance component-based, class-based middleware framework
 
 ## Philosophy
 
