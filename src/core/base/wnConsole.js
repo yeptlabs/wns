@@ -78,8 +78,15 @@ module.exports = {
 			process.stdin.resume();
 			process.stdin.setEncoding('utf8');
 			process.stdin.on('data', function (chunk) {
-			  self.exec(chunk.substr(0,chunk.length-1));
-			  return false;
+				var ctx = self.getServer(self.activeServer),
+					cmd = chunk.substr(0,chunk.length-1);
+				if (cmd.indexOf('..') != -1)
+				{
+					ctx = false; 
+					cmd = 'this.selectServer(-1)';
+				}
+				self.exec(cmd,ctx?ctx:undefined);
+				return false;
 			});
 		},
 
@@ -222,6 +229,9 @@ module.exports = {
 			{		
 				this.e.log('Console active in wnServer: SERVER#' + id);
 				this.activeServer = id;
+			} else {
+				this.e.log('Console active in wnServer: NONE');
+				this.activeServer = -1;
 			}
 		},
 

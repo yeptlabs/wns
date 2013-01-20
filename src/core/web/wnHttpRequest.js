@@ -65,7 +65,9 @@ module.exports = {
 		defaultEvents: {
 			'open': {},
 			'end': {},
-			'error': {}
+			'error': {},
+			'beforeSend': {},
+			'beforeRun': {},
 		}
 
 	},
@@ -97,60 +99,34 @@ module.exports = {
 		send: function ()
 		{
 			var self = this,
-				acceptEncoding = this.info.headers['accept-encoding'];
-			if (!acceptEncoding) 
-				acceptEncoding = '';
+				res = this.response;
 
-			if (this.compressedData==null && this.data != '' && (acceptEncoding.match(/\bgzip\b/) || (typeof this.data == 'string' && Buffer.byteLength(this.data, 'utf8')>150)))
-			{
-				zlib.gzip(new Buffer(this.data), function (e,buf)
-				{
-					self.header['Content-Encoding']='gzip';
-					self.header['Content-Length']=buf.length;
-					self.response.writeHead(self.code,self.header);
-					self.compressedData = buf;
-					self.response.end(buf);
-					self.e.end(self);
-				});
-				return false;
-			}
+			this.once('beforeSend', function (e,cb) {
+				cb&&cb();
+			});
 
-			if (this.compressedData)
-			{
-				var data = this.compressedData;
-				this.header['Content-Length'] = data.length;
-				this.header['Content-Encoding'] = 'gzip';
-			} else if (this.data.length > 0)
-			{
-				var data = this.data;
-				this.header['Content-Length']=null;
-				this.header['Content-Encoding']=null;
-			}
+			this.e.beforeSend(function () {
+				for (h in self.header)
+					res.setHeader(h,self.header[h]);
 
-			if (this.header.Location)
-			{
-				this.code = 302;
-				this.header['Content-Type']=null;
-			}
-
-			this.response.writeHead(this.code,this.header);
-			this.response.end(data);
-			this.e.end(self);
+				res.statusCode = self.code;
+				res.end(self.data);
+				self.e.end(self);
+			});
 		},
 
 		/**
 		 * Prepare the request.
-		 * Define the route rule.
 		 */
 		prepare: function ()
 		{
+			var self=this;
 			this.info.originalUrl = this.info.url;
 			if (this.info.url == '/')
 				this.info.url = '/'+this.getConfig('defaultController')+'/';
 			this.parsedUrl=url.parse(this.info.url,true);
 			this.route = this.app.getComponent('urlManager').parseRequest(this) || { translation: this.info.url, params: {}, template: '' };
 			this.template = this.route ? this.route.template : false;
-			var self=this;
 			this.info.once('close',function () { self.e.end(self); });
 			this.info.once('end',function () { self.e.end(self); });
 			this.info.connection.setTimeout(this.lifeTime,function () {
@@ -158,6 +134,11 @@ module.exports = {
 				self.e.end(self);
 				self.info.connection.destroy();
 			});
+			this.addListener('error',function (e,code,msg,fatal) {
+				this.err=true;
+				self.errorHandler(code,msg,fatal);
+			})
+			return this;
 		},
 
 		/**
@@ -165,10 +146,15 @@ module.exports = {
 		 */	
 		run: function ()
 		{
-			if (this.template == '<file>')
-				this.publicHandler();
-			else
-				this.controllerHandler();
+			var self = this;
+			this.once('beforeRun', function () {
+				if (self.template == '<file>')
+					self.publicHandler();
+				else
+					self.controllerHandler();
+				return self;
+			});
+			this.e.beforeRun(this);
 		},
 
 		/**
@@ -190,8 +176,7 @@ module.exports = {
 
 			if (!this.controller)
 			{
-				//this.app.e.log('Controller not found: '+_controller,'access');
-				this.errorHandler();
+				this.e.error(404,'Controller not found');
 				return false;
 			}
 
@@ -204,12 +189,13 @@ module.exports = {
 				this.controller[_action]&&this.controller[_action]();
 			} else
 			{
-				//this.app.e.log('Action not found: '+_action,'access');
-				this.errorHandler();
+				this.e.error(404,'Action not found');
 			}
-
 		},
 
+		/**
+		 *
+		 */
 		cacheControl: function (url,stat) {
 			
 			var lastMod = stat.mtime,
@@ -244,14 +230,12 @@ module.exports = {
 			}
 
 			this.header['Last-Modified'] = cmtime;
-
-
 		},
 
 		/**
 		 * Public File Access Handler
 		 * Try to load the file if exists.
-		 * If not, send it to the 
+		 * If not, send it to the errorHandler
 		 */
 		publicHandler: function ()
 		{
@@ -290,20 +274,20 @@ module.exports = {
 					return false;
 			}
 
-			this.code = 404;
-			this.header['Status']='404 Not Found';
-			//this.app.e.log('File not found: '+this.parsedUrl.pathname,'access');
+			this.e.error(404,'File not found',true);
 		},
 
 		/**
 		 * Error Access Handler
+		 * @param integer $code http status code
+		 * @param string $msg http status msg
+		 * @param boolean $fatal fatal error? means no redirect
 		 */
-		errorHandler: function ()
+		errorHandler: function (code,msg,fatal)
 		{
-			this.code = 404;
-			this.header['Status']='404 Not Found';
+			this.code=code || 500;
 
-			if (this.getConfig('errorPage')!=undefined)
+			if (this.getConfig('errorPage')!=undefined && !fatal)
 			{
 				this.code = 302;
 				this.header['Location']='/'+this.getConfig('errorPage');

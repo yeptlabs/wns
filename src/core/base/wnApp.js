@@ -44,7 +44,9 @@ module.exports = {
 		 * @var object events to be preloaded.
 		 */
 		defaultEvents: {
-			'newRequest': {}
+			'newRequest': {},
+			'readyRequest': {},
+			'closedRequest': {},	
 		}
 
 	},
@@ -71,11 +73,11 @@ module.exports = {
 		 */
 		createRequest: function (req,resp)
 		{
-			var httpRequest, reqConf, url = req.url+'';
+			var httpRequest, reqConf, url = req.url+'', self = this;
 			try
 			{
 				this.e.newRequest(req,resp);
-				if (resp.closed)
+				if (!resp || resp.closed)
 					return false;
 
 				reqConf = Object.extend(true,{},this.getComponentConfig('http'),{ id: 'request-'+_requestCount, request: req, response: resp }),
@@ -83,6 +85,8 @@ module.exports = {
 				_requestCount++;
 				httpRequest.created = +new Date;
 				httpRequest.init();
+				httpRequest.e.open();
+				this.e.readyRequest(httpRequest);
 				httpRequest.prepare();
 				httpRequest.once('end',function () {					
 					for (r in _slaveRequests[url])

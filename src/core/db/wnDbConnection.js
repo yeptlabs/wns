@@ -26,7 +26,11 @@ module.exports = {
 	/**
 	 * PRIVATE
 	 */
-	private: {},
+	private: {
+
+		_schema: null
+
+	},
 
 	/**
 	 * Public Variables
@@ -99,13 +103,16 @@ module.exports = {
 			this.createDataObject();
 			if (this.dataObject && this.dataObject.driver)
 			{
-				this.dataObject.addListener('ready',function (e,err) {					
+				this.dataObject.addListener('ready',function () {
 					self.e.ready.apply(self,arguments);
 				});
-				this.dataObject.addListener('connect', function () {
+				this.dataObject.addListener('connect', function (e,con) {
+					self.connection = con;
+					self.connected = true;
 					self.e.connect.apply(self,arguments);
 				});
 				this.dataObject.addListener('close', function () {
+					self.connected = false;
 					self.e.close.apply(self,arguments);
 				});
 				this.dataObject.addListener('result', function () {
@@ -124,7 +131,7 @@ module.exports = {
 			{
 				this.dataObject = new this.c[dsnClass]({ autoInit: false }, this.c);
 				this.dataObject.setConfig(this.getConfig());
-				this.dataObject.init();
+				this.dataObject.init(this);
 			} else {
 				this.getParent().e.log&&
 					this.getParent().e.log('wnDbConnection.createDataObject: Invalid database engine configuration.');
@@ -179,11 +186,11 @@ module.exports = {
 		 * @param $params object parameters
 		 * @param $cb function callback
 		 */
-		execute: function (params,cb)
+		exec: function (params,cb)
 		{
 			if (this.dataObject)
 			{
-				this.dataObject._execute.apply(this.dataObject,arguments);
+				this.dataObject._exec.apply(this.dataObject,arguments);
 			}
 		},
 
@@ -198,6 +205,47 @@ module.exports = {
 			{
 				this.dataObject._query.apply(this.dataObject,arguments);
 			}
+		},
+
+		/**
+		 * Returns the database schema for the current connection
+		 * @return wnDbSchema the database schema for the current connection
+		 */
+		getSchema: function ()
+		{
+			if(_schema!==null)
+				return _schema;
+			else
+			{
+				var engine=this.getConfig('engine'),
+					schemaClass = this.getParent().c['wnDb'+engine.substr(0,1).toUpperCase()+engine.substr(1)+'Schema'];
+				if(schemaClass!=undefined)
+					return _schema=new schemaClass({}, this.getParent().c, this);
+				else
+					return (1==this.getParent().e.log
+							&&this.getParent().e.log('wnDbConnection does not support reading schema for that database.'));
+			}
+		},
+
+		/**
+		 * Returns the SQL query builder for the current DB connection.
+		 * @return CDbQueryBuilder the query builder
+		 */
+		getQueryBuilder: function ()
+		{
+			return this.getSchema().getQueryBuilder();
+		},
+
+		/**
+		 * Creates a query for execution.
+		 * @param mixed $query can be a string or an object, required to 
+		 * the current engine's querybuilder to work.
+		 * @return CDbCommand the DB command
+		 */
+		createQuery: function (query)
+		{
+			var queryClass = this.getParent().c.wnDbQuery;
+			return new queryClass({}, this.c, this, query);
 		}
 	
 	}

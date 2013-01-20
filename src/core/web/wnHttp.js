@@ -108,7 +108,6 @@ module.exports = {
 			}
 
 			this.e.redirect(null,request,response);
-
 		}
 
 	}

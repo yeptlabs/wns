@@ -74,6 +74,7 @@ module.exports = {
 		 */
 		setServerId: function (id) {
 			this.setConfig({ serverID: new Number(id) });
+			return this;
 		},
 
 		/**
@@ -109,7 +110,7 @@ module.exports = {
 					eval(_class);
 					var cb = this.getComponent('classBuilder'),
 						appClass = cb.classesSource['wnApp'];
-					appClass = Object.extend(true,appClass,module.exports);
+					appClass = Object.extend(true,{},appClass,module.exports);
 					cb.classesSource[className] = appClass;
 					cb.classes[className]=cb.buildClass(className);
 				}
@@ -117,6 +118,7 @@ module.exports = {
 				this.buildApplication(appName,modules[a].modulePath);
 			}
 			this.setModules(modules);
+			return this;
 		},
 
 		/**
@@ -124,18 +126,20 @@ module.exports = {
 		 */
 		buildApplication: function (appName, appPath)
 		{
-			if (fs.existsSync(this.modulePath+appPath))
-				return false;
-			this.e.log('- Creating new application: '+appName+' on `'+appPath+'`');
-			wrench.copyDirSyncRecursive(cwd+sourcePath+'app/',this.modulePath+appPath);
-			if (this.getConfig('app')[appName].dbEngine!=undefined)
+			if (!fs.existsSync(this.modulePath+appPath))
 			{
-				var config = this.getFile(appPath+'config.json');
-				config = new this.c.wnTemplate(config).match({
-					dbEngine: this.getConfig('app')[appName].dbEngine
-				});
-				fs.writeFileSync(this.modulePath+appPath+'config.json',config,'utf8');
+				this.e.log('- Creating new application: '+appName+' on `'+appPath+'`');
+				wrench.copyDirSyncRecursive(cwd+sourcePath+'app/',this.modulePath+appPath);
+				if (this.getConfig('app')[appName].dbEngine!=undefined)
+				{
+					var config = this.getFile(appPath+'config.json');
+					config = new this.c.wnTemplate(config).match({
+						dbEngine: this.getConfig('app')[appName].dbEngine
+					});
+					fs.writeFileSync(this.modulePath+appPath+'config.json',config,'utf8');
+				}
 			}
+			return this;
 		},
 
 		/**
@@ -151,6 +155,7 @@ module.exports = {
 				delete this.getModule('app-'+id);
 			else
 				this.setModule('app-'+id,application);
+			return this;
 		},
 		/**
 		 * Retrieves the named application.
@@ -216,6 +221,8 @@ module.exports = {
 				this.e.log('- Loading application: ' + p);
 				a=this.getApplication(p);
 			}
+
+			return this;
 		},
 
 		/**

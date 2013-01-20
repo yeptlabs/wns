@@ -147,6 +147,7 @@ module.exports = {
 			classBuilder.build();
 			for (c in global.coreClasses)
 				classBuilder.makeDoc(c,_cSource[c]);
+			return this;
 		},
 		
 		/**
@@ -173,6 +174,7 @@ module.exports = {
 					_customClasses[className]=cb.classes[className];
 				}
 			}
+			return this;
 		},
 
 		/**
@@ -192,6 +194,7 @@ module.exports = {
 				cb.classes[className]=cb.recompile(c,module.exports);
 			}
 			this.e.log&&this.e.log('All custom classes has been reloaded.','system');
+			return this;
 		},
 
 		/**
@@ -222,6 +225,7 @@ module.exports = {
 					this.setScripts(scriptSet);
 				}
 			}
+			return this;
 		},
 
 		/**
@@ -242,6 +246,7 @@ module.exports = {
 				}
 			}
 			this.e.log&&this.e.log('All scripts has been reloaded.','system');
+			return this;
 		},
 
 		/**
@@ -285,6 +290,7 @@ module.exports = {
 				}
 				_componentsConfig[c]=Object.extend(true,_componentsConfig[c] || {}, components[c]);
 			}
+			return this;
 		},
 
 		/**
@@ -299,6 +305,7 @@ module.exports = {
 				delete _components[id];
 			else
 				_components[id]=component;
+			return this;
 		},
 
 		/**
@@ -347,6 +354,7 @@ module.exports = {
 					this[_componentsConfig[id].alias]=undefined;
 				_components[id] = undefined;
 			}
+			return this;
 		},		
 
 		/**
@@ -410,6 +418,7 @@ module.exports = {
 			{
 				this.setComponents(preload);
 			}
+			return this;
 		},
 
 		/**
@@ -425,6 +434,7 @@ module.exports = {
 				if (cpnt)
 					this.e.log&&this.e.log('- Starting component: '+c+(cpnt.getConfig('alias')?' (as '+cpnt.getConfig('alias')+')':''),'system');
 			}
+			return this;
 		},
 
 		/**
@@ -444,6 +454,7 @@ module.exports = {
 				}
 				_modulesConfig[m]=Object.extend(true,_modulesConfig[m] || {}, modules[m]);
 			}
+			return this;
 		},
 
 		/**
@@ -468,7 +479,7 @@ module.exports = {
 					{
 						config.id = id;
 						config.autoInit = !(config.autoInit == false);
-						var module = this.createModule(className,modulePath,config)
+						var module = this.createModule(className,modulePath,config);
 						_modules[id] = module;
 						this.attachModuleEvents(id);
 						module.e.ready(modulePath,config);
@@ -566,6 +577,7 @@ module.exports = {
 				}
 				this.attachEventsHandlers();
 			}
+			return this;
 		},
 
 		/**
@@ -575,7 +587,7 @@ module.exports = {
 		 * @return wnEvent the bubble event of the module's event
 		 */
 		getModuleEvent: function (eventName) {
-			this.getEvent('module.'+eventName);
+			return this.getEvent('module.'+eventName);
 		},
 
 		/**
@@ -594,6 +606,7 @@ module.exports = {
 				script[s].class='wnScript'+scriptName || 'wnScript';
 				_componentsConfig[s]=Object.extend(true,_componentsConfig[s] || {}, script[s]);
 			}
+			return this;
 		},
 
 		/**
@@ -661,6 +674,7 @@ module.exports = {
 		{
 			if (value != undefined && fs.statSync(value).isDirectory())
 				this.modulePath = value;
+			return this;
 		},
 		
 		/**
@@ -668,7 +682,7 @@ module.exports = {
 		 */
 		preinit: function ()
 		{
-
+			return this;
 		},
 
 		/**
@@ -676,7 +690,7 @@ module.exports = {
 		 */
 		run: function ()
 		{
-
+			return this;
 		}
 
 	}
