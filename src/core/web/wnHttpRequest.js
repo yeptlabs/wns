@@ -60,14 +60,19 @@ module.exports = {
 		header: {},
 
 		/**
+		 * @var integer request lifetime
+		 */
+		lifeTime: 30000,
+
+		/**
 		 * @var object events to be preloaded.
 		 */
 		defaultEvents: {
 			'open': {},
 			'end': {},
 			'error': {},
-			'beforeSend': {},
-			'beforeRun': {},
+			'send': {},
+			'run': {},
 		}
 
 	},
@@ -83,36 +88,16 @@ module.exports = {
 		init: function ()
 		{
 			this.initialTime = +(new Date);
-			this.lifeTime=30000;
 			this.getEvent('end').setConfig({'source': this});
+
 			this.header = this.getConfig('header') || this.header;
 			this.info = this.getConfig('request');
 			this.response = this.getConfig('response');
+
 			this.app = this.getParent();
+
 			if (this.info == undefined)
 				return false;
-		},
-
-		/**
-		 * Method that compress, prepare and sends the response.
-		 */
-		send: function ()
-		{
-			var self = this,
-				res = this.response;
-
-			this.once('beforeSend', function (e,cb) {
-				cb&&cb();
-			});
-
-			this.e.beforeSend(function () {
-				for (h in self.header)
-					res.setHeader(h,self.header[h]);
-
-				res.statusCode = self.code;
-				res.end(self.data);
-				self.e.end(self);
-			});
 		},
 
 		/**
@@ -121,12 +106,15 @@ module.exports = {
 		prepare: function ()
 		{
 			var self=this;
+			
 			this.info.originalUrl = this.info.url;
 			if (this.info.url == '/')
 				this.info.url = '/'+this.getConfig('defaultController')+'/';
+			
 			this.parsedUrl=url.parse(this.info.url,true);
 			this.route = this.app.getComponent('urlManager').parseRequest(this) || { translation: this.info.url, params: {}, template: '' };
 			this.template = this.route ? this.route.template : false;
+
 			this.info.once('close',function () { self.e.end(self); });
 			this.info.once('end',function () { self.e.end(self); });
 			this.info.connection.setTimeout(this.lifeTime,function () {
@@ -138,65 +126,41 @@ module.exports = {
 				this.err=true;
 				self.errorHandler(code,msg,fatal);
 			})
+
 			return this;
 		},
 
 		/**
-		 * Check the route and then send it to the right handler...
+		 * Sends the request to the right handler..
 		 */	
 		run: function ()
 		{
 			var self = this;
-			this.once('beforeRun', function () {
+			this.once('run', function (e) {
+				if (self.cacheFilter())
+					e.stopPropagation=true;
+			});
+			this.once('run', function () {
 				if (self.template == '<file>')
 					self.publicHandler();
 				else
 					self.controllerHandler();
 				return self;
 			});
-			this.e.beforeRun(this);
+			this.e.run(this);
+			return this;
 		},
 
 		/**
-		 * Controller Access Handler
-		 * Check if the controller is valid, then creates.
-		 * If not valid send it to the errorHandler.
+		 * Put a filter between the run() and handlers() that
+		 * check if a cache of the requested page/file exists.
+		 * If exists, sends it to the client.
 		 */
-		controllerHandler: function ()
-		{
-			this.header['Content-Type']=mime.lookup('.html');
-
-			var _p=(this.route.translation).split('/'),
-				_plen = _p.length,
-				_controller=_plen>0&&_p[1]!=''?_p[1]:this.getConfig('defaultController'),
-				_action=_plen>1&&_p[2]!=''?_p[2]:undefined,
-				controllerPath = this.app.modulePath+this.app.getConfig('path').controllers+_controller+'.js';
-				
-			this.controller=this.app.getController(_controller,this);
-
-			if (!this.controller)
-			{
-				this.e.error(404,'Controller not found');
-				return false;
-			}
-
-			_action=this.action=(!_action?this.controller.defaultAction:_action);
-
-			var _resolveAction;
-			if (_resolveAction=this.controller.resolveAction(_action))
-			{
-				_action = this.action = _resolveAction;
-				this.controller[_action]&&this.controller[_action]();
-			} else
-			{
-				this.e.error(404,'Action not found');
-			}
+		cacheFilter: function () {
+			return false;
 		},
 
-		/**
-		 *
-		 */
-		cacheControl: function (url,stat) {
+		/*
 			
 			var lastMod = stat.mtime,
 				cmtime = this.app.cache.get('file-mtime-'+url) || new Date,
@@ -230,6 +194,66 @@ module.exports = {
 			}
 
 			this.header['Last-Modified'] = cmtime;
+
+
+					if (!self.app.cache.get('file-'+_filename))
+					{
+						self.once('end', function () {
+							self.app.cache.set('file-'+_filename,self.compressedData);
+							self.app.cache.set('filetype-'+_filename,mimetype);
+						});
+					}
+
+
+
+if (self.app.cache.get('file-'+_filename))
+			{
+				self.compressedData = self.app.cache.get('file-'+_filename);
+				self.header['Content-Type']=self.app.cache.get('filetype-'+_filename);
+				self.cacheControl(_filename,fs.statSync(this.app.modulePath+this.app.getConfig('path').public+_filename));
+				self.send();
+				return;
+			}
+
+
+this.cacheControl(_filename,fs.statSync(this.app.modulePath+this.app.getConfig('path').public+_filename));
+
+		},*/
+
+		/**
+		 * Controller Access Handler
+		 * Check if the controller is valid, then creates.
+		 * If not valid send it to the errorHandler.
+		 */
+		controllerHandler: function ()
+		{
+			this.header['Content-Type']=mime.lookup('.html');
+
+			var _p=(this.route.translation).split('/'),
+				_plen = _p.length,
+				_controller=_plen>0&&_p[1]!=''?_p[1]:this.getConfig('defaultController'),
+				_action=_plen>1&&_p[2]!=''?_p[2]:undefined,
+				controllerPath = this.app.modulePath+this.app.getConfig('path').controllers+_controller+'.js';
+				
+			this.controller=this.app.getController(_controller,this);
+
+			if (!this.controller)
+			{
+				this.e.error(404,'Controller not found');
+				return;
+			}
+
+			_action=this.action=(!_action?this.controller.defaultAction:_action);
+
+			var _resolveAction;
+			if (_resolveAction=this.controller.resolveAction(_action))
+			{
+				_action = this.action = _resolveAction;
+				this.controller[_action]&&this.controller[_action]();
+			} else
+			{
+				this.e.error(404,'Action not found');
+			}
 		},
 
 		/**
@@ -243,35 +267,13 @@ module.exports = {
 				file,
 				self = this;
 
-			if (self.app.cache.get('file-'+_filename))
-			{
-				self.compressedData = self.app.cache.get('file-'+_filename);
-				self.header['Content-Type']=self.app.cache.get('filetype-'+_filename);
-				self.cacheControl(_filename,fs.statSync(this.app.modulePath+this.app.getConfig('path').public+_filename));
-				self.send();
-				return false;
-			}
-
-			var mimetype = this.header['Content-Type']=mime.lookup(this.parsedUrl.pathname),
-				file = this.app.getFile(this.app.getConfig('path').public+_filename,true);
-
-			if (file)
+			var mimetype = this.header['Content-Type']=mime.lookup(this.parsedUrl.pathname);
+			if (file = this.app.getFile(this.app.getConfig('path').public+_filename,true))
 			{
 					this.data = file;
 					this.header['Content-Length']=this.data.length;
-
-					if (!self.app.cache.get('file-'+_filename))
-					{
-						self.once('end', function () {
-							self.app.cache.set('file-'+_filename,self.compressedData);
-							self.app.cache.set('filetype-'+_filename,mimetype);
-						});
-					}
-
-					this.cacheControl(_filename,fs.statSync(this.app.modulePath+this.app.getConfig('path').public+_filename));
 					this.send();
-
-					return false;
+					return;
 			}
 
 			this.e.error(404,'File not found',true);
@@ -294,6 +296,28 @@ module.exports = {
 			}
 
 			this.send();
+		},
+
+		/**
+		 * Method that prepare and sends the response.
+		 */
+		send: function ()
+		{
+			var self = this,
+				res = this.response;
+
+			this.once('send', function (e,cb) {
+				cb&&cb();
+			});
+
+			this.e.send(function () {
+				for (h in self.header)
+					res.setHeader(h,self.header[h]);
+
+				res.statusCode = self.code;
+				res.end(self.data);
+				self.e.end(self);
+			});
 		}
 
 	}
