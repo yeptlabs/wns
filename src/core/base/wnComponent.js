@@ -115,6 +115,11 @@ module.exports = {
 		c: {},
 
 		/**
+		 * @var object component's models's builder object
+		 */
+		m: {},
+
+		/**
 		 * @var object events to be preloaded. 
 		 */
 		defaultEvents: {

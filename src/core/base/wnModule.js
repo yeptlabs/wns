@@ -59,18 +59,21 @@ module.exports = {
 		if (config)
 			this.setConfig(config);
 
-		this.importCustomClasses();
+		this.importFromConfig();
 
 		this.preloadComponents();
 		this.preloadEvents();
-
-		this.importScripts();
 
 		this.setEvents({ 'ready': {} });
 		var ready=this.getEvent('ready');
 		ready.once(function () {
 			var args = Array.prototype.slice.call(arguments);
 			args.shift();
+			
+			self.startComponents();
+			self.prepareModels();
+			self.prepareScripts();
+
 			self.init.apply(self,args);
 			self.run.apply(self,args);
 			_initialized=true;
@@ -149,105 +152,94 @@ module.exports = {
 				classBuilder.makeDoc(c,_cSource[c]);
 			return this;
 		},
-		
+
 		/**
-		 * Import custom classes (if exists) from the module's path.
+		 * Import components from config
 		 */
-		importCustomClasses: function ()
+		importFromConfig: function ()
 		{
-			this.e.log&&this.e.log('Importing custom classes...','system');
-			var classPath = this.getConfig('path') && this.getConfig('path').classes ? this.getConfig('path').classes : 'classes/',
-				path = this.modulePath+classPath;
-			if (fs.existsSync(path))
+			this.e.log&&this.e.log('Importing...','system');
+			var importConfig = this.getConfig('import');
+			for (i in importConfig)
 			{
-				var classes = fs.readdirSync(path),
-					_c = {};
-				for (c in classes)
+				var path = this.modulePath+importConfig[i];
+				this.e.log&&this.e.log('Importing '+path+'...','system');
+
+				if (fs.existsSync(path))
 				{
-					var module = {},
-						className = classes[c].split('.')[0],
-					 _class = fs.readFileSync(path+classes[c],'utf-8').toString();
-					eval(_class);
-					var cb = this.getComponent('classBuilder');
-					cb.classes[className]=cb.recompile(className,module.exports);
-					cb.makeDoc(className,_class);
-					_customClasses[className]=cb.classes[className];
+					var components = fs.readdirSync(path);
+					for (c in components)
+					{
+						var module = {},
+							componentName = components[c].split('.')[0],
+							componentClassName = componentName,
+							componentSet = {},
+							 _component = fs.readFileSync(path+components[c],'utf-8').toString();
+						eval(_component);
+						var cb = this.getComponent('classBuilder');
+						cb.classes[componentClassName]=cb.recompile(componentClassName,module.exports);
+						cb.makeDoc(componentClassName,_component);
+					}
 				}
 			}
-			return this;
 		},
 
 		/**
-		 * Reload all already imported custom classes.
+		 * Prepare all models
 		 */
-		reloadCustomClasses: function ()
+		prepareModels: function ()
 		{
-			var classPath = this.getConfig('path') && this.getConfig('path').classes ? this.getConfig('path').classes : 'classes/',
-				path = this.modulePath+classPath;
-
-			for (c in _customClasses)
+			for (c in this.c)
 			{
-				var module = {};
-				 _class = fs.readFileSync(path+c+'.js','utf-8').toString();
-				eval(_class);
-				var cb = this.getComponent('classBuilder');
-				cb.classes[className]=cb.recompile(c,module.exports);
-			}
-			this.e.log&&this.e.log('All custom classes has been reloaded.','system');
-			return this;
-		},
-
-		/**
-		 * Import scripts sources from the module`s directory
-		 */
-		importScripts: function ()
-		{
-			this.e.log&&this.e.log('Importing scripts...','system');
-			var scriptPath = this.getConfig('path') && this.getConfig('path').scripts ? this.getConfig('path').scripts : 'scripts/',
-				path = this.modulePath+scriptPath;
-			if (fs.existsSync(path))
-			{
-				var scripts = fs.readdirSync(path);
-				for (s in scripts)
+				if (this.c[c].build.extend && this.c[c].build.extend.indexOf('wnActiveRecord')!=-1)
 				{
-					var module = {},
-						scriptName = scripts[s].split('.')[0],
-						scriptClassName = 'wnScript'+scriptName.substr(0,1).toUpperCase()+scriptName.substr(1).toLowerCase(),
-						scriptSet = {},
-						 _script = fs.readFileSync(path+scripts[s],'utf-8').toString();
-					eval(_script);
-					var cb = this.getComponent('classBuilder');
-					cb.classes[scriptClassName]=cb.recompile(scriptClassName,module.exports);
-					cb.makeDoc(scriptClassName,_script);
-					scriptSet[scriptName] = {
-						class: scriptClassName
-					};
-					this.setScripts(scriptSet);
+					this.prepareModel(c);
 				}
 			}
-			return this;
 		},
 
 		/**
-		 * Reload all already imported scripts
+		 * Prepare the model
+		 * @param $model 
 		 */
-		reloadScripts: function ()
+		prepareModel: function (model) {
+			var c = this.c,
+				self = this;
+			this.m[model]=function () {
+				var klass = c[model];
+				return new klass({ autoInit: true }, self.c, self, self.db);
+			};
+		},
+
+		/**
+		 * Prepare all scripts
+		 */
+		prepareScripts: function ()
 		{
-			this.e.log&&this.e.log('Reloading all scripts...','system');
-			var components = this.getComponents();
-			this.importScripts();
-			for (c in components)
+			for (c in this.c)
 			{
-				if (c.indexOf('script-')!=-1)
+				if (this.c[c].build.extend && this.c[c].build.extend.indexOf('wnScript')!=-1)
 				{
-					this.stopScript(c.replace(/^script\-/gi,''));
-					this.removeComponent(c);
-					this.getComponent(c);
+					this.prepareScript(c);
 				}
 			}
-			this.e.log&&this.e.log('All scripts has been reloaded.','system');
-			return this;
 		},
+
+		/**
+		 * Prepare all scripts
+		 */
+		prepareScript: function (s)
+		{
+			var components = {};
+			components[s]={
+				class: s,
+				autoInit: true
+			};
+			this.setComponents(components);
+			this.e.log&this.e.log('- Starting script: '+s,'system');
+			this.getComponent(s);
+		},
+
 
 		/**
 		 * Get a JSON configuration from file then send it to the `setConfig`

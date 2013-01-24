@@ -32,6 +32,7 @@ module.exports = {
 		_attributes: {},
 		_collectionName: '',
 		_db: null,
+		
 		_schema: null
 
 	},
@@ -65,12 +66,11 @@ module.exports = {
 		/**
 		 * Initializer
 		 */	
-		init: function (config,c,db)
+		init: function (config,c,parent,db)
 		{
-			_db = db;
+			_db = db || this.getParent().db || _db;
 			_attributes = this.getDefaults();
 			_schema = this.schema() || this.getConfig('schema') || {};
-
 			this.setIsNewRecord(true)
 				.setCollectionName(config.name)
 				.prepareSchema()
@@ -91,7 +91,7 @@ module.exports = {
 		model: function (className) {
 			if (typeof className != 'string')
 				className = this.getClassName();
-			return new this.c[className](this.getConfig(), this.c, _db);
+			return new this.c[className](this.getConfig(), this.c, this.getParent(), _db);
 		},
 
 		/**

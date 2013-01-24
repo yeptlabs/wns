@@ -78,10 +78,10 @@ module.exports = {
 		/**
 		 * Initializer
 		 */	
-		init: function ()
+		init: function (config,c,app,request)
 		{
-			this.request=this.getConfig('request');
-			this.app=this.getParent();
+			this.request=request;
+			this.app=app;
 			this.controllerName = this.getControllerName();
 
 			if (this.request)
@@ -154,7 +154,7 @@ module.exports = {
 		 */
 		getView: function (view,data)
 		{
-			var view = this.app.getFile(this.app.getConfig('path').views+this.getControllerName()+'/'+view+'.tpl');
+			var view = this.app.getFile(this.request.getConfig('path').views+this.getControllerName()+'/'+view+'.tpl');
 				view = (new this.app.c.wnTemplate(view,false)).match(data?data:{});
 			return view;
 		},
@@ -173,7 +173,7 @@ module.exports = {
 
 			if (_viewTpl!==false)
 			{
-				var _layoutTpl=this.app.getFile(this.app.getConfig('path').views+'layouts/'+_layout+'.tpl');
+				var _layoutTpl=this.app.getFile(this.request.getConfig('path').views+'layouts/'+_layout+'.tpl');
 
 				this.view.name = view;
 				this.view.layout = (new this.app.c.wnTemplate(_layoutTpl?_layoutTpl:'{conteudo}',false)).match({'content':_viewTpl});

@@ -27,6 +27,7 @@ module.exports = {
 	 * PRIVATE
 	 */
 	private: {
+		_controllers: {},
 	},
 
 	/**
@@ -233,9 +234,9 @@ this.cacheControl(_filename,fs.statSync(this.app.modulePath+this.app.getConfig('
 				_plen = _p.length,
 				_controller=_plen>0&&_p[1]!=''?_p[1]:this.getConfig('defaultController'),
 				_action=_plen>1&&_p[2]!=''?_p[2]:undefined,
-				controllerPath = this.app.modulePath+this.app.getConfig('path').controllers+_controller+'.js';
+				controllerPath = this.app.modulePath+this.getConfig('path').controllers+_controller+'.js';
 				
-			this.controller=this.app.getController(_controller,this);
+			this.controller=this.getController(_controller,this);
 
 			if (!this.controller)
 			{
@@ -257,6 +258,54 @@ this.cacheControl(_filename,fs.statSync(this.app.modulePath+this.app.getConfig('
 		},
 
 		/**
+		 * Flush all loaded application's controllers cache
+		 */
+		flushControllers: function () {
+			for (c in _controllers)
+				this.c['wn'+(c.substr(0,1).toUpperCase()+c.substr(1))+'Controller']=undefined;
+			this.app.e.log('All controllers has been flushed.','system');
+		},
+
+		/**
+		 * Flush an application's controller cache
+		 * @param string $c controller's name
+		 */
+		flushController: function (c) {
+			this.c['wn'+(c.substr(0,1).toUpperCase()+c.substr(1))+'Controller']=undefined;
+			this.app.e.log('Controller ´'+c+'´ has been flushed.','system');
+		},
+
+		/**
+		 * Get a new or cached instance from a controller.
+		 * @param $id string controller's id
+		 * @return wnController
+		 */
+		getController: function (id)
+		{
+			id = id.toLowerCase();
+			var controllerName = 'wn'+(id.substr(0,1).toUpperCase()+id.substr(1))+'Controller';
+			if (!this.app.c[controllerName]) {
+				var builder = this.app.getComponent('classBuilder');
+					_classSource = this.app.getFile(this.getConfig('path').controllers+id+'.js'),
+					module = {};
+				if (!_classSource)
+					return false;
+				eval(_classSource);
+				builder.classesSource[controllerName] = module.exports;
+				builder.classes[controllerName]=builder.buildClass(controllerName);
+				builder.makeDoc(controllerName,_classSource);
+				if (!builder.classes[controllerName])
+					this.app.e.exception(new Error('Could not build the controller class.'));
+				this.app.c[controllerName]=builder.classes[controllerName];
+				_controllers[id]=this.app.c[controllerName];
+			}
+			var config = { controllerName: id },
+				controllerClass = this.app.c[controllerName],
+				controller = new controllerClass(config,this.app.c,this.app,this);
+			return controller;
+		},
+
+		/**
 		 * Public File Access Handler
 		 * Try to load the file if exists.
 		 * If not, send it to the errorHandler
@@ -268,7 +317,7 @@ this.cacheControl(_filename,fs.statSync(this.app.modulePath+this.app.getConfig('
 				self = this;
 
 			var mimetype = this.header['Content-Type']=mime.lookup(this.parsedUrl.pathname);
-			if (file = this.app.getFile(this.app.getConfig('path').public+_filename,true))
+			if (file = this.app.getFile(this.getConfig('path').public+_filename,true))
 			{
 					this.data = file;
 					this.header['Content-Length']=this.data.length;

@@ -144,7 +144,6 @@ module.exports = {
 			return (accept||'').match(new RegExp(mode));
 		}
 
-
 	}
 
 };

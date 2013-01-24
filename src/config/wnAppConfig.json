@@ -4,61 +4,15 @@
 	// Application Name
 	"title": "Default WNS WebApp",
 
-	// Path to respective directories
-	"path": {
-		"app": "app/",
-		"lib": "lib/",
-		"controllers": "controllers/",
-		"public": "public/",
-		"views": "views/",
-		"classes": "classes/"
-	},
+	// Auto import
+	"import": [],
 
 	// Components
-	"components": {
-
-		// wnHttpRequest default configuration
-		"http": {
-			"class": "wnHttpRequest",
-
-			// Default HTTP Header.
-			"header": {
-				"Connection": "closed"
-			},
-
-			"defaultController":"site",
-			"contentType": {},
-			"serveralias": "",
-			"errorPage": "site/error"
-		},
-
-		// wnCache.
-		"cache": {
-			"class": "wnCache",
-			"alias": "cache"
-		},
-
-		// wnView default configuration
-		"view": {
-			"class": "wnView",
-			"titleTemplate": "{self.title} - {app.title}",
-			"language": "en",
-			"menu": {},
-			"menuTemplate":"<ul>{list}</ul>",
-			"menuItemTemplate":"<li><a href='{url}'>{label}</a></li>",
-			"loadScriptPath": "js/"
-		},
-
-		// wnUrlManager configuration
-		"urlManager": {
-			"class": "wnUrlManager"
-		}
-
-	},
+	"components": {},
 
 	// Events
 	"events": {
-	
+
 		"log": {
 			"zone": {
 				"*": true,

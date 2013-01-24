@@ -1,10 +1,11 @@
 // wnConsole default configuration.
 {
 
-	// Components
-	"components": {
+	// Auto import
+	"import": [],
 
-	},
+	// Components
+	"components": {},
 
 	// Events
 	"events": {

@@ -27,7 +27,6 @@ module.exports = {
 	 * PRIVATE
 	 */
 	private: {
-		_controllers: {},
 		_requests: [],
 		_slaveRequests: {},
 		_requestCount: 0,
@@ -61,7 +60,6 @@ module.exports = {
 		 */	
 		init: function ()
 		{
-			this.startComponents();
 			this.e.log("Application `"+this.getConfig('id')+"` running...","system");
 		},
 
@@ -130,56 +128,7 @@ module.exports = {
 		getRequests: function () {
 			return _requests;
 		},
-
-		/**
-		 * Get a new or cached instance from a controller.
-		 * @param $id string controller's id
-		 * @param $request wnRequest instance
-		 * @return wnController
-		 */
-		getController: function (id,request)
-		{
-			id = id.toLowerCase();
-			var controllerName = 'wn'+(id.substr(0,1).toUpperCase()+id.substr(1))+'Controller';
-			if (!this.c[controllerName]) {
-				var builder = this.getComponent('classBuilder');
-					_classSource = this.getFile(this.getConfig('path').controllers+id+'.js'),
-					module = {};
-				if (!_classSource)
-					return false;
-				eval(_classSource);
-				builder.classesSource[controllerName] = module.exports;
-				builder.classes[controllerName]=builder.buildClass(controllerName);
-				builder.makeDoc(controllerName,_classSource);
-				if (!builder.classes[controllerName])
-					this.e.exception(new Error('Could not build the controller class.'));
-				this.c[controllerName]=builder.classes[controllerName];
-				_controllers[id]=this.c[controllerName];
-			}
-			var config = { controllerName: id, request: request, autoInit: false },
-				controller = this.createComponent(controllerName,config);
-			controller.init();
-			return controller;
-		},
-
-		/**
-		 * Flush all loaded application's controllers cache
-		 */
-		flushControllers: function () {
-			for (c in _controllers)
-				this.c['wn'+(c.substr(0,1).toUpperCase()+c.substr(1))+'Controller']=undefined;
-			this.e.log('All controllers has been flushed.','system');
-		},
-
-		/**
-		 * Flush an application's controller cache
-		 * @param string $c controller's name
-		 */
-		flushController: function (c) {
-			this.c['wn'+(c.substr(0,1).toUpperCase()+c.substr(1))+'Controller']=undefined;
-			this.e.log('Controller ´'+c+'´ has been flushed.','system');
-		},
-
+		
 		/**
 		 * Log filter
 		 * @param $e eventObject object of this event emition
