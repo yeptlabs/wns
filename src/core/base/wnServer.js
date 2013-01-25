@@ -48,7 +48,7 @@ module.exports = {
 		 */	
 		init: function ()
 		{
-			if (!fs.existsSync(this.modulePath+this.getConfig('appDirectory')))
+			if (this.getConfig('appDirectory')!=undefined && !fs.existsSync(this.modulePath+this.getConfig('appDirectory')))
 			{
 				this.e.log("Creating server's applications directory.");
 				fs.mkdirSync(this.modulePath+this.getConfig('appDirectory'));
@@ -56,16 +56,13 @@ module.exports = {
 
 			this.loadApplications();
 			
-			this.e.log('Starting `wnHttp`...');
 			this.http = this.getComponent('http');
-
 			if (this.http!=false)
 			{
 				this.http.setConfig({ app: this.getApplications() })
-				this.e.log('Listening HTTP server...');
+				this.e.log('Listening HTTP server (port '+this.http.getConfig('listen')[0]+')...');
 				this.http.listen();
-			} else
-				this.e.log('An error has occurrend while loading http component.');
+			}
 		},
 
 		/**
@@ -210,7 +207,6 @@ module.exports = {
 		{
 			var preload = this.getConfig().app,
 				parent = this.getParent();
-			this.e.log('Loading applications:');
 			if (preload != undefined)
 			{
 				this.setApplications(preload);
@@ -218,7 +214,7 @@ module.exports = {
 
 			for (p in preload)
 			{
-				this.e.log('- Loading application: ' + p);
+				this.e.log('Loading application: ' + p);
 				a=this.getApplication(p);
 			}
 

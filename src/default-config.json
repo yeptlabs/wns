@@ -1,6 +1,9 @@
 // Server configuration
 {
 
+	// Where the applications will be stored.
+	"appDirectory": "app/",
+
 	// Application load system configuration
 	"app": {
 		// Example of app load configuration

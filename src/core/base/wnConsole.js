@@ -38,6 +38,11 @@ module.exports = {
 	public: {
 
 		/**
+		 * @var object console's configuration file name
+		 */
+		configFile: 'console.json',
+
+		/**
 		 * @var object console's servers list
 		 */
 		activeServer: -1,
@@ -65,9 +70,9 @@ module.exports = {
 		init: function ()
 		{
 			this.setConfig({ id: '*' });
-			this.e.log('Initializing wnConsole...');
 			this.listenInput();
 			process.on('uncaughtException', function (e) { console.log(e.stack); });
+			this.e.log('wnConsole initialized.');
 		},
 		
 		/**
@@ -80,7 +85,7 @@ module.exports = {
 			process.stdin.on('data', function (chunk) {
 				var ctx = self.getServer(self.activeServer),
 					cmd = chunk.substr(0,chunk.length-1);
-				if (cmd.indexOf('..') != -1)
+				if (cmd.substr(0,2) == '..')
 				{
 					ctx = false; 
 					cmd = 'this.selectServer(-1)';
@@ -211,7 +216,13 @@ module.exports = {
 				consoleID = this.getServerModules().length+1;
 				serverConfig[consoleID] = { 'modulePath': serverPath, 'serverID': consoleID };
 
-			this.e.log('Building new wnServer from `'+serverPath+'`');
+			this.e.log('Building wnServer from `'+serverPath+'`');
+
+			if (!fs.existsSync(this.modulePath+serverPath))
+			{
+				this.e.log('Failed to load wnServer from path.');
+				return false;
+			}
 		
 			this.setServers(serverConfig);
 			var server = this.createServer(consoleID);
@@ -227,10 +238,10 @@ module.exports = {
 		{
 			if (this.hasServer(id))
 			{		
-				this.e.log('Console active in wnServer: SERVER#' + id);
+				this.e.log('Console active in SERVER#' + id);
 				this.activeServer = id;
 			} else {
-				this.e.log('Console active in wnServer: NONE');
+				this.e.log('Console active in NONE');
 				this.activeServer = -1;
 			}
 		},

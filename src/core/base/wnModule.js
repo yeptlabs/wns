@@ -268,7 +268,7 @@ module.exports = {
 		/**
 		 * Set new properties to the component configuration.
 		 *
-		 * @param object $components application components(id=>component configuration or instances)
+		 * @param object $components components(id=>component configuration or instances)
 		 * Defaults to true, meaning the previously registered component configuration of the same ID
 		 * will be merged with the new configuration. If false, the existing configuration will be replaced completely.
 		 */
@@ -352,7 +352,7 @@ module.exports = {
 		/**
 		 * Create a new instance of the component.
 		 * @param string $className component class (case-sensitive)
-		 * @param string $config application 
+		 * @param string $config component custom config 
 		 * @return wnModule the module instance, false if the module is disabled or does not exist.
 		 */
 		createComponent: function (className,config)
@@ -403,11 +403,11 @@ module.exports = {
 		 */
 		preloadComponents: function ()
 		{
-			this.e.log&&this.e.log('Preloading components...','system');
 			this.setConfig({components: this.preload});
 			var preload = this.getConfig().components;
 			if (preload != undefined)
 			{
+				this.e.log&&this.e.log('Preloading components...','system');
 				this.setComponents(preload);
 			}
 			return this;
@@ -418,13 +418,12 @@ module.exports = {
 		 */
 		startComponents: function ()
 		{
-			this.e.log&&this.e.log("Starting application's components...","system");
 			var cps=this.getComponentsConfig();
 			for (c in cps)
 			{
 				var cpnt=this.getComponent(c);
 				if (cpnt)
-					this.e.log&&this.e.log('- Starting component: '+c+(cpnt.getConfig('alias')?' (as '+cpnt.getConfig('alias')+')':''),'system');
+					this.e.log&&this.e.log('- Started component: '+cps[c].class+(cpnt.getConfig('alias')?' (as '+cpnt.getConfig('alias')+')':''),'system');
 			}
 			return this;
 		},

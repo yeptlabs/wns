@@ -169,8 +169,8 @@ module.exports = {
 			var schema = this.getSchema(),
 				result = {};
 			for (s in schema)
-				if (schema[s]!=undefined)
-					result[s] = schema[s];
+				if (schema[s]!=undefined && schema[s].default != undefined)
+					result[s] = schema[s].default;
 			return result;
 		},
 
@@ -239,6 +239,7 @@ module.exports = {
 			var attrs = this.getDbConnection().getSchema().getCollection(this.collectionName()),
 				attributes = Object.extend(true,{},this.getDefaults(),attributes),
 				valid = {};
+				console.log(attributes)
 			for (a in attributes)
 				if (!!(attrs[a]))
 					valid[a]=attributes[a];

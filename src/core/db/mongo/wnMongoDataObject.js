@@ -60,16 +60,12 @@ module.exports = {
 		_open: function ()
 		{
 			this.setConfig(_serverConfig);
-			this.driver.set('debug',true);
+			//this.driver.set('debug',true);
 			var self=this,
 				config = this.getConfig(),
 				con = this.driver.createConnection(config.address, config.database, config.port, config);
 
 			Object.extend(true,this,con);
-
-			this.db.logger = function () {
-				console.log(arguments);
-			};
 			this.on('close',function (err) {
 				self.e.close(err);
 			});

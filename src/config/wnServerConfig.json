@@ -1,9 +1,6 @@
 // wnServer default configuration.
 {
 
-	// Where the applications will be stored.
-	"appDirectory": "app/",
-
 	// Auto import
 	"import": [],
 
