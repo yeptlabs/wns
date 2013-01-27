@@ -25,7 +25,7 @@ WNS ChangeLog
  - all console's stdin is now sent to wnConsole.exec() [pedronasser]
 
 - wnServer class
- - fixed buildApplication() - application generator. [pedronasser]
+ - buildApplication() - new application generator. [pedronasser]
 
 - wnHttpRequest class
  - moved createController function. [pedronasser]
@@ -35,27 +35,27 @@ WNS ChangeLog
 
 - DATABASE & ORM
  - change in db directory structure
- - new `wnDbQueryBuilder` class - represents the ORM integration
- - new `wnDbSchema` class - represents the schema structure to the DB connection
- - new `wnDbMongoQueryBuilder` class - represents the customization for mongoDB.
- - new `wnDbMysqlQuerybuilder` class - represents the customization for mySQL.
- - new `wnDbMongoSchema` class - represents the customization for mongoDB.
- - new `wnDbMysqlSchema` class - represents the customization for mySQL.
- - fixed `wnMongoDataObject` - now it uses the Mongoose driver.
- - added some CRUD functions on the `wnMongoDataObject`.
- - fixed `wnMysqlDataObject`
- - new `wnActiveRecord` class - main ORM structure.
- - fixed `wnDataObject` class - event e connect problems.
- - fixed and adds inside `wnDbConnection` class - to bring the ORM format.
- - new `wnDbQuery` class - represents the structure of any query.
- - new `wnDbQueryBuilder` class - components that build a query (wnDbQuery); 
+ - new `wnDbQueryBuilder` class - represents the ORM integration [pedronasser]
+ - new `wnDbSchema` class - represents the schema structure to the DB connection [pedronasser]
+ - new `wnDbMongoQueryBuilder` class - represents the customization for mongoDB. [pedronasser]
+ - new `wnDbMysqlQuerybuilder` class - represents the customization for mySQL. [pedronasser]
+ - new `wnDbMongoSchema` class - represents the customization for mongoDB. [pedronasser]
+ - new `wnDbMysqlSchema` class - represents the customization for mySQL. [pedronasser]
+ - fixed `wnMongoDataObject` - now it uses the Mongoose driver. [pedronasser] 
+ - added some CRUD functions on the `wnMongoDataObject`. [pedronasser]
+ - fixed `wnMysqlDataObject` [pedronasser]
+ - new `wnActiveRecord` class - main ORM structure. [pedronasser]
+ - fixed `wnDataObject` class - event e connect problems. [pedronasser]
+ - fixed and adds inside `wnDbConnection` class - to bring the ORM format. [pedronasser]
+ - new `wnDbQuery` class - represents the structure of any query. [pedronasser]
+ - new `wnDbQueryBuilder` class - components that build a query (wnDbQuery); [pedronasser]
 
 - wnWebCompress class.
  - new Class that handles the http response compression. [pedronasser]
  - soon this class will be outside the wns source. will become a separeted package. [pedronasser]
 
 - WNS BIN
- - chmod fix
+ - chmod fix [pedronasser]
 
 ## v0.0.12 ALPHA
 - fixed **wnModule** module's path setting [pedronasser]

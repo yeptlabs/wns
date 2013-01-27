@@ -164,12 +164,14 @@ module.exports = {
 			{
 				var path = this.modulePath+importConfig[i];
 				this.e.log&&this.e.log('Importing '+path+'...','system');
-
+				
 				if (fs.existsSync(path))
 				{
 					var components = fs.readdirSync(path);
 					for (c in components)
 					{
+						if (components[c].split('.').pop() != 'js')
+							continue;
 						var module = {},
 							componentName = components[c].split('.')[0],
 							componentClassName = componentName,

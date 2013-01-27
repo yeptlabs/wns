@@ -15,7 +15,7 @@
     "web","yii","framework","wns","mvc",
     "database","app","http","server","middleware",
     "component","module","model","view",
-    "controller","route","static"
+    "controller","route","static","orm"
   ],
   "repository": "git://github.com/yeptlabs/wns",
   "main": "index",

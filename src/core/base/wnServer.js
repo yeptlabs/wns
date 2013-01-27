@@ -98,6 +98,7 @@ module.exports = {
 				modules[a].modulePath=this.getConfig('appDirectory')+(modules[a].appPath || modules[a].modulePath);
 				modules[a].appName=appName;
 				modules[a].class='wnApp';
+				this.buildApplication(appName,modules[a].modulePath);
 				if (fs.existsSync(modules[a].modulePath+appName+'.js'))
 				{
 					modules[a].class='wnApp_'+appName;
@@ -112,7 +113,6 @@ module.exports = {
 					cb.classes[className]=cb.buildClass(className);
 				}
 				modules[a].autoInit=false;
-				this.buildApplication(appName,modules[a].modulePath);
 			}
 			this.setModules(modules);
 			return this;
@@ -127,6 +127,7 @@ module.exports = {
 			{
 				this.e.log('- Creating new application: '+appName+' on `'+appPath+'`');
 				wrench.copyDirSyncRecursive(cwd+sourcePath+'app/',this.modulePath+appPath);
+				fs.renameSync(this.modulePath+appPath+'app.js', this.modulePath+appPath+appName+'.js');
 				if (this.getConfig('app')[appName].dbEngine!=undefined)
 				{
 					var config = this.getFile(appPath+'config.json');
