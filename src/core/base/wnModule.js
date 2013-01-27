@@ -235,7 +235,8 @@ module.exports = {
 			var components = {};
 			components[s]={
 				class: s,
-				autoInit: true
+				autoInit: false,
+				seeParent: true
 			};
 			this.setComponents(components);
 			this.e.log&this.e.log('- Starting script: '+s,'system');
@@ -322,6 +323,8 @@ module.exports = {
 					config.id = id;
 					config.autoInit = (config.autoInit == true);
 					var component = this.createComponent(className,config);
+					if (config.seeParent)
+						component.setParent(this);
 					(!config.autoInit)&&component.init(config);
 					_components[id] = component;
 					if (typeof config.alias == 'string')
