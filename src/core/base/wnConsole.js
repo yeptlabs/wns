@@ -38,6 +38,11 @@ module.exports = {
 	public: {
 
 		/**
+		 * @var object console's configuration file name
+		 */
+		configFile: 'console.json',
+
+		/**
 		 * @var object console's servers list
 		 */
 		activeServer: -1,
@@ -65,9 +70,9 @@ module.exports = {
 		init: function ()
 		{
 			this.setConfig({ id: '*' });
-			this.e.log('Initializing wnConsole...');
 			this.listenInput();
 			process.on('uncaughtException', function (e) { console.log(e.stack); });
+			this.e.log('wnConsole initialized.');
 		},
 		
 		/**
@@ -78,8 +83,15 @@ module.exports = {
 			process.stdin.resume();
 			process.stdin.setEncoding('utf8');
 			process.stdin.on('data', function (chunk) {
-			  self.exec(chunk.substr(0,chunk.length-1));
-			  return false;
+				var ctx = self.getServer(self.activeServer),
+					cmd = chunk.substr(0,chunk.length-1);
+				if (cmd.substr(0,2) == '..')
+				{
+					ctx = false; 
+					cmd = 'this.selectServer(-1)';
+				}
+				self.exec(cmd,ctx?ctx:undefined);
+				return false;
 			});
 		},
 
@@ -90,22 +102,23 @@ module.exports = {
 		 */
 		buildServer: function (serverPath)
 		{
-			var serverPath = path.relative(cwd,process.cwd()+"/"+serverPath)+'/',
-				relativeSourcePath = path.relative(process.cwd(),cwd+sourcePath)+'/';
+			var _sourcePath = path.resolve(cwd+sourcePath),
+				_serverPath = path.relative(cwd,serverPath),
+				relativeSourcePath = path.relative(serverPath,_sourcePath)+'/';
 
-			if (!fs.existsSync(cwd+serverPath))
+			if (!fs.existsSync(cwd+_serverPath))
 				return false;
 
-			fs.writeFileSync(cwd+serverPath+'config.json',
-				fs.readFileSync(cwd+sourcePath+'/default-config.json')
+			fs.writeFileSync(cwd+_serverPath+'/config.json',
+				fs.readFileSync(_sourcePath+'/default-config.json')
 			);
 
-			var defaultIndex = fs.readFileSync(cwd+sourcePath+'/default-index.js');
+			var defaultIndex = fs.readFileSync(_sourcePath+'/default-index.js');
 			defaultIndex = new this.c.wnTemplate(defaultIndex).match({
-				sourcePath: './'+relativeSourcePath.replace(/\\/g,'/'),
-				serverPath: serverPath.replace(/\\/g,'/')
+				sourcePath: relativeSourcePath.replace(/\\/g,'/'),
+				serverPath: _serverPath.replace(/\\/g,'/')
 			});
-			fs.writeFileSync(cwd+serverPath+'index.js',defaultIndex);
+			fs.writeFileSync(cwd+_serverPath+'/index.js',defaultIndex);
 
 			return true;
 		},
@@ -204,7 +217,13 @@ module.exports = {
 				consoleID = this.getServerModules().length+1;
 				serverConfig[consoleID] = { 'modulePath': serverPath, 'serverID': consoleID };
 
-			this.e.log('Building new wnServer from `'+serverPath+'`');
+			this.e.log('Building wnServer from `'+serverPath+'`');
+
+			if (!fs.existsSync(this.modulePath+serverPath))
+			{
+				this.e.log('Failed to load wnServer from path.');
+				return false;
+			}
 		
 			this.setServers(serverConfig);
 			var server = this.createServer(consoleID);
@@ -220,8 +239,11 @@ module.exports = {
 		{
 			if (this.hasServer(id))
 			{		
-				this.e.log('Console active in wnServer: SERVER#' + id);
+				this.e.log('Console active in SERVER#' + id);
 				this.activeServer = id;
+			} else {
+				this.e.log('Console active in NONE');
+				this.activeServer = -1;
 			}
 		},
 

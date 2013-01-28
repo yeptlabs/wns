@@ -1,28 +1,71 @@
-// wnApp default configuration.
+// Your application configuration.
 {
-
-	// This configuration extends the default configuration.
-	// If you want to change something, copy the file:
-	// "source/config/wnAppConfig.json"
-	// And edit.
 
 	// Application Name
 	"title": "Default WNS WebApp",
 
-	// Other components configuration
+	// Auto import
+	"import": [
+		"classes/",
+		"scripts/",
+		"components/",
+		"models/"
+	],
+
+	// Components
 	"components": {
+
+		// wnHttpRequest configuration (remove/comment to disable)
 		"http": {
+			"class": "wnHttpRequest",
+			"header": {
+				"Connection": "closed"
+			},
+			"defaultController":"site",
+			"contentType": {},
 			"serveralias": "localhost",
-			"errorPage": "site/error",
-			"defaultController":"site"
+			"path": {
+				"public": "public/",
+				"controllers": "controllers/",
+				"views": "views/"
+			},
+			"errorPage": "site/error"
 		},
+
+		// wnDbConnection configuration (remove/comment to disable)
 		"database": {
 			"class": "wnDbConnection",
 			"alias": "db",
 			"engine": "{dbEngine}",
 			"address": "localhost",
 			"port": 1234
+		},
+
+		// wnCache configuration (remove/comment to disable)
+		"cache": {
+			"class": "wnCache",
+			"alias": "cache"
+		},
+
+		// wnView configuration (remove/comment to disable)
+		"view": {
+			"class": "wnView",
+			"titleTemplate": "{self.title} - {app.title}",
+			"language": "en",
+			"menu": {},
+			"menuTemplate":"<ul>{list}</ul>",
+			"menuItemTemplate":"<li><a href='{url}'>{label}</a></li>",
+			"loadScriptPath": "js/"
+		},
+
+		// wnUrlManager configuration (remove/comment to disable)
+		"urlManager": {
+			"class": "wnUrlManager"
 		}
-	}
+
+	},
+
+	// Events
+	"events": {}
 
 }

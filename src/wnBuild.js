@@ -139,7 +139,7 @@ wnBuild.prototype.buildClass = function (className)
 	})(build.extend);
 	build.extend = _ext;
 
-	var _builder = this;
+	var __builder = this;
 	eval("var classBuilder = function "+className+"() { return this.build.apply(undefined,arguments); }");
 	eval("var klass = function "+className+"() {}");
 
@@ -151,6 +151,7 @@ wnBuild.prototype.buildClass = function (className)
 		// Importing extensions
 		for (e in build.extend)
 		{
+
 				(function () {
 
 					var extendBuild=self.classes[build.extend[e]].build;
@@ -158,7 +159,9 @@ wnBuild.prototype.buildClass = function (className)
 					// Declare private variables
 					for (p in extendBuild.private)
 					{
-						eval('var '+p+' = _builder.newValue(extendBuild.private[p]);');
+						if (p == '__builder')
+							continue;
+						eval('var '+p+' = __builder.newValue(extendBuild.private[p]);');
 					}
 
 					var _className = self.newValue(className),
@@ -195,7 +198,9 @@ wnBuild.prototype.buildClass = function (className)
 			// Declare private vars
 			for (p in build.private)
 			{
-				eval('var '+p+' = _builder.newValue(build.private[p]);');
+				if (p == '__builder')
+					continue;
+				eval('var '+p+' = __builder.newValue(build.private[p]);');
 			}
 
 			// Redeclare privileged methods
@@ -214,7 +219,7 @@ wnBuild.prototype.buildClass = function (className)
 		// Redeclare public vars
 		for (p in build.public)
 		{
-			k[p] = _builder.newValue(build.public[p]);
+			k[p] = __builder.newValue(build.public[p]);
 		}
 
 		// Call constructor.

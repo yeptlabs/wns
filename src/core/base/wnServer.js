@@ -48,7 +48,7 @@ module.exports = {
 		 */	
 		init: function ()
 		{
-			if (!fs.existsSync(this.modulePath+this.getConfig('appDirectory')))
+			if (this.getConfig('appDirectory')!=undefined && !fs.existsSync(this.modulePath+this.getConfig('appDirectory')))
 			{
 				this.e.log("Creating server's applications directory.");
 				fs.mkdirSync(this.modulePath+this.getConfig('appDirectory'));
@@ -56,16 +56,13 @@ module.exports = {
 
 			this.loadApplications();
 			
-			this.e.log('Starting `wnHttp`...');
 			this.http = this.getComponent('http');
-
 			if (this.http!=false)
 			{
 				this.http.setConfig({ app: this.getApplications() })
-				this.e.log('Listening HTTP server...');
+				this.e.log('Listening HTTP server (port '+this.http.getConfig('listen')[0]+')...');
 				this.http.listen();
-			} else
-				this.e.log('An error has occurrend while loading http component.');
+			}
 		},
 
 		/**
@@ -74,6 +71,7 @@ module.exports = {
 		 */
 		setServerId: function (id) {
 			this.setConfig({ serverID: new Number(id) });
+			return this;
 		},
 
 		/**
@@ -100,6 +98,7 @@ module.exports = {
 				modules[a].modulePath=this.getConfig('appDirectory')+(modules[a].appPath || modules[a].modulePath);
 				modules[a].appName=appName;
 				modules[a].class='wnApp';
+				this.buildApplication(appName,modules[a].modulePath);
 				if (fs.existsSync(modules[a].modulePath+appName+'.js'))
 				{
 					modules[a].class='wnApp_'+appName;
@@ -109,14 +108,14 @@ module.exports = {
 					eval(_class);
 					var cb = this.getComponent('classBuilder'),
 						appClass = cb.classesSource['wnApp'];
-					appClass = Object.extend(true,appClass,module.exports);
+					appClass = Object.extend(true,{},appClass,module.exports);
 					cb.classesSource[className] = appClass;
 					cb.classes[className]=cb.buildClass(className);
 				}
 				modules[a].autoInit=false;
-				this.buildApplication(appName,modules[a].modulePath);
 			}
 			this.setModules(modules);
+			return this;
 		},
 
 		/**
@@ -124,18 +123,21 @@ module.exports = {
 		 */
 		buildApplication: function (appName, appPath)
 		{
-			if (fs.existsSync(this.modulePath+appPath))
-				return false;
-			this.e.log('- Creating new application: '+appName+' on `'+appPath+'`');
-			wrench.copyDirSyncRecursive(cwd+sourcePath+'app/',this.modulePath+appPath);
-			if (this.getConfig('app')[appName].dbEngine!=undefined)
+			if (!fs.existsSync(this.modulePath+appPath))
 			{
-				var config = this.getFile(appPath+'config.json');
-				config = new this.c.wnTemplate(config).match({
-					dbEngine: this.getConfig('app')[appName].dbEngine
-				});
-				fs.writeFileSync(this.modulePath+appPath+'config.json',config,'utf8');
+				this.e.log('- Creating new application: '+appName+' on `'+appPath+'`');
+				wrench.copyDirSyncRecursive(cwd+sourcePath+'app/',this.modulePath+appPath);
+				fs.renameSync(this.modulePath+appPath+'app.js', this.modulePath+appPath+appName+'.js');
+				if (this.getConfig('app')[appName].dbEngine!=undefined)
+				{
+					var config = this.getFile(appPath+'config.json');
+					config = new this.c.wnTemplate(config).match({
+						dbEngine: this.getConfig('app')[appName].dbEngine
+					});
+					fs.writeFileSync(this.modulePath+appPath+'config.json',config,'utf8');
+				}
 			}
+			return this;
 		},
 
 		/**
@@ -151,6 +153,7 @@ module.exports = {
 				delete this.getModule('app-'+id);
 			else
 				this.setModule('app-'+id,application);
+			return this;
 		},
 		/**
 		 * Retrieves the named application.
@@ -205,7 +208,6 @@ module.exports = {
 		{
 			var preload = this.getConfig().app,
 				parent = this.getParent();
-			this.e.log('Loading applications:');
 			if (preload != undefined)
 			{
 				this.setApplications(preload);
@@ -213,9 +215,11 @@ module.exports = {
 
 			for (p in preload)
 			{
-				this.e.log('- Loading application: ' + p);
+				this.e.log('Loading application: ' + p);
 				a=this.getApplication(p);
 			}
+
+			return this;
 		},
 
 		/**

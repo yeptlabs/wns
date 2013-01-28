@@ -11,7 +11,7 @@
  * Description coming soon.
  *
  * @author Pedro Nasser
- * @package system.core.events
+ * @package system.core.base
  * @since 1.0.0
  */
 
@@ -45,6 +45,7 @@ module.exports = {
         /**
          * Raises the event.
          * Push event and arguments to all event's listeners.
+         * @return boolean the event has been emitted?
          */
         push: function ()
 		{
@@ -77,7 +78,10 @@ module.exports = {
 					if (evtObj.stopPropagation != true)
 						listeners[i].apply(this, args);
 				}
+
+				return true;
 			}
+			return false;
         },
 
 		/**
@@ -87,6 +91,7 @@ module.exports = {
 		addFilter: function (filter)
 		{
 			_filters.push(filter);
+			return this;
 		},
 
 		/**
@@ -95,6 +100,7 @@ module.exports = {
 		clearFilters: function ()
 		{
 			_filters = [];
+			return this;
 		},
 
 		/**
@@ -118,13 +124,14 @@ module.exports = {
 		{
 			if ('function' !== typeof listener) return false;
 			_listeners.push(listener);
+			return this;
         },
 
 		/**
 		 * Alias to addListener.
 		 */
 		on: function () {
-			this.addListener.apply(this,arguments);
+			return this.addListener.apply(this,arguments);
 		},
 
         /**
@@ -136,6 +143,7 @@ module.exports = {
 			if ('function' !== typeof listener)
 				return false;
 			_listeners.unshift(listener);
+			return this;
         },
 
         /**
@@ -143,20 +151,22 @@ module.exports = {
          * @param $listener function listener of the event
          */
 		once: function (listener, prepend) {
-			if ('function' !== typeof listener)
-				return false;
-			var self = this;
-			var g = function ()
+			if ('function' === typeof listener)
 			{
-				self.removeListener(g);
-				listener.apply(this, arguments);
-			};
-			g.listener = listener;
-			
-			if (prepend)
-				_listeners.unshift(g);
-			else
-				_listeners.push(g);
+				var self = this,
+					g = function ()
+					{
+						self.removeListener(g);
+						listener.apply(this, arguments);
+					};
+				g.listener = listener;
+				
+				if (prepend)
+					_listeners.unshift(g);
+				else
+					_listeners.push(g);
+			}
+			return this;
 		},
 
         /**
@@ -193,6 +203,7 @@ module.exports = {
         clearListeners: function ()
 		{
 			_listeners = [];
+			return this;
         },
 
 		/**

@@ -11,7 +11,7 @@
  * Description coming soon.
  *
  * @author Pedro Nasser
- * @package system.core.db
+ * @package system.core.db.mysql
  * @since 1.0.0
  */
 

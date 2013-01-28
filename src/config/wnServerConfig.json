@@ -1,20 +1,11 @@
 // wnServer default configuration.
 {
 
-	// Where the applications will be stored.
-	"appDirectory": "app/",
+	// Auto import
+	"import": [],
 
 	// Components
-	"components": {
-
-		// wnHttp default configuration
-		"http": {
-			"class": "wnHttp",
-			// Listen on port and IP...
-			"listen":[80,"0.0.0.0"]
-		}
-
-	},
+	"components": {},
 
 	// Events
 	"events": {

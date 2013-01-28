@@ -21,6 +21,7 @@ var serverConfig = {},
 		},
 		"components": {
 			"http": {
+				"class": "wnHttp",
 				"listen":[80]
 			}
 		}
