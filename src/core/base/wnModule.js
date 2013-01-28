@@ -59,18 +59,21 @@ module.exports = {
 		if (config)
 			this.setConfig(config);
 
-		this.importCustomClasses();
+		this.importFromConfig();
 
 		this.preloadComponents();
 		this.preloadEvents();
-
-		this.importScripts();
 
 		this.setEvents({ 'ready': {} });
 		var ready=this.getEvent('ready');
 		ready.once(function () {
 			var args = Array.prototype.slice.call(arguments);
 			args.shift();
+			
+			self.startComponents();
+			self.prepareModels();
+			self.prepareScripts();
+
 			self.init.apply(self,args);
 			self.run.apply(self,args);
 			_initialized=true;
@@ -147,102 +150,99 @@ module.exports = {
 			classBuilder.build();
 			for (c in global.coreClasses)
 				classBuilder.makeDoc(c,_cSource[c]);
+			return this;
 		},
-		
+
 		/**
-		 * Import custom classes (if exists) from the module's path.
+		 * Import components from config
 		 */
-		importCustomClasses: function ()
+		importFromConfig: function ()
 		{
-			this.e.log&&this.e.log('Importing custom classes...','system');
-			var classPath = this.getConfig('path') && this.getConfig('path').classes ? this.getConfig('path').classes : 'classes/',
-				path = this.modulePath+classPath;
-			if (fs.existsSync(path))
+			this.e.log&&this.e.log('Importing...','system');
+			var importConfig = this.getConfig('import');
+			for (i in importConfig)
 			{
-				var classes = fs.readdirSync(path),
-					_c = {};
-				for (c in classes)
+				var path = this.modulePath+importConfig[i];
+				this.e.log&&this.e.log('Importing '+path+'...','system');
+				
+				if (fs.existsSync(path))
 				{
-					var module = {},
-						className = classes[c].split('.')[0],
-					 _class = fs.readFileSync(path+classes[c],'utf-8').toString();
-					eval(_class);
-					var cb = this.getComponent('classBuilder');
-					cb.classes[className]=cb.recompile(className,module.exports);
-					cb.makeDoc(className,_class);
-					_customClasses[className]=cb.classes[className];
+					var components = fs.readdirSync(path);
+					for (c in components)
+					{
+						if (components[c].split('.').pop() != 'js')
+							continue;
+						var module = {},
+							componentName = components[c].split('.')[0],
+							componentClassName = componentName,
+							componentSet = {},
+							 _component = fs.readFileSync(path+components[c],'utf-8').toString();
+						eval(_component);
+						var cb = this.getComponent('classBuilder');
+						cb.classes[componentClassName]=cb.recompile(componentClassName,module.exports);
+						cb.makeDoc(componentClassName,_component);
+					}
 				}
 			}
 		},
 
 		/**
-		 * Reload all already imported custom classes.
+		 * Prepare all models
 		 */
-		reloadCustomClasses: function ()
+		prepareModels: function ()
 		{
-			var classPath = this.getConfig('path') && this.getConfig('path').classes ? this.getConfig('path').classes : 'classes/',
-				path = this.modulePath+classPath;
-
-			for (c in _customClasses)
+			for (c in this.c)
 			{
-				var module = {};
-				 _class = fs.readFileSync(path+c+'.js','utf-8').toString();
-				eval(_class);
-				var cb = this.getComponent('classBuilder');
-				cb.classes[className]=cb.recompile(c,module.exports);
-			}
-			this.e.log&&this.e.log('All custom classes has been reloaded.','system');
-		},
-
-		/**
-		 * Import scripts sources from the module`s directory
-		 */
-		importScripts: function ()
-		{
-			this.e.log&&this.e.log('Importing scripts...','system');
-			var scriptPath = this.getConfig('path') && this.getConfig('path').scripts ? this.getConfig('path').scripts : 'scripts/',
-				path = this.modulePath+scriptPath;
-			if (fs.existsSync(path))
-			{
-				var scripts = fs.readdirSync(path);
-				for (s in scripts)
+				if (this.c[c].build.extend && this.c[c].build.extend.indexOf('wnActiveRecord')!=-1)
 				{
-					var module = {},
-						scriptName = scripts[s].split('.')[0],
-						scriptClassName = 'wnScript'+scriptName.substr(0,1).toUpperCase()+scriptName.substr(1).toLowerCase(),
-						scriptSet = {},
-						 _script = fs.readFileSync(path+scripts[s],'utf-8').toString();
-					eval(_script);
-					var cb = this.getComponent('classBuilder');
-					cb.classes[scriptClassName]=cb.recompile(scriptClassName,module.exports);
-					cb.makeDoc(scriptClassName,_script);
-					scriptSet[scriptName] = {
-						class: scriptClassName
-					};
-					this.setScripts(scriptSet);
+					this.prepareModel(c);
 				}
 			}
 		},
 
 		/**
-		 * Reload all already imported scripts
+		 * Prepare the model
+		 * @param $model 
 		 */
-		reloadScripts: function ()
+		prepareModel: function (model) {
+			var c = this.c,
+				self = this;
+			this.m[model]=function () {
+				var klass = c[model];
+				return new klass({ autoInit: true }, self.c, self, self.db);
+			};
+		},
+
+		/**
+		 * Prepare all scripts
+		 */
+		prepareScripts: function ()
 		{
-			this.e.log&&this.e.log('Reloading all scripts...','system');
-			var components = this.getComponents();
-			this.importScripts();
-			for (c in components)
+			for (c in this.c)
 			{
-				if (c.indexOf('script-')!=-1)
+				if (this.c[c].build.extend && this.c[c].build.extend.indexOf('wnScript')!=-1)
 				{
-					this.stopScript(c.replace(/^script\-/gi,''));
-					this.removeComponent(c);
-					this.getComponent(c);
+					this.prepareScript(c);
 				}
 			}
-			this.e.log&&this.e.log('All scripts has been reloaded.','system');
 		},
+
+		/**
+		 * Prepare all scripts
+		 */
+		prepareScript: function (s)
+		{
+			var components = {};
+			components[s]={
+				class: s,
+				autoInit: false,
+				seeParent: true
+			};
+			this.setComponents(components);
+			this.e.log&this.e.log('- Starting script: '+s,'system');
+			this.getComponent(s);
+		},
+
 
 		/**
 		 * Get a JSON configuration from file then send it to the `setConfig`
@@ -271,7 +271,7 @@ module.exports = {
 		/**
 		 * Set new properties to the component configuration.
 		 *
-		 * @param object $components application components(id=>component configuration or instances)
+		 * @param object $components components(id=>component configuration or instances)
 		 * Defaults to true, meaning the previously registered component configuration of the same ID
 		 * will be merged with the new configuration. If false, the existing configuration will be replaced completely.
 		 */
@@ -285,6 +285,7 @@ module.exports = {
 				}
 				_componentsConfig[c]=Object.extend(true,_componentsConfig[c] || {}, components[c]);
 			}
+			return this;
 		},
 
 		/**
@@ -299,6 +300,7 @@ module.exports = {
 				delete _components[id];
 			else
 				_components[id]=component;
+			return this;
 		},
 
 		/**
@@ -321,6 +323,8 @@ module.exports = {
 					config.id = id;
 					config.autoInit = (config.autoInit == true);
 					var component = this.createComponent(className,config);
+					if (config.seeParent)
+						component.setParent(this);
 					(!config.autoInit)&&component.init(config);
 					_components[id] = component;
 					if (typeof config.alias == 'string')
@@ -347,12 +351,13 @@ module.exports = {
 					this[_componentsConfig[id].alias]=undefined;
 				_components[id] = undefined;
 			}
+			return this;
 		},		
 
 		/**
 		 * Create a new instance of the component.
 		 * @param string $className component class (case-sensitive)
-		 * @param string $config application 
+		 * @param string $config component custom config 
 		 * @return wnModule the module instance, false if the module is disabled or does not exist.
 		 */
 		createComponent: function (className,config)
@@ -403,13 +408,14 @@ module.exports = {
 		 */
 		preloadComponents: function ()
 		{
-			this.e.log&&this.e.log('Preloading components...','system');
 			this.setConfig({components: this.preload});
 			var preload = this.getConfig().components;
 			if (preload != undefined)
 			{
+				this.e.log&&this.e.log('Preloading components...','system');
 				this.setComponents(preload);
 			}
+			return this;
 		},
 
 		/**
@@ -417,14 +423,14 @@ module.exports = {
 		 */
 		startComponents: function ()
 		{
-			this.e.log&&this.e.log("Starting application's components...","system");
 			var cps=this.getComponentsConfig();
 			for (c in cps)
 			{
 				var cpnt=this.getComponent(c);
 				if (cpnt)
-					this.e.log&&this.e.log('- Starting component: '+c+(cpnt.getConfig('alias')?' (as '+cpnt.getConfig('alias')+')':''),'system');
+					this.e.log&&this.e.log('- Started component: '+cps[c].class+(cpnt.getConfig('alias')?' (as '+cpnt.getConfig('alias')+')':''),'system');
 			}
+			return this;
 		},
 
 		/**
@@ -444,6 +450,7 @@ module.exports = {
 				}
 				_modulesConfig[m]=Object.extend(true,_modulesConfig[m] || {}, modules[m]);
 			}
+			return this;
 		},
 
 		/**
@@ -468,7 +475,7 @@ module.exports = {
 					{
 						config.id = id;
 						config.autoInit = !(config.autoInit == false);
-						var module = this.createModule(className,modulePath,config)
+						var module = this.createModule(className,modulePath,config);
 						_modules[id] = module;
 						this.attachModuleEvents(id);
 						module.e.ready(modulePath,config);
@@ -566,6 +573,7 @@ module.exports = {
 				}
 				this.attachEventsHandlers();
 			}
+			return this;
 		},
 
 		/**
@@ -575,7 +583,7 @@ module.exports = {
 		 * @return wnEvent the bubble event of the module's event
 		 */
 		getModuleEvent: function (eventName) {
-			this.getEvent('module.'+eventName);
+			return this.getEvent('module.'+eventName);
 		},
 
 		/**
@@ -594,6 +602,7 @@ module.exports = {
 				script[s].class='wnScript'+scriptName || 'wnScript';
 				_componentsConfig[s]=Object.extend(true,_componentsConfig[s] || {}, script[s]);
 			}
+			return this;
 		},
 
 		/**
@@ -661,6 +670,7 @@ module.exports = {
 		{
 			if (value != undefined && fs.statSync(value).isDirectory())
 				this.modulePath = value;
+			return this;
 		},
 		
 		/**
@@ -668,7 +678,7 @@ module.exports = {
 		 */
 		preinit: function ()
 		{
-
+			return this;
 		},
 
 		/**
@@ -676,7 +686,7 @@ module.exports = {
 		 */
 		run: function ()
 		{
-
+			return this;
 		}
 
 	}

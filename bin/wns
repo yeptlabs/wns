@@ -17,3 +17,4 @@ if (process.argv.length>2)
 
 if (autoExit)
 	process.exit();
+

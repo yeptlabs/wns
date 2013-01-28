@@ -26,7 +26,9 @@ module.exports = {
 	/**
 	 * PRIVATE
 	 */
-	private: {},
+	private: {
+		_db: null
+	},
 
 	/**
 	 * Public Variables
@@ -50,7 +52,8 @@ module.exports = {
 			'ready': {},
 			'connect': {},
 			'close': {},
-			'result': {}
+			'result': {},
+			'error': {}
 		}
 
 	},
@@ -63,8 +66,9 @@ module.exports = {
 		/**
 		 * Initializer.
 		 */		
-		init: function ()
+		init: function (conn)
 		{
+			_db=conn;
 			try {
 				this.driver = _r(this.driverModule);
 			} catch (e)
@@ -72,6 +76,14 @@ module.exports = {
 				this.getParent().e.log&&
 					this.getParent().e.log('wnDataObject.init: Could not load the database driver. ['+this.driverName+']');
 			}
+		},
+
+		/**
+	 	 * @return wnDbConnection database connection. The connection is active.
+	 	 */
+		getDbConnection: function ()
+		{
+			return _db;
 		},
 
 		/**

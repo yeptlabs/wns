@@ -115,6 +115,11 @@ module.exports = {
 		c: {},
 
 		/**
+		 * @var object component's models's builder object
+		 */
+		m: {},
+
+		/**
 		 * @var object events to be preloaded. 
 		 */
 		defaultEvents: {
@@ -205,6 +210,7 @@ module.exports = {
 				this.getEvent(e);
 			}
 			this.attachEventsHandlers();
+			return this;
 		},
 
 		/**
@@ -215,7 +221,7 @@ module.exports = {
 		createClass: function (className,config)
 		{
 			var source = this.c || wns;
-			return new source[className](config);
+			return new source[className](config,source);
 		},
 		
 		/**
@@ -333,6 +339,7 @@ module.exports = {
 					this.e.log('Invalid handler sent to event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
 			} else
 				this.e.log('Not existent event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
+			return this;
 		},
 
 		/**
@@ -348,6 +355,7 @@ module.exports = {
 					this.e.log('Invalid handler sent to event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
 			} else
 				this.e.log('Not existent event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
+			return this;
 		},
 
 		/**
@@ -387,11 +395,12 @@ module.exports = {
 			{
 				_parent = newParent;
 			}
+			return this;
 		},
 
 		/**
-		 * Checks if this application component bas been initialized.
-		 * @return boolean whether this application component has been initialized (ie, {@link init()} is invoked).
+		 * Checks if this component bas been initialized.
+		 * @return boolean whether this component has been initialized (ie, {@link init()} is invoked).
 		 */
 		getIsInitialized: function ()
 		{
@@ -403,26 +412,29 @@ module.exports = {
 		 */
 		init: function ()
 		{
+			return this;
 		},
 
 		/**
 		 * Execute an expression in this component's context.
 		 * @param string $cmd expression
+		 * @param object $context forced context
 		 * @return mixed result of the eval
 		 */
-		exec: function (cmd)
+		exec: function (cmd,context)
 		{
-			//this.e.log&&this.e.log('Executing: '+cmd,'result');
+			var ctx = (context!=undefined?context:this),
+				self = this;
 			try
 			{
-				with (this)
-				{
-					this.e.log&&this.e.log(util.inspect(eval(cmd)),'result');
-				}
+				(function () {
+					self.e.log&&self.e.log(util.inspect(eval(cmd)),'result');
+				}.bind(ctx))();
 			} catch (e)
 			{
 				this.e.exception&&this.e.exception(e);
 			}
+			return this;
 		}
 
 	}
