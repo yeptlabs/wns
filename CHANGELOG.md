@@ -18,11 +18,16 @@ WNS ChangeLog
  - Moved createController and related functions to wnHttpRequest class. [pedronasser]
  - createRequest event bug fixes. [pedronasser]
 
+- wnModule class.
+ - Changed IMPORT system. - Now everything is imported the same way [pedronasser]
+ - Fixed script preparation. [pedronasser]
+
 - wnComponent class
  - exec() changed, now with changable context. [pedronasser]
 
 - wnConsole class
  - all console's stdin is now sent to wnConsole.exec() [pedronasser]
+ - fixed buildServer() - write wrong path [pedronasser]
 
 - wnServer class
  - buildApplication() - new application generator. [pedronasser]

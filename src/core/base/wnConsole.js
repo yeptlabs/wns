@@ -102,22 +102,23 @@ module.exports = {
 		 */
 		buildServer: function (serverPath)
 		{
-			var serverPath = path.relative(cwd,process.cwd()+"/"+serverPath)+'/',
-				relativeSourcePath = path.relative(process.cwd(),cwd+sourcePath)+'/';
+			var _sourcePath = path.resolve(cwd+sourcePath),
+				_serverPath = path.relative(cwd,serverPath),
+				relativeSourcePath = path.relative(serverPath,_sourcePath)+'/';
 
-			if (!fs.existsSync(cwd+serverPath))
+			if (!fs.existsSync(cwd+_serverPath))
 				return false;
 
-			fs.writeFileSync(cwd+serverPath+'config.json',
-				fs.readFileSync(cwd+sourcePath+'/default-config.json')
+			fs.writeFileSync(cwd+_serverPath+'/config.json',
+				fs.readFileSync(_sourcePath+'/default-config.json')
 			);
 
-			var defaultIndex = fs.readFileSync(cwd+sourcePath+'/default-index.js');
+			var defaultIndex = fs.readFileSync(_sourcePath+'/default-index.js');
 			defaultIndex = new this.c.wnTemplate(defaultIndex).match({
-				sourcePath: './'+relativeSourcePath.replace(/\\/g,'/'),
-				serverPath: serverPath.replace(/\\/g,'/')
+				sourcePath: relativeSourcePath.replace(/\\/g,'/'),
+				serverPath: _serverPath.replace(/\\/g,'/')
 			});
-			fs.writeFileSync(cwd+serverPath+'index.js',defaultIndex);
+			fs.writeFileSync(cwd+_serverPath+'/index.js',defaultIndex);
 
 			return true;
 		},
