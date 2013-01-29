@@ -38,7 +38,7 @@ module.exports = {
 			modulePath = cwd;
 
 		this.setParent(parent);
-		this.setModulePath(path.resolve(parent.modulePath,modulePath)+'/');
+		this.setModulePath(path.resolve(path.resolve(parent.modulePath,modulePath))+'/');
 
 		this.preinit.apply(this,arguments); 
 
@@ -669,7 +669,10 @@ module.exports = {
 		setModulePath: function (value)
 		{
 			if (value != undefined && fs.statSync(value).isDirectory())
+			{
 				this.modulePath = value;
+				this.setConfig('modulePath',value);
+			}
 			return this;
 		},
 		
