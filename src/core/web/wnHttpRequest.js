@@ -337,6 +337,7 @@ this.cacheControl(_filename,fs.statSync(this.app.modulePath+this.app.getConfig('
 		errorHandler: function (code,msg,fatal)
 		{
 			this.code=code || 500;
+			this.error=code;
 
 			if (this.getConfig('errorPage')!=undefined && !fatal)
 			{
