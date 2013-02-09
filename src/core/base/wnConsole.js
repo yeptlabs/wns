@@ -229,6 +229,8 @@ module.exports = {
 			var server = this.createServer(consoleID);
 
 			this.selectServer(consoleID);
+
+			return server;
 		},
 
 		/**

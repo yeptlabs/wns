@@ -190,7 +190,7 @@ module.exports = {
 		{
 			if (this.dataObject)
 			{
-				this.dataObject._exec.apply(this.dataObject,arguments);
+				return this.dataObject._exec.apply(this.dataObject,arguments);
 			}
 		},
 
@@ -203,7 +203,7 @@ module.exports = {
 		{
 			if (this.dataObject)
 			{
-				this.dataObject._query.apply(this.dataObject,arguments);
+				return this.dataObject._query.apply(this.dataObject,arguments);
 			}
 		},
 

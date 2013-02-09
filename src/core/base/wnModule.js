@@ -193,7 +193,7 @@ module.exports = {
 		{
 			for (c in this.c)
 			{
-				if (this.c[c].build.extend && this.c[c].build.extend.indexOf('wnActiveRecord')!=-1)
+				if (this.c[c].build && this.c[c].build.extend && this.c[c].build.extend.indexOf('wnActiveRecord')!=-1)
 				{
 					this.prepareModel(c);
 				}
@@ -220,7 +220,7 @@ module.exports = {
 		{
 			for (c in this.c)
 			{
-				if (this.c[c].build.extend && this.c[c].build.extend.indexOf('wnScript')!=-1)
+				if (this.c[c].build && this.c[c].build.extend && this.c[c].build.extend.indexOf('wnScript')!=-1)
 				{
 					this.prepareScript(c);
 				}
@@ -233,14 +233,14 @@ module.exports = {
 		prepareScript: function (s)
 		{
 			var components = {};
-			components[s]={
+			components['script-'+s]={
 				class: s,
 				autoInit: false,
 				seeParent: true
 			};
 			this.setComponents(components);
 			this.e.log&this.e.log('- Starting script: '+s,'system');
-			this.getComponent(s);
+			this.getComponent('script-'+s);
 		},
 
 
