@@ -99,7 +99,6 @@ module.exports = {
 		 */	
 		init: function ()
 		{
-			var self = this;
 			this.createDataObject();
 			if (this.dataObject && this.dataObject.driver)
 			{

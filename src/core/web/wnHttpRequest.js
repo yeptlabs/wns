@@ -106,8 +106,6 @@ module.exports = {
 		 */
 		prepare: function ()
 		{
-			var self=this;
-			
 			this.info.originalUrl = this.info.url;
 			if (this.info.url == '/')
 				this.info.url = '/'+this.getConfig('defaultController')+'/';
@@ -136,7 +134,6 @@ module.exports = {
 		 */	
 		run: function ()
 		{
-			var self = this;
 			this.once('run', function (e) {
 				if (self.cacheFilter())
 					e.stopPropagation=true;
@@ -353,8 +350,7 @@ this.cacheControl(_filename,fs.statSync(this.app.modulePath+this.app.getConfig('
 		 */
 		send: function ()
 		{
-			var self = this,
-				res = this.response;
+			var res = this.response;
 
 			this.once('send', function (e,cb) {
 				cb&&cb();

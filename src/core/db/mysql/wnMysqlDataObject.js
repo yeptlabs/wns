@@ -64,8 +64,7 @@ module.exports = {
 		 */
 		_connect: function (cb)
 		{
-			var self = this,
-				con = this.driver.createConnection(this.getConfig());
+			var con = this.driver.createConnection(this.getConfig());
 				
 			con.connect(function (err) {
 				self.e.connect(err,con);
@@ -96,7 +95,6 @@ module.exports = {
 		 */
 		_query: function (query,cb)
 		{
-			var self = this;
 			this._connect(function (err,con) {
 				if (con)
 				{

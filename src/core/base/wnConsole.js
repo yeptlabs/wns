@@ -79,7 +79,6 @@ module.exports = {
 		 * Listen to the console input
 		 */
 		listenInput: function () {
-			var self = this;
 			process.stdin.resume();
 			process.stdin.setEncoding('utf8');
 			process.stdin.on('data', function (chunk) {

@@ -59,8 +59,7 @@ module.exports = {
 		 */
 		_open: function ()
 		{
-			var self=this,
-				config = this.getConfig(),
+			var config = this.getConfig(),
 				con = this.driver.createConnection(config.address, config.database, config.port, config);
 
 			Object.extend(true,this,con);

@@ -30,8 +30,6 @@ module.exports = {
 	 */	
 	constructor: function (parent,modulePath,config,classes)
 	{
-		var self = this;
-
 		this.e.log&&this.e.log('Constructing new `'+this.className+'`...','system');
 
 		if (modulePath==undefined)

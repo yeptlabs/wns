@@ -423,8 +423,7 @@ module.exports = {
 		 */
 		exec: function (cmd,context)
 		{
-			var ctx = (context!=undefined?context:this),
-				self = this;
+			var ctx = (context!=undefined?context:this);
 			try
 			{
 				(function () {
