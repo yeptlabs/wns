@@ -28,6 +28,7 @@ module.exports = {
 	 */
 	private: {
 		_controllers: {},
+		_data: null
 	},
 
 	/**
@@ -74,6 +75,7 @@ module.exports = {
 			'error': {},
 			'send': {},
 			'run': {},
+			'destroy': {}
 		}
 
 	},
@@ -95,6 +97,26 @@ module.exports = {
 			this.info = this.getConfig('request');
 			this.response = this.getConfig('response');
 
+			_data = new Buffer(0);
+
+			if (this.response)
+			{
+				this.response.__write = this.response.write;
+				this.response.write = function (chunk, encoding)
+				{
+					if (chunk)
+						_data = Buffer.concat([_data,new Buffer(chunk,encoding)]);
+					self.response.__write.call(self.response,chunk,encoding);
+				};
+				this.response.__end = this.response.end;
+				this.response.end = function(chunk, encoding) {
+					if (chunk)
+						_data = Buffer.concat([_data,new Buffer(chunk,encoding)]);
+					self.response.__end.call(self.response,chunk,encoding);
+					self.e.end(self);
+			    };
+			}
+
 			this.app = this.getParent();
 
 			if (this.info == undefined)
@@ -115,7 +137,6 @@ module.exports = {
 			this.template = this.route ? this.route.template : false;
 
 			this.info.once('close',function () { self.e.end(self); });
-			this.info.once('end',function () { self.e.end(self); });
 			this.info.connection.setTimeout(this.lifeTime,function () {
 				self.info.connection.end();
 				self.e.end(self);
@@ -150,6 +171,14 @@ module.exports = {
 		},
 
 		/**
+		 * Return the output data;
+		 * @return Buffer output data;
+		 */
+		getOutput: function () {
+			return _data;
+		},
+
+		/**
 		 * Put a filter between the run() and handlers() that
 		 * check if a cache of the requested page/file exists.
 		 * If exists, sends it to the client.
@@ -157,66 +186,6 @@ module.exports = {
 		cacheFilter: function () {
 			return false;
 		},
-
-		/*
-			
-			var lastMod = stat.mtime,
-				cmtime = this.app.cache.get('file-mtime-'+url) || new Date,
-				etag = stat.size + '-' + Date.parse(stat.mtime),
-				self = this;
-
-			var sendCache = function () {
-				var expire = new Date(cmtime);
-					expire.setTime(expire.getTime()+1000*60*60*24);
-				self.header['Cache-Control'] = 'max-age=3600, must-revalidate';
-				self.header['Expires'] = expire;
-				self.header['ETag'] = etag;
-			};
-
-			if (!this.info.headers['if-none-match'])
-			{
-				if (cmtime.getTime() != lastMod.getTime())
-				{
-					if (cmtime.getTime() == (new Date).getTime())
-						cmtime = lastMod;
-					self.app.cache.set('file-mtime-'+url,lastMod);
-				}
-				sendCache();
-			} else {
-				if (this.info.headers['if-none-match'] !== etag)
-				{
-					sendCache();
-				} else {
-					this.code = 304;
-				}
-			}
-
-			this.header['Last-Modified'] = cmtime;
-
-
-					if (!self.app.cache.get('file-'+_filename))
-					{
-						self.once('end', function () {
-							self.app.cache.set('file-'+_filename,self.compressedData);
-							self.app.cache.set('filetype-'+_filename,mimetype);
-						});
-					}
-
-
-
-if (self.app.cache.get('file-'+_filename))
-			{
-				self.compressedData = self.app.cache.get('file-'+_filename);
-				self.header['Content-Type']=self.app.cache.get('filetype-'+_filename);
-				self.cacheControl(_filename,fs.statSync(this.app.modulePath+this.app.getConfig('path').public+_filename));
-				self.send();
-				return;
-			}
-
-
-this.cacheControl(_filename,fs.statSync(this.app.modulePath+this.app.getConfig('path').public+_filename));
-
-		},*/
 
 		/**
 		 * Controller Access Handler
@@ -242,16 +211,8 @@ this.cacheControl(_filename,fs.statSync(this.app.modulePath+this.app.getConfig('
 			}
 
 			_action=this.action=(!_action?this.controller.defaultAction:_action);
-
-			var _resolveAction;
-			if (_resolveAction=this.controller.resolveAction(_action))
-			{
-				_action = this.action = _resolveAction;
-				this.controller[_action]&&this.controller[_action]();
-			} else
-			{
+			if (this.controller.resolveAction(_action)==false)
 				this.e.error(404,'Action not found');
-			}
 		},
 
 		/**
@@ -310,19 +271,21 @@ this.cacheControl(_filename,fs.statSync(this.app.modulePath+this.app.getConfig('
 		publicHandler: function ()
 		{
 			var _filename = this.route.translation.replace(/^\//,''),
-				file,
-				self = this;
+				file;
 
 			var mimetype = this.header['Content-Type']=mime.lookup(this.parsedUrl.pathname);
-			if (file = this.app.getFile(this.getConfig('path').public+_filename,true))
-			{
-					this.data = file;
-					this.header['Content-Length']=this.data.length;
-					this.send();
-					return;
-			}
-
-			this.e.error(404,'File not found',true);
+			this.fileName = this.getConfig('path').public+_filename;
+			self.app.getFile(self.fileName,true,function (file) {
+				if (!file)
+					self.e.error(404,'File not found',true);
+				else
+				self.app.getFileStat(self.fileName, function (stat) {
+					self.data = file;
+					self.header['Content-Length']=self.data.length;
+					self.stat = stat;
+					self.send();
+				});
+			});
 		},
 
 		/**
@@ -350,6 +313,9 @@ this.cacheControl(_filename,fs.statSync(this.app.modulePath+this.app.getConfig('
 		 */
 		send: function ()
 		{
+			if (self.sent)
+				return false;
+
 			var res = this.response;
 
 			this.once('send', function (e,cb) {
@@ -357,12 +323,14 @@ this.cacheControl(_filename,fs.statSync(this.app.modulePath+this.app.getConfig('
 			});
 
 			this.e.send(function () {
+				self.sent=true;
 				for (h in self.header)
 					res.setHeader(h,self.header[h]);
-
 				res.statusCode = self.code;
+				self.once('end',function () {
+					self.e.destroy(self);
+				})
 				res.end(self.data);
-				self.e.end(self);
 			});
 		}
 
