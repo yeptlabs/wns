@@ -164,8 +164,6 @@ module.exports = {
 				value = [value,dependency];
 			}
 
-			this.setValue(this.generateUniqueKey(id), value, expire);
-
 			return this.setValue(this.generateUniqueKey(id), value, expire);
 		},
 

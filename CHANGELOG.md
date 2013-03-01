@@ -1,6 +1,30 @@
 WNS ChangeLog
 ========
 
+## v0.0.4
+
+- Genaral
+ - Removed 'var self=this;' from every class in WNS. (now var self is automatically defined);
+
+- wnModule class
+ - Fixed model and script loading/preparation.
+
+- wnDbMongoQueryBuilder class
+ - Fixed lowercase bug in the collection name.
+ - New COUNT and QUERY function
+
+- wnMongoDataObject class
+ - New COUNT and QUERY private functions
+ - Fixed mongo driver configuration.
+ - Added collection name on Mongoose.model(). It was setting a different collection name.
+
+- wnActiveRecord
+ - 'Find' events
+ - New COUNT and QUERY functions.
+
+- Test
+ - Added 'appDirectory' to test server config.
+
 ## v0.0.3 (breaking changes, unstable)
 
 - General

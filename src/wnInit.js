@@ -139,3 +139,7 @@ console.log('');
 // Create a new console
 wns.console = new wns.wnConsole({ modulePath: cwd }, cwd);
 
+<<<<<<< HEAD
+=======
+//
+>>>>>>> ced8203515307155e8a4e0da8f44ba42a0529a62

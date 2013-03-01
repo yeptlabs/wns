@@ -29,7 +29,7 @@ function wnBuild(classesSource)
 	{
 		if (this.checkStructure(classesSource[c]))
 		{
-			this.classesSource[c] = classesSource[c];
+			this.classesSource[c] = Object.extend({ extend: [], public: {}, private: {}, methods:{} },classesSource[c]);
 			if (!this.classesSource[c].extend)
 				this.classesSource[c].extend = [];
 		}
@@ -124,7 +124,7 @@ wnBuild.prototype.buildClass = function (className)
 		return false;
 
 	var build = Object.extend(true,{},targetClass),
-		self = this,
+		__self = this,
 		_ext = [];
 
 	(function (extend) {
@@ -134,7 +134,7 @@ wnBuild.prototype.buildClass = function (className)
 				ext.push(extend[e]);
 				ext.reverse();
 				_ext=ext;
-			arguments.callee(self.classes[extend[e]].build.extend);
+			arguments.callee(__self.classes[extend[e]].build.extend);
 		}
 	})(build.extend);
 	build.extend = _ext;
@@ -146,7 +146,8 @@ wnBuild.prototype.buildClass = function (className)
 	// Class builder.
 	classBuilder.prototype.build = function () {
 
-		var k = new klass;
+		var k = new klass,
+			self = k;
 
 		// Importing extensions
 		for (e in build.extend)
@@ -154,7 +155,7 @@ wnBuild.prototype.buildClass = function (className)
 
 				(function () {
 
-					var extendBuild=self.classes[build.extend[e]].build;
+					var extendBuild=__self.classes[build.extend[e]].build;
 
 					// Declare private variables
 					for (p in extendBuild.private)
@@ -164,10 +165,10 @@ wnBuild.prototype.buildClass = function (className)
 						eval('var '+p+' = __builder.newValue(extendBuild.private[p]);');
 					}
 
-					var _className = self.newValue(className),
-						_extend = self.newValue(build.extend),
-						_buildMethods = self.newValue(extendBuild.methods),
-						extendBuild=self.classes[build.extend[e]].build;
+					var _className = __self.newValue(className),
+						_extend = __self.newValue(build.extend),
+						_buildMethods = __self.newValue(extendBuild.methods),
+						extendBuild=__self.classes[build.extend[e]].build;
 
 					// Redeclare privileged methods.
 					for (m in _buildMethods)
@@ -178,7 +179,7 @@ wnBuild.prototype.buildClass = function (className)
 					// Push public vars to the build
 					Object.extend(true,build.public,extendBuild.public);
 
-					var extendBuild=self.classes[build.extend[e]].build;
+					var extendBuild=__self.classes[build.extend[e]].build;
 
 					// Define this constructor as the main constructor.
 					if (extendBuild.propertyIsEnumerable('constructor'))
@@ -202,6 +203,11 @@ wnBuild.prototype.buildClass = function (className)
 					continue;
 				eval('var '+p+' = __builder.newValue(build.private[p]);');
 			}
+
+			//if (className.indexOf('App')!=-1);
+			//		console.log(m);
+
+			var self = k;
 
 			// Redeclare privileged methods
 			for (m in build.methods)
@@ -251,7 +257,7 @@ wnBuild.prototype.buildClass = function (className)
  */
 wnBuild.prototype.checkStructure = function (targetClass)
 {
-	return targetClass && targetClass.private && targetClass.public && targetClass.methods;
+	return (targetClass instanceof Object);
 };
 
 /**
@@ -261,7 +267,7 @@ wnBuild.prototype.checkStructure = function (targetClass)
  */
 wnBuild.prototype.checkDependencies = function (extensions)
 {
-	if (typeof extensions != 'object')
+	if (!extensions instanceof Array)
 		return false;
 
 	for (e in extensions)

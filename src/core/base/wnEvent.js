@@ -51,7 +51,6 @@ module.exports = {
 		{
 			if (this.checkFilters.apply(this,arguments))
 			{
-				var self = this,
 					args = [],
 					eventObject = function ()
 					{
