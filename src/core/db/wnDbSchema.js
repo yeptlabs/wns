@@ -106,9 +106,9 @@ module.exports = {
 		 */
 		setCollection: function (name,object)
 		{
-			if (!(typeof name == 'string' && typeof object == 'object' && _collections[name.toLowerCase()] == undefined))
+			if (!(typeof name == 'string' && typeof object == 'object' && _collections[name] == undefined))
 				return false;
-			_collections[name.toLowerCase()] = object;
+			_collections[name] = object;
 			this.prepare();
 			return true;
 		},
@@ -120,7 +120,7 @@ module.exports = {
 		 */
 		getCollection: function (name)
 		{
-			return (typeof name == 'string' && _collections[name.toLowerCase()]!=undefined) && _collections[name.toLowerCase()];
+			return (typeof name == 'string' && _collections[name]!=undefined) && _collections[name];
 		},
 
 		/**

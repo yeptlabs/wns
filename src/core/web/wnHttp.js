@@ -59,7 +59,6 @@ module.exports = {
 		 */	
 		init: function ()
 		{
-			var self = this;
 			this.connection=http.createServer(self.e.open);
 			this.addListener('open',function (e,req,resp) {
 				self.handler(req,resp);

@@ -27,7 +27,7 @@ module.exports = {
 	 * PRIVATE
 	 */
 	private: {
-		_serverConfig: {
+		_config: {
 			database: 'test'
 		},
 		_dbConfig: {
@@ -59,10 +59,7 @@ module.exports = {
 		 */
 		_open: function ()
 		{
-			this.setConfig(_serverConfig);
-			//this.driver.set('debug',true);
-			var self=this,
-				config = this.getConfig(),
+			var config = this.getConfig(),
 				con = this.driver.createConnection(config.address, config.database, config.port, config);
 
 			Object.extend(true,this,con);
@@ -91,7 +88,7 @@ module.exports = {
 		{
 			if (!!(params) && !!(params.criteria) && !!(params.collection))
 			{
-				var collection = this.model(params.collection,this.getDbConnection().getSchema().getMongoSchema(params.collection));
+				var collection = this.model(params.collection,this.getDbConnection().getSchema().getMongoSchema(params.collection),params.collection);
 				collection.find(params.criteria).remove(cb);
 			}
 			else 
@@ -101,7 +98,26 @@ module.exports = {
 		},
 
 		/**
-		 * FIND all collection's datas from the database
+		 * COUNT all objects from the database
+		 * that matches with the criteria.
+		 * @param object $params all parameters of the action.
+		 * @param function $cb callback
+		 */
+		_count: function (params,cb)
+		{
+			if (!!(params) && !!(params.criteria) && !!(params.collection))
+			{
+				var collection = this.model(params.collection,this.getDbConnection().getSchema().getMongoSchema(params.collection), params.collection);
+				collection.count(params.criteria).exec(cb);
+			}
+			else 
+				cb&&cb(false);
+
+			return false;
+		},
+
+		/**
+		 * FIND all objects from the database
 		 * that matches with the criteria.
 		 * @param object $params all parameters of the action.
 		 * @param function $cb callback
@@ -110,7 +126,7 @@ module.exports = {
 		{
 			if (!!(params) && !!(params.criteria) && !!(params.collection))
 			{
-				var collection = this.model(params.collection,this.getDbConnection().getSchema().getMongoSchema(params.collection));
+				var collection = this.model(params.collection,this.getDbConnection().getSchema().getMongoSchema(params.collection), params.collection);
 				collection.find(params.criteria).exec(cb);
 			}
 			else 
@@ -120,7 +136,7 @@ module.exports = {
 		},
 
 		/**
-		 * UPDATE all collection's datas from the database
+		 * UPDATE all objects from the database
 		 * that matches with the criteria with the new given information.
 		 * @param object $params all parameters of the action.
 		 * @param function $cb callback
@@ -129,7 +145,7 @@ module.exports = {
 		{
 			if (!!(params) && !!(params.criteria) && !!(params.collection) && !!(params.collection))
 			{
-				var collection = this.model(params.collection,this.getDbConnection().getSchema().getMongoSchema(params.collection));
+				var collection = this.model(params.collection,this.getDbConnection().getSchema().getMongoSchema(params.collection),params.collection);
 				collection.update(params.criteria,params.data,cb);
 			}
 			else 
@@ -138,9 +154,8 @@ module.exports = {
 			return false;
 		},
 
-
 		/**
-		 * INSERT a collection's data on the database.
+		 * INSERT a object to the database.
 		 * @param object $params all parameters of the action.
 		 * @param function $cb callback
 		 */
@@ -148,13 +163,37 @@ module.exports = {
 		{
 			if (!!(params) && !!(params.data) && !!(params.collection))
 			{
-				var collection = this.model(params.collection,this.getDbConnection().getSchema().getMongoSchema(params.collection)),
+				var collection = this.model(params.collection,this.getDbConnection().getSchema().getMongoSchema(params.collection),params.collection),
 					_new = new collection(params.data);
 					_new.save(cb);
 			}
 			else 
 				cb&&cb(false);
 
+			return false;
+		},
+
+		/**
+		 * Create a database QUERY
+		 * @param object $params all parameters of the action.
+		 */
+		_query: function (params)
+		{
+			if (!!(params) && !!(params.collection))
+			{
+				var collection = this.model(params.collection,this.getDbConnection().getSchema().getMongoSchema(params.collection),params.collection);
+				delete params.collection;
+				var query = collection.find({}),
+					args;
+				for (p in params)
+					if (query[p])
+					{
+						if (typeof params[p] != 'object' || !params[p].length)
+							params[p] = [params[p]];
+						query[p].apply(query,params[p]);
+					}
+				return query;
+			}
 			return false;
 		},
 

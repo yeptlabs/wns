@@ -179,21 +179,37 @@ module.exports = {
 		{
 			return attr ? _config[attr] : _config;
 		},
-
+		
 		/**
 		 * Get a file.
 		 * The file's path is relative to the module's path.
 		 * @param $filePath string file's path
 		 */
-		getFile: function (filePath,binary)
+		getFile: function (filePath,binary,cb)
 		{
-			var realPath = this.instanceOf('wnModule')?this.modulePath+filePath:filePath;
-			if (fs&&fs.existsSync(realPath))
-			{
-				var file = fs.readFileSync(realPath);
-				return (binary===true) ? file : file.toString();
-			}
-			return false;
+			var realPath = this.instanceOf('wnModule')?this.modulePath+filePath:filePath,
+				cmd = !cb ? 'readFileSync' : 'readFile',
+				_cb = cb ? function (err,file) {
+					cb&&cb(!err ? ((binary===true) ? file : file.toString()) : false);
+				} : null,
+				file = fs[cmd](realPath,_cb);
+			return (file ? (binary===true) ? file : file.toString() : false);
+		},
+
+		/**
+		 * Get a file statistic.
+		 * The file's path is relative to the module's path.
+		 * @param $filePath string file's path
+		 */
+		getFileStat: function (filePath,cb)
+		{
+			var realPath = this.instanceOf('wnModule')?this.modulePath+filePath:filePath,
+				cmd = !cb ? 'statSync' : 'stat',
+				_cb = cb ? function (err,stat) {
+					cb&&cb(!err ? stat : false);
+				} : null,
+				stat = fs[cmd](realPath,_cb);
+			return stat;
 		},
 
 		/**
@@ -359,6 +375,38 @@ module.exports = {
 		},
 
 		/**
+		 * Prepend a new listener to the event, if it exists
+		 * @param string $eventName event name
+		 * @param function $handler event handler
+		 */
+		prependListener: function (eventName,handler) {
+			var event;
+			if (event = this.getEvent(eventName))
+			{
+				if (!event.prependListener(handler))
+					this.e.log('Invalid handler sent to event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
+			} else
+				this.e.log('Not existent event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
+			return this;
+		},
+
+		/**
+		 * Prepend a new one-time-listener to the event, if it exists
+		 * @param string $eventName event name
+		 * @param function $handler event handler
+		 */
+		prependOnce: function (eventName,handler) {
+			var event;
+			if (event = this.getEvent(eventName))
+			{
+				if (!event.once(handler,true))
+					this.e.log('Invalid handler sent to event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
+			} else
+				this.e.log('Not existent event `'+eventName+'` on `'+this.getConfig('id')+'`','warning');
+			return this;
+		},
+
+		/**
 		 * Return an object with all attributes and configuration of this component
 		 */
 		export: function ()
@@ -423,8 +471,7 @@ module.exports = {
 		 */
 		exec: function (cmd,context)
 		{
-			var ctx = (context!=undefined?context:this),
-				self = this;
+			var ctx = (context!=undefined?context:this);
 			try
 			{
 				(function () {

@@ -77,7 +77,6 @@ module.exports = {
 		start: function ()
 		{
 			_enabled = true;
-			var self = this;
 			(function () {
 				var args = arguments.callee.bind(this);
 				if (this.isEnabled() !== true)

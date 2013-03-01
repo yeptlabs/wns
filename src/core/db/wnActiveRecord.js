@@ -53,7 +53,9 @@ module.exports = {
 			'beforeDelete': {},
 			'afterDelete': {},
 			'beforeFind': {},
-			'afterFind': {}
+			'afterFind': {},
+			'beforeCount': {},
+			'afterCount': {}
 		}
 
 	},
@@ -239,7 +241,6 @@ module.exports = {
 			var attrs = this.getDbConnection().getSchema().getCollection(this.collectionName()),
 				attributes = Object.extend(true,{},this.getDefaults(),attributes),
 				valid = {};
-				console.log(attributes)
 			for (a in attributes)
 				if (!!(attrs[a]))
 					valid[a]=attributes[a];
@@ -280,6 +281,16 @@ module.exports = {
 		},
 
 		/**
+		 * TODO
+		 */
+		query: function (params)
+		{
+			var builder = this.getQueryBuilder(),
+				query=builder.createQuery(this.collectionName(),params);
+			return query;
+		},
+
+		/**
 		 * Inserts a row into the data to the collection based on this active record attributes.
 		 * After the record is inserted to DB successfully, its {@link isNewRecord} property will be set false
 		 * @param array $attributes list of attributes that need to be saved. Defaults to null,
@@ -313,7 +324,7 @@ module.exports = {
 		},
 
 		/**
-		 * Remove all collections that matches with the criteria.
+		 * Remove all documents that matches with the criteria.
 		 * @param mixed $criteria wnDbCriteria or object
 		 */
 		delete: function (criteria,cb)
@@ -337,7 +348,7 @@ module.exports = {
 		},
 
 		/**
-		 * Find all collections that matches with the criteria.
+		 * Find all objects that matches with the criteria.
 		 * @param mixed $criteria wnDbCriteria or object
 		 */
 		find: function (criteria,cb)
@@ -361,7 +372,31 @@ module.exports = {
 		},
 
 		/**
-		 * Update all collections that matches with the criteria.
+		 * Count all objects that matches with the criteria.
+		 * @param mixed $criteria wnDbCriteria or object
+		 */
+		count: function (criteria,cb)
+		{
+			if (!criteria)
+				return false;
+
+			if (cb)
+				this.once('afterCount',cb);
+
+			var self = this;
+			this.once('beforeCount', function () {
+				var builder = self.getQueryBuilder(),
+					query=builder.createCount(self.collectionName(),criteria);
+				query.exec(function (err,d) {
+					self.e.afterCount(err,d);
+				});
+			}).e.beforeCount();
+
+			return this;
+		},
+
+		/**
+		 * Update all documents that matches with the criteria.
 		 * @param mixed $criteria wnDbCriteria or object
 		 */
 		update: function (criteria,data,cb)
