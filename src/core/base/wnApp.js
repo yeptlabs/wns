@@ -87,6 +87,7 @@ module.exports = {
 				this.e.readyRequest(httpRequest);
 				httpRequest.prepare();
 				httpRequest.once('destroy',function () {
+					//console.log('DESTROIED');
 					for (r in _slaveRequests[url])
 					{
 						var sreq=_slaveRequests[url][r];
@@ -102,7 +103,9 @@ module.exports = {
 					reqConf = null;
 					_requestCount--;
 					_requests[url]=false;
+					httpRequest.info.socket.destroy();
 					httpRequest = null;
+					gc&&gc();
 				});
 				var self = this;
 				if (_requests[url]!=true && httpRequest.template != '<file>')

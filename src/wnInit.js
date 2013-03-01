@@ -22,7 +22,7 @@ var memory = process.memoryUsage().rss;
  console.log('   \\ / \\ /  |   |    o');
  console.log('    o   o   o   o o--o');
  console.log('\n         powered by YEPT(R)');
- console.log();
+ console.log()
 
 // Loading requirements..
 try
