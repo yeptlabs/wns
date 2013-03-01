@@ -88,17 +88,17 @@ module.exports = {
 				httpRequest.prepare();
 				httpRequest.once('destroy',function () {
 					//console.log('DESTROIED');
-					for (r in _slaveRequests[url])
-					{
-						var sreq=_slaveRequests[url][r];
-						if (sreq.sent)
-							continue;
-						sreq.data = httpRequest.data;
-						sreq.compressedData = httpRequest.compressedData;
-						sreq.code = httpRequest.code;
-						sreq.header = httpRequest.header;
-						sreq.send();
-					}
+					// for (r in _slaveRequests[url])
+					// {
+					// 	var sreq=_slaveRequests[url][r];
+					// 	if (sreq.sent)
+					// 		continue;
+					// 	sreq.data = httpRequest.data;
+					// 	sreq.compressedData = httpRequest.compressedData;
+					// 	sreq.code = httpRequest.code;
+					// 	sreq.header = httpRequest.header;
+					// 	sreq.send();
+					// }
 					_slaveRequests[url]=null;
 					reqConf = null;
 					_requestCount--;
@@ -108,7 +108,7 @@ module.exports = {
 					gc&&gc();
 				});
 				var self = this;
-				if (_requests[url]!=true && httpRequest.template != '<file>')
+				if (_requests[url]!=true && 1==2)
 				{
 					_requests[url]=true;
 					httpRequest.run();
