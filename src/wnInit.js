@@ -15,8 +15,7 @@
  * @since 1.0.0
  */
 
-var memory = process.memoryUsage().rss,
-	gc = gc;
+var memory = process.memoryUsage().rss;
 
  console.log('\n  o       o o--o  o--o (TM)');
  console.log('  |   o   | |   | o__');
@@ -32,7 +31,8 @@ try
 	global.sourcePath = 'src/';
 	global.cwd = __dirname+'/../';
 	global._r = require;
-	global.gc = gc || function () {};
+	if (global['gc']==undefined)
+		global.gc = function () {};
 	console.log(' CWD: '+cwd);
 	console.log(' SOURCEPATH: '+cwd+sourcePath);
 	console.log();
