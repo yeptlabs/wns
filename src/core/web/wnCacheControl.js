@@ -129,7 +129,6 @@ module.exports = {
 				cacheControl = _servers[selected].instance,
 				name = name+'',
 				value = value+'';
-			console.log('SET - '+ name + ' - '+selected);
 			_servers[s].data[name]=true;
 			return cacheControl.set(name,value,cb);
 		},
@@ -145,7 +144,6 @@ module.exports = {
 				cacheControl = _servers[selected].instance,
 				name = name+'',
 				value = value+'';
-			console.log('GET - '+name + ' - '+selected);
 			return cacheControl.get(name,value,cb);
 		},
 
