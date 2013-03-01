@@ -87,7 +87,6 @@ module.exports = {
 				this.e.readyRequest(httpRequest);
 				httpRequest.prepare();
 				httpRequest.once('destroy',function () {
-					//console.log('DESTROIED');
 					// for (r in _slaveRequests[url])
 					// {
 					// 	var sreq=_slaveRequests[url][r];
@@ -108,18 +107,19 @@ module.exports = {
 					gc&&gc();
 				});
 				var self = this;
-				if (_requests[url]!=true && 1==2)
-				{
-					_requests[url]=true;
-					httpRequest.run();
-					_slaveRequests[url]=[];
-				} else if (httpRequest.template == '<file>')
-				{
-					httpRequest.run();
-				} else
-				{
-					_slaveRequests[url].push(httpRequest);
-				}
+				// if (_requests[url]!=true && httpRequest.template != '<file>')
+				// {
+				// 	_requests[url]=true;
+				// 	httpRequest.run();
+				// 	_slaveRequests[url]=[];
+				// } else if (httpRequest.template == '<file>')
+				// {
+				// 	httpRequest.run();
+				// } else
+				// {
+				// 	_slaveRequests[url].push(httpRequest);
+				// }
+				httpRequest.run();
 			}
 			catch (e)
 			{
