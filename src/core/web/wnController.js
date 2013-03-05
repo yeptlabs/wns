@@ -100,9 +100,7 @@ module.exports = {
  				Object.extend(true,this.query.GET, this.request.parsedUrl.query);
 				Object.extend(true,this.query.GET, this.request.route.params);
 				for (g in this.query.GET)
-				{
 					this.query.GET[g]=this.query.GET[g].replace(/\+/gi,' ')
-				}
 			}
 
 			if (this.app)

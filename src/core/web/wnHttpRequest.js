@@ -97,6 +97,8 @@ module.exports = {
 			this.info = this.getConfig('request');
 			this.response = this.getConfig('response');
 
+			this.app = this.getParent();
+
 			// _data = new Buffer(0);
 			// if (this.response)
 			// {
@@ -115,8 +117,6 @@ module.exports = {
 			// 		self.e.end(self);
 			//     };
 			// }
-
-			this.app = this.getParent();
 
 			if (this.info == undefined)
 				return false;
