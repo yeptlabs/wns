@@ -311,22 +311,24 @@ module.exports = {
 				return _events[eventName];
 			else
 			{
+				if (!_eventsConfig[eventName] || !this.c)
+					return false;
 				var config = _eventsConfig[eventName] || {},
-					className = config.class;
-					config.id = eventName;
-					config.autoInit = false;
-					var evt = this.createClass(className,config);
-					evt.setParent(this);
-					evt.init();
-					if (hidden != false)
-					{
-						_events[eventName] = evt;
-						this.e[name]=function () { evt.push.apply(evt,arguments); };
-					} else
-					{
-						Object.defineProperty(_events[eventName],{ value: evt, enumerable: false });
-					}
-					return evt;
+					_class = config.class;
+				config.id = eventName;
+				config.autoInit = false;
+				var evt = this.createClass(_class,config);
+				evt.setParent(this);
+				evt.init();
+				if (hidden != false)
+				{
+					_events[eventName] = evt;
+					this.e[name]=function () { evt.push.apply(evt,arguments); };
+				} else
+				{
+					Object.defineProperty(_events[eventName],{ value: evt, enumerable: false });
+				}
+				return evt;
 			}
 		},
 
@@ -336,6 +338,14 @@ module.exports = {
 		getEvents: function ()
 		{
 			return _events;
+		},
+
+		/**
+		 * Get all defined configuration of events.
+		 */
+		getEventsConfig: function ()
+		{
+			return _eventsConfig;
 		},
 
 		/**

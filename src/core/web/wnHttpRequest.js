@@ -88,14 +88,13 @@ module.exports = {
 		/**
 		 * Initializer
 		 */	
-		init: function ()
+		init: function (req,resp)
 		{
 			this.initialTime = +(new Date);
-			this.getEvent('end').setConfig({'source': this});
 
 			this.header = this.getConfig('header') || this.header;
-			this.info = this.getConfig('request');
-			this.response = this.getConfig('response');
+			this.info = req;
+			this.response = resp;
 
 			this.app = this.getParent();
 
@@ -136,6 +135,7 @@ module.exports = {
 			this.template = this.route ? this.route.template : false;
 
 			this.info.once('close',function () { self.e.end(self); });
+			this.info.once('end',function () { self.e.end(self); });
 			this.info.connection.setTimeout(this.lifeTime,function () {
 				self.info.connection.end();
 				self.e.end(self);
@@ -154,10 +154,6 @@ module.exports = {
 		 */	
 		run: function ()
 		{
-			this.once('run', function (e) {
-				if (self.cacheFilter())
-					e.stopPropagation=true;
-			});
 			this.once('run', function () {
 				if (self.template == '<file>')
 					self.publicHandler();
@@ -327,8 +323,11 @@ module.exports = {
 					res.setHeader(h,self.header[h]);
 				res.statusCode = self.code;
 				self.once('end',function () {
-					self.e.destroy(self);
-				})
+					self.app.once('closedRequest', function () {
+						self.e.destroy(self);
+					});
+					self.app.e.closedRequest(self);
+				});
 				res.end(self.data);
 			});
 		}

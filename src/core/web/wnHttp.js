@@ -131,26 +131,27 @@ module.exports = {
 				if (!resp || resp.closed)
 					return false;
 
-				reqConf = Object.extend(true,{},self.getComponentConfig('http'),{ id: 'request-'+(+new Date)+'-'+_requestCount, request: req, response: resp }),
-				httpRequest = self.createComponent('wnHttpRequest',reqConf);
+				reqConf = Object.extend(true,{},self.getComponentConfig('http'),{ id: 'request-'+(+new Date)+'-'+_requestCount }),
+				httpRequest = new self.c.wnHttpRequest(reqConf, self.c);
 				httpRequest.setParent(self);
 				httpRequest.created = +new Date;
-				httpRequest.init();
+				httpRequest.init(req,resp);
 				httpRequest.e.open();
-				self.e.readyRequest(httpRequest);
 				httpRequest.prepare();
+				self.e.readyRequest(httpRequest);
+				app.e.readyRequest(httpRequest);
 				httpRequest.once('destroy',function () {
 					reqConf = null;
 					httpRequest.info.socket.destroy();
 					httpRequest = null;
-					self.e.closedRequest(httpRequest);
 					gc&&gc();
 				});
 				httpRequest.run();
 			}
 			catch (e)
 			{
-				self.e.exception(e);
+				self.e.exception&&
+					self.e.exception(e);
 			}
 		},
 
