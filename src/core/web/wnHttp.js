@@ -142,7 +142,7 @@ module.exports = {
 				app.e.readyRequest(httpRequest);
 				httpRequest.once('destroy',function () {
 					reqConf = null;
-					httpRequest.info.socket.destroy();
+					//httpRequest.info.socket.destroy();
 					httpRequest = null;
 					gc&&gc();
 				});

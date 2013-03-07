@@ -98,25 +98,6 @@ module.exports = {
 
 			this.app = this.getParent();
 
-			// _data = new Buffer(0);
-			// if (this.response)
-			// {
-			// 	this.response.__write = this.response.write;
-			// 	this.response.write = function (chunk, encoding)
-			// 	{
-			// 		if (chunk)
-			// 			_data = Buffer.concat([_data,new Buffer(chunk,encoding)]);
-			// 		self.response.__write.call(self.response,chunk,encoding);
-			// 	};
-			// 	this.response.__end = this.response.end;
-			// 	this.response.end = function(chunk, encoding) {
-			// 		if (chunk)
-			// 			_data = Buffer.concat([_data,new Buffer(chunk,encoding)]);
-			// 		self.response.__end.call(self.response,chunk,encoding);
-			// 		self.e.end(self);
-			//     };
-			// }
-
 			if (this.info == undefined)
 				return false;
 		},
@@ -141,6 +122,26 @@ module.exports = {
 				self.e.end(self);
 				self.info.connection.destroy();
 			});
+
+			_data = new Buffer(0);
+			if (this.response)
+			{
+				this.response.__write = this.response.write;
+				this.response.write = function (chunk, encoding)
+				{
+					if (chunk)
+						_data = Buffer.concat([_data,new Buffer(chunk,encoding)]);
+					self.response.__write.call(self.response,chunk,encoding);
+				};
+				this.response.__end = this.response.end;
+				this.response.end = function(chunk, encoding) {
+					if (chunk)
+						_data = Buffer.concat([_data,new Buffer(chunk,encoding)]);
+					self.response.__end.call(self.response,chunk,encoding);
+					self.e.end(self);
+			    };
+			}
+
 			this.addListener('error',function (e,code,msg,fatal) {
 				this.err=true;
 				self.errorHandler(code,msg,fatal);
@@ -328,6 +329,7 @@ module.exports = {
 					});
 					self.app.e.closedRequest(self);
 				});
+
 				res.end(self.data);
 			});
 		}
