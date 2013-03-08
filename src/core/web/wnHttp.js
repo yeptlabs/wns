@@ -131,6 +131,8 @@ module.exports = {
 				if (!resp || resp.closed)
 					return false;
 
+				//console.log(//url)
+
 				reqConf = Object.extend(true,{},self.getComponentConfig('http'),{ id: 'request-'+(+new Date)+'-'+_requestCount }),
 				httpRequest = new self.c.wnHttpRequest(reqConf, self.c);
 				httpRequest.setParent(self);
@@ -144,7 +146,7 @@ module.exports = {
 					reqConf = null;
 					//httpRequest.info.socket.destroy();
 					httpRequest = null;
-					gc&&gc();
+					//gc&&gc();
 				});
 				httpRequest.run();
 			}
