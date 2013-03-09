@@ -60,7 +60,7 @@ module.exports = {
 		_open: function ()
 		{
 			var config = this.getConfig(),
-				con = this.driver.createConnection(config.address, config.database, config.port, config);
+				con = this.driver.createConnection(config.host, config.database, config.port, config);
 
 			Object.extend(true,this,con);
 			this.on('close',function (err) {
