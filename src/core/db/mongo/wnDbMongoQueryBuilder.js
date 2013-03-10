@@ -46,7 +46,6 @@ module.exports = {
 		 */
 		createInsert: function (collName, data) {
 			var collection;
-				collName = collName.toLowerCase();
 			if (collection = this.getCollection(collName) && typeof data == 'object')
 			{
 				var query = this.getDbConnection().createQuery();
@@ -67,7 +66,7 @@ module.exports = {
 		 * @return boolean success?
 		 */
 		createFind: function (collName, criteria) {
-			collName = collName.toLowerCase();
+			collName = collName;
 			if (collection = this.getCollection(collName) && criteria && typeof criteria == 'object')
 			{
 				var query = this.getDbConnection().createQuery();
@@ -89,7 +88,7 @@ module.exports = {
 		 * @return boolean success?
 		 */
 		createUpdate: function (collName, criteria, data) {
-			collName = collName.toLowerCase();
+			collName = collName;
 			if (collection = this.getCollection(collName) && criteria && typeof criteria == 'object' && data && typeof data == 'object')
 			{
 				var query = this.getDbConnection().createQuery();
@@ -112,7 +111,7 @@ module.exports = {
 		 */
 		createDelete: function (collName, criteria) {
 			var collection;
-				collName = collName.toLowerCase();
+				collName = collName;
 			if (collection = this.getCollection(collName) && criteria && typeof criteria == 'object')
 			{
 				var query = this.getDbConnection().createQuery();
@@ -122,6 +121,47 @@ module.exports = {
 						'criteria': criteria
 					});
 				return query;	
+			}
+			return false;
+		},
+
+		/**
+		 * COUNT all objects from database that matches with the criteria
+		 * @param string $collName collection name
+		 * @param mixed $criteria wnDbCriteria or object
+		 * @return boolean success?
+		 */
+		createCount: function (collName, criteria) {
+			var collection;
+				collName = collName;
+			if (collection = this.getCollection(collName) && criteria && typeof criteria == 'object')
+			{
+				var query = this.getDbConnection().createQuery();
+					query.setQuery({
+						'collection': collName,
+						'action': 'count',
+						'criteria': criteria
+					});
+				return query;	
+			}
+			return false;
+		},
+
+		/**
+		 * Create a database query
+		 * @param string $collName collection name
+		 * @return {Mongoose.Query} db query
+		 */
+		createQuery: function (collName,params) {
+			var collection;
+				collName = collName;
+			if (collection = this.getCollection(collName))
+			{
+				var criteria = {};
+				criteria=Object.extend(false,{},criteria,params);
+				criteria.collection = collName;
+				var query = this.getDbConnection().query(criteria);
+				return query;
 			}
 			return false;
 		},

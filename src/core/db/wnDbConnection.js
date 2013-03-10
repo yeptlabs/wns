@@ -99,7 +99,6 @@ module.exports = {
 		 */	
 		init: function ()
 		{
-			var self = this;
 			this.createDataObject();
 			if (this.dataObject && this.dataObject.driver)
 			{
@@ -190,7 +189,7 @@ module.exports = {
 		{
 			if (this.dataObject)
 			{
-				this.dataObject._exec.apply(this.dataObject,arguments);
+				return this.dataObject._exec.apply(this.dataObject,arguments);
 			}
 		},
 
@@ -203,7 +202,7 @@ module.exports = {
 		{
 			if (this.dataObject)
 			{
-				this.dataObject._query.apply(this.dataObject,arguments);
+				return this.dataObject._query.apply(this.dataObject,arguments);
 			}
 		},
 
