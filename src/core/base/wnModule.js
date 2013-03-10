@@ -118,7 +118,16 @@ module.exports = {
 		/**
 		 * @var array behaviors to attach
 		 */
-		behaviors: {}
+		behaviors: {},
+
+		/**
+		 * Default events.
+		 */
+		defaultEvents:
+		{
+			'loadModule': {},
+			'loadComponent': {}
+		}
 	
 	},
 
@@ -323,6 +332,7 @@ module.exports = {
 					var component = this.createComponent(className,config);
 					if (config.seeParent)
 						component.setParent(this);
+					self.e.loadComponent(e,id,component);
 					(!config.autoInit)&&component.init(config);
 					_components[id] = component;
 					if (typeof config.alias == 'string')
@@ -465,7 +475,6 @@ module.exports = {
 			else if (this.hasComponent('classBuilder'))
 			{
 				try {
-
 					var config = _modulesConfig[id] || {},
 						modulePath = config.modulePath || id,
 						className = config.class;
@@ -476,6 +485,7 @@ module.exports = {
 						var module = this.createModule(className,modulePath,config);
 						_modules[id] = module;
 						this.attachModuleEvents(id);
+						self.e.loadModule(id,module);
 						module.e.ready(modulePath,config);
 						return _modules[id];
 					} else

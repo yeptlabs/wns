@@ -20,11 +20,11 @@
 (function () {
 
 	// Initialize the webNode.
-	require('{sourcePath}wnInit.js');
+	require('./{sourcePath}wnInit.js');
 
 	// Create the server using the following configuration file.
 	// Push the new server to the wnConsole.
-	wns.console.addServer('{serverPath}');
+	wns.console.addServer('./{serverPath}');
 
 	// To add a second server, just remove the comment
 	// And edit the new server path.

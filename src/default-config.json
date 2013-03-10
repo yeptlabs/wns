@@ -6,12 +6,12 @@
 
 	// Application load system configuration
 	"app": {
-		// Example of app load configuration
-		"default": {
-			"appPath": "default/",
-			"domain": "127.0.0.1",
-			"dbEngine": "mongo"
-		}
+		// Example of app load configuration (configure and remove the comment to create)
+		// "default": {
+		//	"appPath": "default/",
+		//	"domain": "127.0.0.1",
+		//	"dbEngine": "mongo"
+		// }
 	},
 
 	// Components

@@ -55,14 +55,6 @@ module.exports = {
 			}
 
 			this.loadApplications();
-			
-			this.http = this.getComponent('http');
-			if (this.http!=false)
-			{
-				this.http.setConfig({ app: this.getApplications() })
-				this.e.log('Listening HTTP server (port '+this.http.getConfig('listen')[0]+')...');
-				this.http.listen();
-			}
 		},
 
 		/**

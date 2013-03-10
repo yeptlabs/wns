@@ -22,7 +22,7 @@ var memory = process.memoryUsage().rss;
  console.log('   \\ / \\ /  |   |    o');
  console.log('    o   o   o   o o--o');
  console.log('\n         powered by YEPT(R)');
- console.log();
+ console.log()
 
 // Loading requirements..
 try
@@ -31,6 +31,8 @@ try
 	global.sourcePath = 'src/';
 	global.cwd = __dirname+'/../';
 	global._r = require;
+	if (global['gc']==undefined)
+		global.gc = function () {};
 	console.log(' CWD: '+cwd);
 	console.log(' SOURCEPATH: '+cwd+sourcePath);
 	console.log();
@@ -138,5 +140,3 @@ console.log('');
 
 // Create a new console
 wns.console = new wns.wnConsole({ modulePath: cwd }, cwd);
-
-//
