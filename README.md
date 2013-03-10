@@ -1,8 +1,21 @@
 [![WNS](http://dl.dropbox.com/u/21773527/WNS-Logo.png)](http://wns.yept.net)
 
-## Welcome to WNS (v0.0.3) [![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
+## Welcome to WNS (v0.0.4) [![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
 
-##### WNS is a high-performance component-based, class-based middleware framework
+##### WNS is a high-performance scalable component-based, class-based MIDDLEWARE
+
+###### Build anything in a highly scalable way.
+
+## Main Components
+
+ - HTTP Server
+ - Controller/View
+ - ActiveRecord
+ - Database
+ - Cache
+ - Url Manager
+ - Script
+ - Events
 
 ## Philosophy
 

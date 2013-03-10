@@ -66,7 +66,14 @@ module.exports = {
 		/**
 		 * @var string controller title
 		 */
-		title: undefined
+		title: undefined,
+
+		/**
+		 * @var string default events
+		 */
+		defaultEvents: {
+			"beforeAction": {}
+		}
 
 	},
 
@@ -83,6 +90,7 @@ module.exports = {
 			this.request=request;
 			this.app=app;
 			this.controllerName = this.getControllerName();
+			this.setParent(app);
 
 			if (this.request)
 			{
@@ -99,6 +107,15 @@ module.exports = {
 
 			if (this.app)
 				this.view=this.app.createClass('wnView',{ controller: this });
+
+			this.afterInit();
+		},
+
+		/**
+		 * After initialization
+		 */	
+		afterInit: function ()
+		{
 		},
 
 		/**
@@ -119,7 +136,12 @@ module.exports = {
 			{
 				if (actions[a].toLowerCase() == 'action'+action.toLowerCase())
 					{
-						return actions[a];
+						action=actions[a];
+						this.once('beforeAction',function () {
+							self[action]&&self[action]();
+						});
+						this.e.beforeAction();
+						return true;
 					}
 			}
 			return false;

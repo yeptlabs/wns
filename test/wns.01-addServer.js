@@ -12,6 +12,7 @@ var serverConfig = {},
 	serverConfig[consoleID] = {
 		"modulePath": "./test/tmp",
 		"serverID": consoleID,
+		"appDirectory": "app/",
 		"app": {
 			"test": {
 				"appPath": "test/",
