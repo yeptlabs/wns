@@ -86,10 +86,12 @@ module.exports = {
 				httpRequest.e.open();
 				this.e.readyRequest(httpRequest);
 				httpRequest.prepare();
-				httpRequest.once('end',function () {					
+				httpRequest.once('destroy',function () {
 					for (r in _slaveRequests[url])
 					{
-						var sreq=_slaveRequests[url];
+						var sreq=_slaveRequests[url][r];
+						if (sreq.sent)
+							continue;
 						sreq.data = httpRequest.data;
 						sreq.compressedData = httpRequest.compressedData;
 						sreq.code = httpRequest.code;
