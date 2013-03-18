@@ -189,13 +189,19 @@ module.exports = {
 		{
 			var realPath = this.instanceOf('wnModule')?this.modulePath+filePath:filePath,
 				cmd = !cb ? 'readFileSync' : 'readFile';
-				if (!fs.existsSync(realPath))
-					return (cb&&cb(false) == true);
-				var _cb = cb ? function (err,file) {
-					cb&&cb(!err ? ((binary===true) ? file : file.toString()) : false);
-				} : null,
-				file = fs[cmd](realPath,_cb);
-			return (file ? ((binary===true) ? file : file.toString()) : false);
+				try {
+					var _cb = cb ? function (err,file) {
+						cb&&cb(!err ? ((binary===true) ? file : file.toString()) : false);
+					} : null,
+					file = fs[cmd](realPath,_cb);
+				} catch (e)
+				{
+					if (_cb)
+						cb&&cb(false);
+					else
+						return false;
+				}
+			return (file ? (binary===true) ? file : file.toString() : false);
 		},
 
 		/**
@@ -206,10 +212,8 @@ module.exports = {
 		getFileStat: function (filePath,cb)
 		{
 			var realPath = this.instanceOf('wnModule')?this.modulePath+filePath:filePath,
-				cmd = !cb ? 'statSync' : 'stat';
-			if (!fs.existsSync(realPath))
-				return (cb&&cb(false) == true);
-			var _cb = cb ? function (err,stat) {
+				cmd = !cb ? 'statSync' : 'stat',
+				_cb = cb ? function (err,stat) {
 					cb&&cb(!err ? stat : false);
 				} : null,
 				stat = fs[cmd](realPath,_cb);
@@ -311,24 +315,22 @@ module.exports = {
 				return _events[eventName];
 			else
 			{
-				if (!_eventsConfig[eventName] || !this.c)
-					return false;
 				var config = _eventsConfig[eventName] || {},
-					_class = config.class;
-				config.id = eventName;
-				config.autoInit = false;
-				var evt = this.createClass(_class,config);
-				evt.setParent(this);
-				evt.init();
-				if (hidden != false)
-				{
-					_events[eventName] = evt;
-					this.e[name]=function () { evt.push.apply(evt,arguments); };
-				} else
-				{
-					Object.defineProperty(_events[eventName],{ value: evt, enumerable: false });
-				}
-				return evt;
+					className = config.class;
+					config.id = eventName;
+					config.autoInit = false;
+					var evt = this.createClass(className,config);
+					evt.setParent(this);
+					evt.init();
+					if (hidden != false)
+					{
+						_events[eventName] = evt;
+						this.e[name]=function () { evt.push.apply(evt,arguments); };
+					} else
+					{
+						Object.defineProperty(_events[eventName],{ value: evt, enumerable: false });
+					}
+					return evt;
 			}
 		},
 
@@ -338,14 +340,6 @@ module.exports = {
 		getEvents: function ()
 		{
 			return _events;
-		},
-
-		/**
-		 * Get all defined configuration of events.
-		 */
-		getEventsConfig: function ()
-		{
-			return _eventsConfig;
 		},
 
 		/**

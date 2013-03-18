@@ -38,6 +38,16 @@ module.exports = {
 	 * Public Variables
 	 */
 	public: {
+
+		/**
+		 * @var object events to be preloaded.
+		 */
+		defaultEvents: {
+			'newRequest': {},
+			'readyRequest': {},
+			'closedRequest': {},	
+		}
+
 	},
 
 	/**
@@ -51,6 +61,74 @@ module.exports = {
 		init: function ()
 		{
 			this.e.log("Application `"+this.getConfig('id')+"` running...","system");
+		},
+
+		/**
+		 * Handles a new httpRequest and build a new wnRequest.
+		 * @param $req HttpRequest's object
+		 * @param $res HttpResponse's object
+		 * @error throw an exception
+		 */
+		createRequest: function (req,resp)
+		{
+			var httpRequest, reqConf, url = req.url+'', self = this;
+			try
+			{
+				this.e.newRequest(req,resp);
+				if (!resp || resp.closed)
+					return false;
+
+				reqConf = Object.extend(true,{},this.getComponentConfig('http'),{ id: 'request-'+_requestCount, request: req, response: resp }),
+				httpRequest = this.createComponent('wnHttpRequest',reqConf);
+				_requestCount++;
+				httpRequest.created = +new Date;
+				httpRequest.init();
+				httpRequest.e.open();
+				this.e.readyRequest(httpRequest);
+				httpRequest.prepare();
+				httpRequest.once('destroy',function () {
+					for (r in _slaveRequests[url])
+					{
+						var sreq=_slaveRequests[url][r];
+						if (sreq.sent)
+							continue;
+						sreq.data = httpRequest.data;
+						sreq.compressedData = httpRequest.compressedData;
+						sreq.code = httpRequest.code;
+						sreq.header = httpRequest.header;
+						sreq.send();
+					}
+					_slaveRequests[url]=null;
+					reqConf = null;
+					_requestCount--;
+					_requests[url]=false;
+					httpRequest = null;
+				});
+				var self = this;
+				if (_requests[url]!=true && httpRequest.template != '<file>')
+				{
+					_requests[url]=true;
+					httpRequest.run();
+					_slaveRequests[url]=[];
+				} else if (httpRequest.template == '<file>')
+				{
+					httpRequest.run();
+				} else
+				{
+					_slaveRequests[url].push(httpRequest);
+				}
+			}
+			catch (e)
+			{
+				this.e.exception(e);
+			}
+		},
+
+		/**
+		 * Return all opened request on this application.
+		 */
+		getRequests: function () {
+			return _requests;
 		},
 		
 		/**

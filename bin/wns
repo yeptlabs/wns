@@ -1,36 +1,20 @@
 #!/usr/bin/env node
 
 var sourcePath = '../src/',
-	silent = true,
-	autoExit,
-	cmd,
-	args=(process.argv.length>2) ? process.argv.splice(2) : undefined, 
-	_path=require('path'),
-	server;
-
+	autoExit;
 require(sourcePath+'/wnInit');
 
-var configFile = process.cwd()+'/config.json',
-	path = fs.existsSync(configFile) ? _path.relative(sourcePath,process.cwd()) : undefined;
-
-if (args && fs.existsSync(args[0]))
+if (process.argv.length>2)
 {
-	var path = args[0];
-	if (args[1])
-		cmd = args[1];
-} else
-	cmd = args.join(' ');
-
-if (path)
-{
-	var path = _path.relative(wns.console.getModulePath(),_path.relative(process.cwd(),path)).replace(/\\/g,'/'),
-		target = wns.console.addServer(path);
-	if (!target)
+	var cmd = process.argv.slice(2).join(' ');
+	if (fs.existsSync(cmd))
 	{
-		target = wns.console;
-		cmd = 'this.buildServer("'+path+'"); process.exit();';
+		cmd = "this.buildServer('"+cmd+"')";
+		autoExit = true;
 	}
-
-	if (cmd)
-		target.exec(cmd);
+	wns.console.exec(cmd);
 }
+
+if (autoExit)
+	process.exit();
+

@@ -76,16 +76,21 @@ module.exports = {
 		 */
 		start: function ()
 		{
-			var _reload = function () {
+			_enabled = true;
+			(function () {
+				var args = arguments.callee.bind(this);
 				if (this.isEnabled() !== true)
 					return false;
 				this.once('release', function () {
-					_timeOut=setTimeout(_reload,this.getInterval());
+					_timeOut=setTimeout(args,this.getInterval());
 				}.bind(this));
-				self.run();
-			}.bind(this);
-			_enabled = true;
-			_reload();
+				try {
+				 self.run();
+				} catch (e) {
+				 self.getParent().e.exception&&self.getParent().e.exception(e);
+				 self.e.release();
+				}
+			}.bind(this))();
 		},
 
 		/**

@@ -380,4 +380,3 @@ wnBuild.prototype.makeDoc = function (className, docSource)
 		enumerable: false
 	});
 };
-

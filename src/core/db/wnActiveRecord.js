@@ -197,6 +197,14 @@ module.exports = {
 		},
 
 		/**
+		 *
+		 */
+		getCollection: function ()
+		{
+			return this.getDbConnection().dataObject.getCollection(this.collectionName());
+		},
+
+		/**
 		 * Checks whether this AR has the named attribute
 		 * @param string $name attribute name
 		 * @return boolean whether this AR has the named attribute (collection property).

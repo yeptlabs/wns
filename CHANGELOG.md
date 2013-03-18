@@ -111,4 +111,3 @@ WNS ChangeLog
 - Creation of MongoDB and mySQL dataobject. [pedronasser]
 - Exec() function on wnComponent class [pedronasser]
 - Console shell command exec in wnConsole context. [pedronasser]
-

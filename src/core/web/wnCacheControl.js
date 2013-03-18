@@ -218,31 +218,22 @@ module.exports = {
 		{
 			req.once('send',function () {
 				if (!req.stat)
-					return false;
-
+					return false;	
 				self.defineHeaders(req);
-				self.setCache('request-'+req.info.url,req.data);
-				self.setCache('request-etag-'+req.info.url,self.getEtag(req.stat));
-				self.setCache('request-modif-'+req.info.url,req.stat.mtime);
-				self.setCache('request-check-'+req.info.url,+new Date);
-				cb&&cb(false);
 			},true);
 
-			// req.once('end',function () {
-			// 	console.log(req.stat);
-
-			// 	if (!req.stat)
-			// 		return false;
-			// 	if (req.stat)
-			// 	{
-			// 		self.setCache('request-'+req.info.url,req.data);
-			// 		self.setCache('request-etag-'+req.info.url,self.getEtag(req.stat));
-			// 		self.setCache('request-modif-'+req.info.url,req.stat.mtime);
-			// 		self.setCache('request-check-'+req.info.url,+new Date);
-			// 		console.log('cached');
-			// 	}
-			// 	cb&&cb(false);
-			// },true);
+			req.once('end',function () {
+				if (!req.stat)
+					return false;
+				if (req.stat)
+				{
+					self.setCache('request-'+req.info.url,req.getOutput());
+					self.setCache('request-etag-'+req.info.url,self.getEtag(req.stat));
+					self.setCache('request-modif-'+req.info.url,req.stat.mtime);
+					self.setCache('request-check-'+req.info.url,+new Date);
+				}
+				cb&&cb(false);
+			},true);
 		},
 
 		/**

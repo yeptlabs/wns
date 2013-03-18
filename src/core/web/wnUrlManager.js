@@ -40,10 +40,7 @@ module.exports = {
 		/**
 		 * @var object the URL rules (pattern=>route).
 		 */
-		rules: [
-			["<file:.*\\.\\w+>","<file>"],
-			["<controller:[\\w'-]+>/<action:[\\w|\\W]+>","<controller>/<action>"]
-		],
+		rules: [],
 
 	},
 
@@ -57,7 +54,12 @@ module.exports = {
 		 */	
 		init: function () {
 			var newRules = this.getConfig('rules');
-			this.addRules(newRules);
+			_rules = [];
+			this.rules = [				
+				["<file:.*\\.\\w+>","<file>"],
+				["<controller:[\\w'-]+>/<action:[\\w|\\W]+>","<controller>/<action>"]
+			];
+			this.addRules(newRules,true);
 			this.process();
 		},
 
@@ -124,14 +126,17 @@ module.exports = {
 		 * @param object $rules new rules (pattern=>route)
 		 * @return wnUrlManager instance
 		 */
-		addRules: function (rules)
+		addRules: function (rules,prepend)
 		{
 			if (typeof rules == 'object')
 			{
-				var _rules = this.rules;
 				for (r in rules)
-					_rules.unshift([r,rules[r]]);
-				this.rules = _rules;
+				{
+					if (prepend)
+						this.rules.unshift([r,rules[r]]);
+					else
+						this.rules.push([r,rules[r]]);
+				}
 			}
 			return this;
 		},
@@ -143,7 +148,6 @@ module.exports = {
 		process: function ()
 		{
 			_rules = [];
-			this._rules = [];
 			for (r in this.rules)
 			{
 				var _r1 = this.rules[r][0].replace(/\x5C+/gim,"\x5C"),
