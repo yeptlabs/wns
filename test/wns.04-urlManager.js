@@ -25,3 +25,5 @@ for (t in urlTests)
 }
 
 this.e.endTest();
+
+'executed urlManager test.'

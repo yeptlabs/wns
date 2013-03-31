@@ -15,24 +15,29 @@ var self = this,
 	testedApp = 0,
 	totalApps = 0;
 
+	try {
+		server.http.benchmark=false;
+		httpComponent.listen();
+	} catch (e) { server.http.benchmark=false; }
+
 for (a in app)
 {
-	appConfig[a].domain='notvalid';
+	appConfig[a].domain='notvalidx';
 	totalApps++;
 }
 
 for (a in app)
 {
-
 	appConfig[a].domain = 'localhost';
 	var req = new http.ClientRequest({ agent: false }),
 		resp = new http.ServerResponse(req);
 
 	req.headers={};
-	req.headers['host'] = appConfig[a].domain;
+	req.headers['host'] = new String(appConfig[a].domain);
 	req.url = '/';
 
 	httpComponent.getEvent('redirect').once(function (e) {
+		var a;
 		e.stopPropagation=true;
 		testedApp++;
 		if (testedApp == totalApps)
@@ -40,5 +45,7 @@ for (a in app)
 	}, true);
 	httpComponent.e.open(req,resp);
 	
-	appConfig[a].domain='notvalid';
+	appConfig[a.replace('app-','')].domain='127.0.0.1';
 }
+
+'executed http test.'

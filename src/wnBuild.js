@@ -203,10 +203,7 @@ wnBuild.prototype.buildClass = function (className)
 					continue;
 				eval('var '+p+' = __builder.newValue(build.private[p]);');
 			}
-
-			//if (className.indexOf('App')!=-1);
-			//		console.log(m);
-
+			
 			var self = k;
 
 			// Redeclare privileged methods

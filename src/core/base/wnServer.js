@@ -36,6 +36,9 @@ module.exports = {
 	 */
 	public:
 	{
+		defaultEvents: {
+			'loadApplication': {}
+		}
 	},
 
 	/**
@@ -55,14 +58,6 @@ module.exports = {
 			}
 
 			this.loadApplications();
-			
-			this.http = this.getComponent('http');
-			if (this.http!=false)
-			{
-				this.http.setConfig({ app: this.getApplications() })
-				this.e.log('Listening HTTP server (port '+this.http.getConfig('listen')[0]+')...');
-				this.http.listen();
-			}
 		},
 
 		/**
@@ -165,7 +160,9 @@ module.exports = {
 		 */
 		getApplication: function (id)
 		{
-			var app = this.getModule('app-'+id);
+			var app = this.getModule('app-'+id, function (app) {
+				self.e.loadApplication(app);
+			});
 			if (app)
 			{
 				_app[id]=app;

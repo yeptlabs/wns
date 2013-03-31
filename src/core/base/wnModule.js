@@ -118,7 +118,16 @@ module.exports = {
 		/**
 		 * @var array behaviors to attach
 		 */
-		behaviors: {}
+		behaviors: {},
+
+		/**
+		 * Default events.
+		 */
+		defaultEvents:
+		{
+			'loadModule': {},
+			'loadComponent': {}
+		}
 	
 	},
 
@@ -204,10 +213,10 @@ module.exports = {
 		 */
 		prepareModel: function (model) {
 			var c = this.c,
-				self = this;
+				s = this;
 			this.m[model]=function () {
-				var klass = c[model];
-				return new klass({ autoInit: true }, self.c, self, self.db);
+				var modelClass = c[model];
+				return new modelClass({ autoInit: true }, s.c, s, s.db);
 			};
 		},
 
@@ -316,6 +325,7 @@ module.exports = {
 			{
 				var config = _componentsConfig[id] || {},
 					className = config.class || id;
+				console.log(config);
 				if (this.getComponent('classBuilder').exists(className))
 				{
 					config.id = id;
@@ -323,6 +333,7 @@ module.exports = {
 					var component = this.createComponent(className,config);
 					if (config.seeParent)
 						component.setParent(this);
+					self.e.loadComponent(e,id,component);
 					(!config.autoInit)&&component.init(config);
 					_components[id] = component;
 					if (typeof config.alias == 'string')
@@ -456,16 +467,16 @@ module.exports = {
 		 * The module has to be declared in the global modules list. A new instance will be created
 		 * when calling this method with the given ID for the first time.
 		 * @param string $id application module ID (case-sensitive)
+		 * @param function $onLoad function called when app loaded
 		 * @return wnModule the module instance, null if the module is disabled or does not exist.
 		 */
-		getModule: function (id)
+		getModule: function (id,onLoad)
 		{
 			if (_modules[id] != undefined) 
 				return _modules[id];
 			else if (this.hasComponent('classBuilder'))
 			{
 				try {
-
 					var config = _modulesConfig[id] || {},
 						modulePath = config.modulePath || id,
 						className = config.class;
@@ -476,6 +487,8 @@ module.exports = {
 						var module = this.createModule(className,modulePath,config);
 						_modules[id] = module;
 						this.attachModuleEvents(id);
+						onLoad&&onLoad(module);
+						self.e.loadModule(id,module);
 						module.e.ready(modulePath,config);
 						return _modules[id];
 					} else

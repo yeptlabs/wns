@@ -21,7 +21,8 @@ var validTests = 0,
 	lastErrors = 0,
 	passedTests = 0,
 	testTimeout = -1,
-	testDir=cwd+'test/tmp';
+	testDir=cwd+'test/tmp',
+	idleTimeout=-1;
 
 if (fs.existsSync(testDir))
 	wrench.rmdirSyncRecursive(testDir, function () {});
@@ -39,18 +40,27 @@ wns.console.addListener('exception', function () {
 	wns.console.e.endTest();
 });
 
-setTimeout(function () {
-	process.exit(1);
-},60000*2);
+function refreshIdle () {
+	clearTimeout(idleTimeout);
+	idleTimeout=setTimeout(function () {
+		process.exit(1);
+	},60000);
+}
+refreshIdle();
 
-_walk('./test',function (err,tests) {
+function getTests (cb) {
+	var tests=fs.readdirSync('./test');
+	cb&&cb(null,tests);
+}
+
+getTests(function (err,tests) {
+
+	if (err)
+		process.exit(-1);
 
     tests=tests.sort(function(a, b) {
 		return a < b ? -1 : 1;
     });
-    
-	if (err)
-		process.exit(-1);
 
 	var i = 0;
 	(function () {
@@ -83,11 +93,12 @@ _walk('./test',function (err,tests) {
 			try {
 				console.log('[*] Running: '+tests[i]);
 				lastErrors = wns.console.errors;
-				testTimeout=setTimeout(function () {
-					wns.console.errors++;
-					wns.console.e.endTest();
-				},10000);
-				wns.console.exec(wns.console.getFile(tests[i]));
+				refreshIdle();
+				//testTimeout=setTimeout(function () {
+				//	wns.console.errors++;
+				//	wns.console.e.endTest();
+				//},10000);
+				wns.console.exec(wns.console.getFile('./test/'+tests[i]));
 			} catch (e)
 			{
 				wns.console.errors++;
