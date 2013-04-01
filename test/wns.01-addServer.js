@@ -23,7 +23,8 @@ var serverConfig = {},
 			"http": {
 				"class": "wnHttp",
 				"listen":[80],
-				"alias": "http"
+				"alias": "http",
+				"autoListen": false
 			}
 		}
 	};

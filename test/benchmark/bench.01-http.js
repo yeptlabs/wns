@@ -1,18 +1,15 @@
 console.log('Running HTTP benchmark...');
 
 var sys = require('sys'),
-    http = require('http');
- 
-// Usage:
-// node client.js port, num, c
- 
-var port = process.argv[2];
-var n = process.argv[3];
-var c = process.argv[4];
- 
-var count = n;
-var data = 0;
-var start = new Date().valueOf();
+    http = require('http'),
+    port = process.argv[2],
+    n = process.argv[3],
+    c = process.argv[4],
+    count = n,
+    data = 0,
+    errors = 0,
+    success = 0,
+    start = new Date().valueOf();
 
 for (var i = 0; i < c; i++) {
     (function () {
@@ -28,15 +25,19 @@ for (var i = 0; i < c; i++) {
             	path: "/",
             	port: port
             }, function (res) {
+                res.once('data', function (chunk) {
+                    success++;
+                });
                 res.on('data', function (chunk) {
                 	//console.log(chunk.toString('utf8'));
                     data += chunk.length;
                 });
                 res.once('end', function () {
+                    //console.log('ok')
                     _finish();
                 });
             });
-            req.on('error', function(e) { _finish(); console.log(e); });
+            req.on('error', function(e) {});
             req.end();
         }());
     }());
@@ -50,6 +51,8 @@ function end() {
     console.log("Port: " + port);
     console.log("Num Requests: " + n);
     console.log("Concurrency: " + c);
+    console.log("Success: " + success);
+    console.log("Errors: " + errors);
     console.log("Total Data: " + data + " bytes");
     console.log("Total Time: " + seconds + " seconds");
     console.log((n / seconds) + " Requests/sec");

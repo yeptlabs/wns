@@ -16,6 +16,19 @@ var self=this,
 if (server.http.benchmark)
 	return self.e.endTest();
 
+// app.addListener('newRequest', function (e,req,resp) {
+// 	console.log('newRequest');
+// 	resp.end('okay');
+// 	e.stopPropagation=true;
+// });
+
+app.addListener('readyRequest', function (e,req) {
+	//console.log('readyRequest');
+	req.send('okay');
+	e.stopPropagation=true;
+	req=null;
+});
+
 _walk('./test/benchmark',function (err,benchs) {
 
 	if (err)
@@ -41,7 +54,7 @@ _walk('./test/benchmark',function (err,benchs) {
 			i++;
 			args.callee();
 		} else {
-			var b=spawn('node', [ benchs[i], 80, 1, 1 ]);
+			var b=spawn('node', [ benchs[i], 80, 1000, 1000 ]);
 			b.once('close', function (code) {
 				i++;
 				validBenchs++;

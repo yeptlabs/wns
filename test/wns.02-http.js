@@ -45,7 +45,7 @@ for (a in app)
 	}, true);
 	httpComponent.e.open(req,resp);
 	
-	appConfig[a.replace('app-','')].domain='127.0.0.1';
+	appConfig[a.replace('app-','')].domain='notvalid';
 }
 
 'executed http test.'

@@ -306,13 +306,16 @@ module.exports = {
 
 		/**
 		 * Method that prepare and sends the response.
+		 * @param string/buffer $data response data (optional)
 		 */
-		send: function ()
+		send: function (data)
 		{
 			if (self.sent)
 				return false;
 
 			var res = this.response;
+
+			self.data = self.data.concat(data||'');
 
 			this.once('send', function (e,cb) {
 				cb&&cb();

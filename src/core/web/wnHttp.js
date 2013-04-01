@@ -28,7 +28,8 @@ module.exports = {
 	 */
 	private: {
 		_modules: {},
-		_requestCount: 0
+		_requestCount: 0,
+		count:0
 	},
 
 	/**
@@ -68,6 +69,7 @@ module.exports = {
 		init: function (config,c)
 		{
 			this.connection=http.createServer(self.e.open);
+			this.autoListen=this.getConfig('autoListen')||false;
 			this.addListener('open',function (e,req,resp) {
 				self.handler(req,resp);
 			});
@@ -80,7 +82,8 @@ module.exports = {
 			this.getParent().addListener('loadModule',function (e,moduleName,module) {
 				self.attachModule(moduleName,module);
 			});
-			this.listen();
+			if (this.autoListen)
+				this.listen();
 		},
 
 		/**
@@ -139,26 +142,30 @@ module.exports = {
 				var httpRequest, reqConf, url = req.url+'', self = app;
 				try
 				{
-					self.e.newRequest(req,resp);
-					_requestCount++;
+					self.once('newRequest',function (e,req,resp) {
+						_requestCount++;
 
-					if (!resp || resp.closed)
-						return false;
+						if (!resp || resp.closed)
+							return false;
 
-					reqConf = Object.extend(true,{},self.getComponentConfig('http'),{ id: 'request-'+(+new Date)+'-'+_requestCount }),
-					httpRequest = new self.c.wnHttpRequest(reqConf, self.c);
-					httpRequest.setParent(self);
-					httpRequest.created = +new Date;
-					httpRequest.init(req,resp);
-					httpRequest.e.open();
-					httpRequest.prepare();
-					self.e.readyRequest(httpRequest);
-					app.e.readyRequest(httpRequest);
-					httpRequest.once('destroy',function () {
-						reqConf = null;
-						httpRequest = null;
-					});
-					httpRequest.run();
+						reqConf = Object.extend(true,{},self.getComponentConfig('http'),{ id: 'request-'+(+new Date)+'-'+_requestCount }),
+						httpRequest = new self.c.wnHttpRequest(reqConf, self.c);
+						httpRequest.setParent(self);
+						httpRequest.created = +new Date;
+						httpRequest.init(req,resp);
+						httpRequest.e.open();
+						httpRequest.prepare();
+						app.once('readyRequest',function (e,req) {
+							req.once('destroy',function () {
+								reqConf = null;
+								req = null;
+							});
+							req.run();
+						});
+						app.e.readyRequest(httpRequest);
+
+					})
+					app.e.newRequest(req,resp);
 				}
 				catch (e)
 				{

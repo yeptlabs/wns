@@ -325,7 +325,6 @@ module.exports = {
 			{
 				var config = _componentsConfig[id] || {},
 					className = config.class || id;
-				console.log(config);
 				if (this.getComponent('classBuilder').exists(className))
 				{
 					config.id = id;
