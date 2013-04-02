@@ -191,19 +191,22 @@ wnBuild.prototype.compileClass = function (targetClass)
 	var classSource = sourceClass+".className = '"+sourceClass+"';\n",
 		builder = this,
 		build = this.classesSource[targetClass];
-
+		
 	classSource += "(function () {\n";
 
+		classSource += "var _=self,";
 		// Declare private vars
 		for (p in build.private)
 		{
 			if (p == '__builder')
 				continue;
 			if (typeof build.private[p] != 'function')
-				classSource += "var "+p+" = "+util.inspect(build.private[p],{depth:null})+";\n";
+				classSource += p+" = "+util.inspect(build.private[p],false,null,false);
 			else
-				classSource += "var "+p+" = "+build.private[m].toString()+";\n";
+				classSource += p+" = "+build.private[m].toString();
+			classSource+=",";
 		}
+		classSource=classSource.substr(0,classSource.length-1)+";\n";
 	
 		// Redeclare privileged methods
 		for (m in build.methods)
@@ -219,13 +222,13 @@ wnBuild.prototype.compileClass = function (targetClass)
 		if (p == '__builder')
 			continue;
 		if (typeof build.public[p] != 'function')
-			classSource += sourceClass+"['"+p+"'] = "+util.inspect(build.public[p],{depth:null})+";\n";
+			classSource += sourceClass+"['"+p+"'] = "+util.inspect(build.public[p],false,null,false)+"; ";
 		else
-			classSource += sourceClass+"['"+p+"'] = "+build.public[m].toString()+";\n";
+			classSource += sourceClass+"['"+p+"'] = "+build.public[m].toString()+"; ";
 	}
 
 	if (build.hasOwnProperty('constructor'))
-		classSource += sourceClass+'.constructor='+build.constructor.toString();
+		classSource += sourceClass+'.constructor='+build.constructor.toString()+";\n";
 
 	// Replace all unknown functions.
 	classSource = classSource.replace(/\[Function\]/gim, 'function () {}');
