@@ -105,15 +105,15 @@ module.exports = {
 		/**
 		 * Start listening the HTTP server.
 		 */
-		listen: function ()
+		listen: function (cb)
 		{
 			var config = this.getConfig();
 			try {
-				this.connection.listen(config.listen[0] || 80,config.listen[1]);
+				this.connection.listen(config.listen[0] || 80,config.listen[1],cb);
 				this.getParent().e.log('Listening HTTP server (port '+config.listen[0]+')...');
 			} catch (e) {
-				this.getParent().e.log
-					&&this.getParent().e.log('wnHttp: could not listen the http server.');
+				this.getParent().e.exception
+					&&this.getParent().e.exception(e);
 			}
 		},
 

@@ -31,20 +31,22 @@ fs.mkdirSync(testDir,0755);
 console.log('[*] Running tests on `'+testDir+'`...');
 
 wns.console.setEvents({
-	'endTest': {}
+	'endTest': {},
+	'errorTest': {}
 });
 
 wns.console.errors=0;
-wns.console.addListener('exception', function () {
+wns.console.addListener('exception', function (err,e) {
 	wns.console.errors++;
 	wns.console.e.endTest();
+	wns.console.e.errorTest(e);
 });
 
 function refreshIdle () {
 	clearTimeout(idleTimeout);
 	idleTimeout=setTimeout(function () {
 		process.exit(1);
-	},60000);
+	},120000);
 }
 refreshIdle();
 
@@ -90,20 +92,23 @@ getTests(function (err,tests) {
 				validTests++;
 				args.callee();
 			});
-			try {
-				console.log('[*] Running: '+tests[i]);
-				lastErrors = wns.console.errors;
-				refreshIdle();
 				//testTimeout=setTimeout(function () {
 				//	wns.console.errors++;
 				//	wns.console.e.endTest();
 				//},10000);
-				wns.console.exec(wns.console.getFile('./test/'+tests[i]));
-			} catch (e)
-			{
-				wns.console.errors++;
-				wns.console.e.endTest();
-			}
+			process.nextTick(function () {
+				try {
+					console.log('[*] Running: '+tests[i]);
+					lastErrors = wns.console.errors;
+					refreshIdle();
+					wns.console.exec(wns.console.getFile('./test/'+tests[i]));
+				} catch (e)
+				{
+					wns.console.e.errorTest(e);
+					wns.console.errors++;
+					wns.console.e.endTest();
+				}
+			});	
 		}
 
 	})(i);
