@@ -69,7 +69,7 @@ module.exports = {
 		init: function (config,c)
 		{
 			this.connection=http.createServer(self.e.open);
-			this.autoListen=this.getConfig('autoListen')||false;
+			this.autoListen=this.getConfig('autoListen')||true;
 			this.addListener('open',function (e,req,resp) {
 				self.handler(req,resp);
 			});
@@ -148,8 +148,9 @@ module.exports = {
 						if (!resp || resp.closed)
 							return false;
 
-						reqConf = Object.extend(true,{},self.getComponentConfig('http'),{ id: 'request-'+(+new Date)+'-'+_requestCount }),
+						reqConf = Object.extend(true,{},self.getComponentConfig('http'),{ id: 'request-'+(+new Date)+'-'+_requestCount })
 						httpRequest = new self.c.wnHttpRequest(reqConf, self.c);
+
 						httpRequest.setParent(self);
 						httpRequest.created = +new Date;
 						httpRequest.init(req,resp);

@@ -89,11 +89,6 @@ module.exports = {
 		 * @var private string component's classname
 		 */
 		_className: '',
-
-		/**
-		 * @var private array component's extension list
-		 */
-		_extend: []
 	
 	},
 
@@ -122,8 +117,7 @@ module.exports = {
 		/**
 		 * @var object events to be preloaded. 
 		 */
-		defaultEvents: {
-		}
+		defaultEvents: {}
 	},
 
 	/**
@@ -147,7 +141,7 @@ module.exports = {
 		 */
 		getExtend: function ()
 		{
-			return _extend;
+			return __extend;
 		},
 
 		/**
@@ -156,7 +150,7 @@ module.exports = {
 		 */
 		instanceOf: function (name)
 		{
-			return _extend.indexOf(name+'') != -1;
+			return __extend.indexOf(name+'') != -1;
 		},
 
 		/**

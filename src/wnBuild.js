@@ -125,7 +125,8 @@ wnBuild.prototype.buildClass = function (className)
 
 	var build = Object.extend(true,{},targetClass),
 		__self = this,
-		_ext = [];
+		_ext = [],
+		sourceCode = this.compileClass(className);
 
 	(function (extend) {
 		for (e in extend)
@@ -139,101 +140,34 @@ wnBuild.prototype.buildClass = function (className)
 	})(build.extend);
 	build.extend = _ext;
 
-	var __builder = this;
+	var __builder = this,
+		__extend = build.extend;
 	eval("var classBuilder = function "+className+"() { return this.build.apply(undefined,arguments); }");
 	eval("var klass = function "+className+"() {}");
 
 	// Class builder.
 	classBuilder.prototype.build = function () {
-
-		var k = new klass,
-			self = k;
-
-		// Importing extensions
+		eval('var '+className+' = new klass;');
+		eval('var self = '+className+';');
 		for (e in build.extend)
 		{
-
-				(function () {
-
-					var extendBuild=__self.classes[build.extend[e]].build;
-
-					// Declare private variables
-					for (p in extendBuild.private)
-					{
-						if (p == '__builder')
-							continue;
-						eval('var '+p+' = __builder.newValue(extendBuild.private[p]);');
-					}
-
-					var _className = __self.newValue(className),
-						_extend = __self.newValue(build.extend),
-						_buildMethods = __self.newValue(extendBuild.methods),
-						extendBuild=__self.classes[build.extend[e]].build;
-
-					// Redeclare privileged methods.
-					for (m in _buildMethods)
-					{
-						k[m] = eval('['+_buildMethods[m].toString()+']')[0];
-					}
-				
-					// Push public vars to the build
-					Object.extend(true,build.public,extendBuild.public);
-
-					var extendBuild=__self.classes[build.extend[e]].build;
-
-					// Define this constructor as the main constructor.
-					if (extendBuild.propertyIsEnumerable('constructor'))
-						build.constructor=eval('['+extendBuild.constructor+']')[0];
-
-				})();
+			var extendSource = __builder.classes[build.extend[e]].source.replace(/\[CLASSNAME\]/g,className);
+			eval(extendSource);
 		}
-
-		// Import local build
-		Object.extend(true,build.public,targetClass.public);
-		Object.extend(true,build.methods,targetClass.methods);
-		Object.extend(true,build.private,targetClass.private);
-
-		// Redeclare;
-		(function () {
-		
-			// Declare private vars
-			for (p in build.private)
-			{
-				if (p == '__builder')
-					continue;
-				eval('var '+p+' = __builder.newValue(build.private[p]);');
-			}
-			
-			var self = k;
-
-			// Redeclare privileged methods
-			for (m in build.methods)
-			{
-				k[m] = eval('['+build.methods[m].toString()+']')[0];
-			}
-
-		})();
-
-		// Import constructor
-		k.constructor=build.constructor;
-		if (targetClass.propertyIsEnumerable('constructor'))
-			k.constructor = targetClass.constructor;
-
-		// Redeclare public vars
-		for (p in build.public)
-		{
-			k[p] = __builder.newValue(build.public[p]);
-		}
-
-		// Call constructor.
-		k.constructor&&k.constructor.apply(k, arguments);
-
-		return k;
-	
+		eval(sourceCode.replace(/\[CLASSNAME\]/g,className));
+		eval(className+'.constructor&&'+className+'.constructor.apply('+className+', arguments);');
+		return self;
 	};
 
 	Object.defineProperty(classBuilder, 'build', {
 		value: build,
+		writable: false,
+		enumerable: false,
+		configurable: false
+	});
+
+	Object.defineProperty(classBuilder, 'source', {
+		value: sourceCode,
 		writable: false,
 		enumerable: false,
 		configurable: false
@@ -246,6 +180,58 @@ wnBuild.prototype.buildClass = function (className)
 
 	return classBuilder;
 };
+
+wnBuild.prototype.compileClass = function (targetClass)
+{
+	var targetClass = targetClass+'',
+		sourceClass = '[CLASSNAME]';
+	if (!this.classesSource[targetClass] || this.classesSource[targetClass].source)
+		return 'k.constructor=function () { throw new Error("Error on compiling class `'+targetClass+'`"); }';
+
+	var classSource = sourceClass+".className = '"+sourceClass+"';\n",
+		builder = this,
+		build = this.classesSource[targetClass];
+
+	classSource += "(function () {\n";
+
+		// Declare private vars
+		for (p in build.private)
+		{
+			if (p == '__builder')
+				continue;
+			if (typeof build.private[p] != 'function')
+				classSource += "var "+p+" = "+util.inspect(build.private[p],{depth:null})+";\n";
+			else
+				classSource += "var "+p+" = "+build.private[m].toString()+";\n";
+		}
+	
+		// Redeclare privileged methods
+		for (m in build.methods)
+		{
+			classSource += sourceClass+"['"+m+"'] = "+build.methods[m].toString()+";\n";
+		}
+
+	classSource += "})();\n";
+
+	// Declare public vars
+	for (p in build.public)
+	{
+		if (p == '__builder')
+			continue;
+		if (typeof build.public[p] != 'function')
+			classSource += sourceClass+"['"+p+"'] = "+util.inspect(build.public[p],{depth:null})+";\n";
+		else
+			classSource += sourceClass+"['"+p+"'] = "+build.public[m].toString()+";\n";
+	}
+
+	if (build.hasOwnProperty('constructor'))
+		classSource += sourceClass+'.constructor='+build.constructor.toString();
+
+	// Replace all unknown functions.
+	classSource = classSource.replace(/\[Function\]/gim, 'function () {}');
+
+	return classSource;
+}
 
 /**
  * Check class source structure.

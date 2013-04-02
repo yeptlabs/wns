@@ -22,7 +22,7 @@ var self = this,
 
 for (a in app)
 {
-	appConfig[a].domain='notvalidx';
+	appConfig[a].domain='notvalid';
 	totalApps++;
 }
 
@@ -45,7 +45,7 @@ for (a in app)
 	}, true);
 	httpComponent.e.open(req,resp);
 	
-	appConfig[a.replace('app-','')].domain='notvalid';
+	appConfig[a.replace('app-','')].domain='127.0.0.1';
 }
 
 'executed http test.'

@@ -315,7 +315,7 @@ module.exports = {
 
 			var res = this.response;
 
-			self.data = self.data.concat(data||'');
+			self.data = Buffer.concat([new Buffer(self.data,'utf8'),new Buffer(data||0)]);
 
 			this.once('send', function (e,cb) {
 				cb&&cb();
@@ -333,7 +333,8 @@ module.exports = {
 					self.app.e.closedRequest(self);
 				});
 
-				res.end(self.data);
+				res.write(self.data);
+				res.end();
 			});
 		}
 

@@ -1,6 +1,55 @@
 WNS ChangeLog
 ========
 
+## v0.0.5
+
+- General
+ - New class build/compilation system (> performance) [pedronasser]
+ - New http benchmark. [pedronasser]
+ - Fixes and changes on tests. [pedronasser]
+ - Changes to remove HTTP/MVC classes from the core package. [pedronasser]
+ - many bug fixes [pedronasser]
+
+- wnComponent
+ - some functions changes [pedronasser]
+
+- wnModule
+ - some functions changes. [pedronasser]
+
+- wnConsole
+ - fixed build server system. [pedronasser]
+ - added some default events. [pedronasser]
+
+- wnServer
+ - Removed listen function on init(); [pedronasser]
+ - added some default events. [pedronasser]
+
+- wnApp
+ - Moved createRequest from application to wnHttp. [pedronasser]
+
+- wnHttp
+ - Moved createRequest from application to wnHttp. [pedronasser]
+ - Module attaching system. [pedronasser]
+ - New httpRequest events. [pedronasser]
+ - Some httpRequest changes. [pedronasser]
+
+- wnController
+ - new action resolve function. [pedronasser]
+
+- wnCacheControl
+ - new http header/chaching control system. [pedronasser]
+
+- wnWebCompress
+ - new http data compress. [pedronasser]
+
+- wnUrlManager
+ - Changes on addRules() [pedronasser]
+ - Changes on process() [pedronasser]
+
+- Mongo Support
+ - Added `query` and `count` [pedronasser]
+ - Added getCollectionName() [pedronasser]
+
 ## v0.0.4
 
 - Genaral

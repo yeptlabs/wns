@@ -37,6 +37,8 @@ module.exports = {
 	public:
 	{
 		defaultEvents: {
+			'loadModule': {},
+			'loadComponent': {},
 			'loadApplication': {}
 		}
 	},

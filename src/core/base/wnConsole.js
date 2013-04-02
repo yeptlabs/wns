@@ -51,6 +51,8 @@ module.exports = {
 		 * @var object events to be preloaded.
 		 */
 		defaultEvents: {
+			'loadModule': {},
+			'loadComponent': {},
 			'loadServer': {},
 			'log': {
 				handler: 'logHandler'

@@ -55,6 +55,6 @@ function end() {
     console.log("Errors: " + errors);
     console.log("Total Data: " + data + " bytes");
     console.log("Total Time: " + seconds + " seconds");
-    console.log((n / seconds) + " Requests/sec");
+    console.log((success / seconds) + " Requests/sec");
     console.log((data / 1024 / seconds) + " Kilobytes/sec");
 }

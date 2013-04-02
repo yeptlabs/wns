@@ -16,14 +16,7 @@ var self=this,
 if (server.http.benchmark)
 	return self.e.endTest();
 
-// app.addListener('newRequest', function (e,req,resp) {
-// 	console.log('newRequest');
-// 	resp.end('okay');
-// 	e.stopPropagation=true;
-// });
-
 app.addListener('readyRequest', function (e,req) {
-	//console.log('readyRequest');
 	req.send('okay');
 	e.stopPropagation=true;
 	req=null;
