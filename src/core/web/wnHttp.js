@@ -69,7 +69,7 @@ module.exports = {
 		init: function (config,c)
 		{
 			this.connection=http.createServer(self.e.open);
-			this.autoListen=this.getConfig('autoListen')||true;
+			this.autoListen=this.getConfig('autoListen') || true;
 			this.addListener('open',function (e,req,resp) {
 				self.handler(req,resp);
 			});
@@ -164,8 +164,7 @@ module.exports = {
 							req.run();
 						});
 						app.e.readyRequest(httpRequest);
-
-					})
+					});
 					app.e.newRequest(req,resp);
 				}
 				catch (e)
