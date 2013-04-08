@@ -121,8 +121,8 @@ module.exports = {
 			console.log("[*] - Creating new `index.js` file.");
 			var defaultIndex = fs.readFileSync(_sourcePath+'/default-index.js');
 			defaultIndex = new this.c.wnTemplate(defaultIndex).match({
-				sourcePath: relativeSourcePath.replace(/\\/g,'/'),
-				serverPath: relativeServerPath.replace(/\\/g,'/')
+				sourcePath: './'+relativeSourcePath.replace(/\\/g,'/'),
+				serverPath: './'+relativeServerPath.replace(/\\/g,'/')
 			});
 			fs.writeFileSync(serverPath+'/index.js',defaultIndex);
 
