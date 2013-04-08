@@ -51,6 +51,9 @@ module.exports = {
 		 * @var object events to be preloaded.
 		 */
 		defaultEvents: {
+			'loadModule': {},
+			'loadComponent': {},
+			'loadServer': {},
 			'log': {
 				handler: 'logHandler'
 			}
@@ -102,22 +105,27 @@ module.exports = {
 		buildServer: function (serverPath)
 		{
 			var _sourcePath = path.resolve(cwd+sourcePath),
-				_serverPath = path.relative(cwd,serverPath),
+				_serverPath = serverPath,
 				relativeSourcePath = path.relative(serverPath,_sourcePath)+'/';
+			console.log("[*] Building new wnServer on `"+serverPath+"`");
 
 			if (!fs.existsSync(cwd+_serverPath))
 				return false;
 
+			console.log("[*] - Creating new `config.json` file.");
 			fs.writeFileSync(cwd+_serverPath+'/config.json',
 				fs.readFileSync(_sourcePath+'/default-config.json')
 			);
 
+			console.log("[*] - Creating new `index.js` file.");
 			var defaultIndex = fs.readFileSync(_sourcePath+'/default-index.js');
 			defaultIndex = new this.c.wnTemplate(defaultIndex).match({
 				sourcePath: relativeSourcePath.replace(/\\/g,'/'),
 				serverPath: _serverPath.replace(/\\/g,'/')
 			});
 			fs.writeFileSync(cwd+_serverPath+'/index.js',defaultIndex);
+
+			console.log('[*] New wnServer created.');
 
 			return true;
 		},
@@ -175,7 +183,9 @@ module.exports = {
 		 */
 		createServer: function (id)
 		{
-			var m = this.getModule('server-'+id)
+			var m = this.getModule('server-'+id, function (app) {
+				self.e.loadServer(app);
+			});
 			_serverModules.push(m);
 			return m;
 		},

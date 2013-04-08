@@ -1,7 +1,7 @@
 {
   "name": "wnserver",
   "description": "A high-performance scalable component-based, class-based middleware and framework",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": "Pedro Nasser <pedronasser@gmail.com>",
   "contributors": [ 
     { "name": "Pedro Nasser", "email": "pedronasser@gmail.com" }
@@ -9,7 +9,8 @@
   "main": "index",
   "dependencies": {
     "mime": "1.2.x",
-    "wrench": "1.4.x"
+    "wrench": "1.4.x",
+    "formidable": "latest"
   },
   "keywords": [
     "web","yii","framework","wns","mvc",

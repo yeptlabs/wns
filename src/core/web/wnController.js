@@ -95,7 +95,7 @@ module.exports = {
 			if (this.request)
 			{
 				this.query.GET = {};
-				this.query.POST = {};
+				this.query.POST = { fields: {}, files: {} };
 				Object.extend(true,this.query.POST, this.request.info.body);
  				Object.extend(true,this.query.GET, this.request.parsedUrl.query);
 				Object.extend(true,this.query.GET, this.request.route.params);
@@ -136,6 +136,7 @@ module.exports = {
 			{
 				if (actions[a].toLowerCase() == 'action'+action.toLowerCase())
 					{
+						this.resolvedAction = action;
 						action=actions[a];
 						this.once('beforeAction',function () {
 							self[action]&&self[action]();

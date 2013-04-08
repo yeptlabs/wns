@@ -36,6 +36,11 @@ module.exports = {
 	 */
 	public:
 	{
+		defaultEvents: {
+			'loadModule': {},
+			'loadComponent': {},
+			'loadApplication': {}
+		}
 	},
 
 	/**
@@ -55,14 +60,6 @@ module.exports = {
 			}
 
 			this.loadApplications();
-			
-			this.http = this.getComponent('http');
-			if (this.http!=false)
-			{
-				this.http.setConfig({ app: this.getApplications() })
-				this.e.log('Listening HTTP server (port '+this.http.getConfig('listen')[0]+')...');
-				this.http.listen();
-			}
 		},
 
 		/**
@@ -99,12 +96,13 @@ module.exports = {
 				modules[a].appName=appName;
 				modules[a].class='wnApp';
 				this.buildApplication(appName,modules[a].modulePath);
-				if (fs.existsSync(modules[a].modulePath+appName+'.js'))
+				var realModulePath = this.modulePath+modules[a].modulePath;
+				if (fs.existsSync(realModulePath+appName+'.js'))
 				{
 					modules[a].class='wnApp_'+appName;
 					var module = {},
 						className = modules[a].class,
-					 _class = fs.readFileSync(modules[a].modulePath+appName+'.js','utf-8').toString();
+					 _class = fs.readFileSync(realModulePath+appName+'.js','utf-8').toString();
 					eval(_class);
 					var cb = this.getComponent('classBuilder'),
 						appClass = cb.classesSource['wnApp'];
@@ -164,7 +162,9 @@ module.exports = {
 		 */
 		getApplication: function (id)
 		{
-			var app = this.getModule('app-'+id);
+			var app = this.getModule('app-'+id, function (app) {
+				self.e.loadApplication(app);
+			});
 			if (app)
 			{
 				_app[id]=app;

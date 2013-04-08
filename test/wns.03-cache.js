@@ -24,3 +24,5 @@ if (result !== testValue)
 	this.errors++;
 
 this.e.endTest();
+
+'executed cache test.'

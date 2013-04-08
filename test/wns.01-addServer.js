@@ -16,14 +16,15 @@ var serverConfig = {},
 		"app": {
 			"test": {
 				"appPath": "test/",
-				"domain": "127.0.0.1",
-				"dbEngine": "mongo"
+				"domain": "127.0.0.1"
 			}
 		},
 		"components": {
 			"http": {
 				"class": "wnHttp",
-				"listen":[80]
+				"listen":[80],
+				"alias": "http",
+				"autoListen": false
 			}
 		}
 	};
@@ -40,3 +41,5 @@ console.log(' ')
 this.selectServer(consoleID);
 
 this.e.endTest();
+
+'executed addServer test.'

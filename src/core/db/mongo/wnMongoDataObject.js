@@ -88,7 +88,7 @@ module.exports = {
 		{
 			if (!!(params) && !!(params.criteria) && !!(params.collection))
 			{
-				var collection = this.model(params.collection,this.getDbConnection().getSchema().getMongoSchema(params.collection),params.collection);
+				var collection = this.getCollection(params.collection);
 				collection.find(params.criteria).remove(cb);
 			}
 			else 
@@ -107,7 +107,7 @@ module.exports = {
 		{
 			if (!!(params) && !!(params.criteria) && !!(params.collection))
 			{
-				var collection = this.model(params.collection,this.getDbConnection().getSchema().getMongoSchema(params.collection), params.collection);
+				var collection = this.getCollection(params.collection);
 				collection.count(params.criteria).exec(cb);
 			}
 			else 
@@ -126,7 +126,7 @@ module.exports = {
 		{
 			if (!!(params) && !!(params.criteria) && !!(params.collection))
 			{
-				var collection = this.model(params.collection,this.getDbConnection().getSchema().getMongoSchema(params.collection), params.collection);
+				var collection = this.getCollection(params.collection);
 				collection.find(params.criteria).exec(cb);
 			}
 			else 
@@ -145,7 +145,7 @@ module.exports = {
 		{
 			if (!!(params) && !!(params.criteria) && !!(params.collection) && !!(params.collection))
 			{
-				var collection = this.model(params.collection,this.getDbConnection().getSchema().getMongoSchema(params.collection),params.collection);
+				var collection = this.getCollection(params.collection);
 				collection.update(params.criteria,params.data,cb);
 			}
 			else 
@@ -163,7 +163,7 @@ module.exports = {
 		{
 			if (!!(params) && !!(params.data) && !!(params.collection))
 			{
-				var collection = this.model(params.collection,this.getDbConnection().getSchema().getMongoSchema(params.collection),params.collection),
+				var collection = this.getCollection(params.collection),
 					_new = new collection(params.data);
 					_new.save(cb);
 			}
@@ -181,7 +181,7 @@ module.exports = {
 		{
 			if (!!(params) && !!(params.collection))
 			{
-				var collection = this.model(params.collection,this.getDbConnection().getSchema().getMongoSchema(params.collection),params.collection);
+				var collection = this.getCollection(params.collection);
 				delete params.collection;
 				var query = collection.find({}),
 					args;
@@ -212,6 +212,15 @@ module.exports = {
 				cb&&cb(false);
 
 			return false;
+		},
+
+		/**
+		 * Return the collection Model.
+		 * @param $collectionName string collection name
+		 */
+		getCollection: function (collectionName)
+		{
+			return this.model(collectionName,this.getDbConnection().getSchema().getMongoSchema(collectionName),collectionName);
 		}
 	
 	}

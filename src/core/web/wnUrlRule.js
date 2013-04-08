@@ -148,6 +148,7 @@ module.exports = {
 		 */	
 		parseRequest: function (manager,request) {
 			var pathInfo = request.parsedUrl.pathname;
+
 			if (pathInfo.match(new RegExp(this.pattern,'gi')) !== null) {
 
 				// Declare result object.
@@ -189,7 +190,6 @@ module.exports = {
 						result.translation=result.translation.replace(new RegExp(match[m],'gi'),_fromParam?result.params[_param]:this.translations[_param]);
 					}
 				}
-
 
 				// Replacing remaning not translated tags..
 				result.translation='/'+result.translation.replace('<(\w+):?(\w+)?>','_');
