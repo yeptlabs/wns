@@ -6,10 +6,11 @@ require(sourcePath+'/wnInit');
 
 if (process.argv.length>2)
 {
-	var cmd = process.argv.slice(2).join(' ');
+	var cmd = process.argv.slice(2).join(' '),
+		_cwd = (process.cwd()+'/'+cmd).replace(/\\/g,'/');
 	if (fs.existsSync(cmd))
 	{
-		cmd = "this.buildServer('"+cmd+"')";
+		cmd = "this.buildServer('"+_cwd+"')";
 		autoExit = true;
 	}
 	wns.console.exec(cmd);
