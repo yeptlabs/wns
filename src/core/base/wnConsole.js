@@ -104,16 +104,17 @@ module.exports = {
 		 */
 		buildServer: function (serverPath)
 		{
-			var _sourcePath = path.resolve(cwd+sourcePath),
-				_serverPath = serverPath,
-				relativeSourcePath = path.relative(serverPath,_sourcePath)+'/';
+			var _sourcePath = cwd+sourcePath,
+				relativeSourcePath = path.relative(serverPath,_sourcePath)+'/',
+				relativeServerPath = path.relative(cwd,serverPath);
+
 			console.log("[*] Building new wnServer on `"+serverPath+"`");
 
-			if (!fs.existsSync(cwd+_serverPath))
+			if (!fs.existsSync(serverPath))
 				return false;
 
 			console.log("[*] - Creating new `config.json` file.");
-			fs.writeFileSync(cwd+_serverPath+'/config.json',
+			fs.writeFileSync(serverPath+'/config.json',
 				fs.readFileSync(_sourcePath+'/default-config.json')
 			);
 
@@ -121,9 +122,9 @@ module.exports = {
 			var defaultIndex = fs.readFileSync(_sourcePath+'/default-index.js');
 			defaultIndex = new this.c.wnTemplate(defaultIndex).match({
 				sourcePath: relativeSourcePath.replace(/\\/g,'/'),
-				serverPath: _serverPath.replace(/\\/g,'/')
+				serverPath: relativeServerPath.replace(/\\/g,'/')
 			});
-			fs.writeFileSync(cwd+_serverPath+'/index.js',defaultIndex);
+			fs.writeFileSync(serverPath+'/index.js',defaultIndex);
 
 			console.log('[*] New wnServer created.');
 
