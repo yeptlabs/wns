@@ -28,7 +28,7 @@ module.exports = {
 	 */
 	private: {
 		_filters: [],
-		_listeners: []
+		_listeners: undefined
 	},
 
 	/**
@@ -49,38 +49,128 @@ module.exports = {
          */
         push: function ()
 		{
-			if (this.checkFilters.apply(this,arguments))
+			var type = typeof _listeners, listener, len, args=[], _arguments=arguments;
+
+			if (type === 'undefined')
+				return false;
+
+			var eventObject = function ()
+				{
+					this.event = self;
+					this.owner = self.getParent();
+					this.eventName = self.getEventName();
+					this.stopPropagation = false;
+				},
+				ieo = arguments[0] != null && typeof arguments[0] == 'object'
+									&& arguments[0].stopPropagation!=undefined ? true : false,
+				evtObj = ieo ? arguments[0] : new eventObject;
+
+			if (type === 'function')
 			{
-					args = [],
-					eventObject = function ()
+				listener = _listeners;
+				switch (_arguments.length)
+				{
+					case 0:
+						listener.call(self,evtObj);
+						break;
+					case 1:
+						listener.call(self,evtObj,ieo ? undefined : _arguments[0]);
+						break;
+					case 2:
+						listener.call(self,evtObj,_arguments[ieo ? 1 : 0],ieo ? undefined : _arguments[1]);
+						break;
+					case 3:
+						listener.call(self,evtObj,_arguments[ieo ? 1 : 0],_arguments[ieo ? 2 : 1],ieo ? undefined : _arguments[2]);
+						break;
+					default:
+						var args = [];
+						for (var a = (ieo ? 1 : 0); a<_arguments.length; a++)
+							args.push(_arguments[a]);
+						args.unshift(evtObj);
+						listener.apply(self,args);
+				}
+			} else if (type === 'object')
+			{
+				if (_listeners.length==2)
+				{
+					listener = _listeners[0];
+					switch (_arguments.length)
 					{
-						this.event = self;
-						this.owner = self.getParent();
-						this.eventName = self.getEventName();
-						this.stopPropagation = false;
-					};
-	
-				var	getEventObject = arguments[0] != null && typeof arguments[0] == 'object'
-								&& arguments[0].stopPropagation!=undefined ? true : false,
-					evtObj = getEventObject ? arguments[0] : new eventObject;
-
-				for (var a = (getEventObject ? 1 : 0); a<arguments.length; a++)
-				{
-					args.push(arguments[a]);
+						case 0:
+							listener.call(self,evtObj);
+							break;
+						case 1:
+							listener.call(self,evtObj,ieo ? undefined : _arguments[0]);
+							break;
+						case 2:
+							listener.call(self,evtObj,_arguments[ieo ? 1 : 0],ieo ? undefined : _arguments[1]);
+							break;
+						case 3:
+							listener.call(self,evtObj,_arguments[ieo ? 1 : 0],_arguments[ieo ? 2 : 1],ieo ? undefined : _arguments[2]);
+							break;
+						default:
+							var args = [];
+							for (var a = (ieo ? 1 : 0); a<_arguments.length; a++)
+								args.push(_arguments[a]);
+							args.unshift(evtObj);
+							listener.apply(self,args);
+					}
+					if (evtObj.stopPropagation == true)
+						return true;
+					listener = _listeners.length == 2 ? _listeners[1] : _listeners[0];
+					switch (_arguments.length)
+					{
+						case 0:
+							listener.call(self,evtObj);
+							break;
+						case 1:
+							listener.call(self,evtObj,ieo ? undefined : _arguments[0]);
+							break;
+						case 2:
+							listener.call(self,evtObj,_arguments[ieo ? 1 : 0]);
+							break;
+						case 3:
+							listener.call(self,evtObj,_arguments[ieo ? 1 : 0],_arguments[ieo ? 2 : 1]);
+							break;
+						default:
+							var args = [];
+							for (var a = (ieo ? 1 : 0); a<_arguments.length; a++)
+								args.push(_arguments[a]);
+							args.unshift(evtObj);
+							listener.apply(self,args);
+					}
+				} else {
+					var listeners = _listeners.slice();
+					for (var i = 0, l = listeners.length; i < l; i++)
+					{
+						if (evtObj.stopPropagation == true)
+							return true;
+						listener = listeners[i];
+						switch (_arguments.length)
+						{
+							case 0:
+								listener.call(self,evtObj);
+								break;
+							case 1:
+								listener.call(self,evtObj,ieo ? undefined : _arguments[0]);
+								break;
+							case 2:
+								listener.call(self,evtObj,_arguments[ieo ? 1 : 0],ieo ? undefined : _arguments[1]);
+								break;
+							case 3:
+								listener.call(self,evtObj,_arguments[ieo ? 1 : 0],_arguments[ieo ? 2 : 1],ieo ? undefined : _arguments[2]);
+								break;
+							default:
+								var args = [];
+								for (var a = (ieo ? 1 : 0); a<_arguments.length; a++)
+									args.push(_arguments[a]);
+								args.unshift(evtObj);
+								listener.apply(self,args);
+						}
+					}
 				}
-				
-				args.unshift(evtObj);
-
-				var listeners = _listeners.slice();
-				for (var i = 0, l = listeners.length; i < l; i++)
-				{
-					if (evtObj.stopPropagation != true)
-						listeners[i].apply(this, args);
-				}
-
-				return true;
 			}
-			return false;
+			return true;
         },
 
 		/**
@@ -119,10 +209,26 @@ module.exports = {
          * Add a new handler to this event.'
          * @param $listener function listener of the event
          */
-        addListener: function (listener)
+        addListener: function (listener,prepend)
 		{
-			if ('function' !== typeof listener) return false;
-			_listeners.push(listener);
+			if ('function' !== typeof listener)
+				return false;
+
+			if (!_listeners)
+				_listeners=listener;
+			else if (typeof _listeners == 'object')
+			{
+				if (!prepend)
+					_listeners.push(listener);
+				else
+					_listeners.unshift(listener);
+			} else
+			{
+				if (!prepend)
+					_listeners = [_listeners,listener];
+				else
+					_listeners = [listener,_listeners];
+			}
 			return this;
         },
 
@@ -139,9 +245,7 @@ module.exports = {
          */
         prependListener: function (listener)
 		{
-			if ('function' !== typeof listener)
-				return false;
-			_listeners.unshift(listener);
+			this.addListener(listener,true);
 			return this;
         },
 
@@ -160,10 +264,7 @@ module.exports = {
 					};
 				g.listener = listener;
 				
-				if (prepend)
-					_listeners.unshift(g);
-				else
-					_listeners.push(g);
+				this.addListener(g,prepend)
 			}
 			return this;
 		},
@@ -180,18 +281,25 @@ module.exports = {
 			var list = _listeners;
 
 			var position = -1;
-			for (var i = 0, length = list.length; i < length; i++)
+		
+			if (list === listener ||
+      			(typeof list.listener === 'function' && list.listener === listener))
+					_listeners = undefined;
+			else if (typeof list === 'object')
 			{
-				if (list[i] === listener ||
-					(list[i].listener && list[i].listener === listener))
+				for (var i = 0, length = list.length; i < length; i++)
 				{
-					position = i;
-					break;
+					if (list[i] === listener ||
+						(list[i].listener && list[i].listener === listener))
+					{
+						position = i;
+						break;
+					}
 				}
-			}
 
-			if (position > -1)
-				list.splice(position, 1);
+				if (position > -1)
+					list.splice(position, 1);
+			}
 
 			return this;
         },
