@@ -32,7 +32,6 @@ module.exports = {
 		_attributes: {},
 		_collectionName: '',
 		_db: null,
-		
 		_schema: null
 
 	},
@@ -225,7 +224,7 @@ module.exports = {
 		 */
 		getAttribute: function (name)
 		{
-
+			return _attributes[name];
 		},
 
 		/**
@@ -236,8 +235,19 @@ module.exports = {
 		 */
 		setAttribute: function (name,value)
 		{
-
+			_attributes[name]=value;	
 		},
+
+		/**
+		 * Set all attributes in the object
+		 * @param object $attributes new attributes
+		 */
+		setAttributes: function (attributes)
+		{
+			for (a in attributes)
+				this.setAttribute(a,attributes[a]);
+			return this;
+		},		
 
 		/**
 		 * Returns all column attribute values.
@@ -247,11 +257,13 @@ module.exports = {
 		getAttributes: function (attributes)
 		{
 			var attrs = this.getDbConnection().getSchema().getCollection(this.collectionName()),
-				attributes = Object.extend(true,{},this.getDefaults(),attributes),
+				attributes = Object.extend(true,{},this.getDefaults(),_attributes,attributes),
 				valid = {};
 			for (a in attributes)
+			{
 				if (!!(attrs[a]))
 					valid[a]=attributes[a];
+			}
 			return valid;
 		},
 
@@ -264,7 +276,9 @@ module.exports = {
 		 */
 		save: function (attributes)
 		{
-			return this.getIsNewRecord() ? this.insert(attributes) : this.update(attributes);
+			if (attibutes)
+				this.setAttributes(attributes);
+			return this.getIsNewRecord() ? this.insert(this.getAttributes()) : this.update(this.getAttributes());
 		},
 
 		/**

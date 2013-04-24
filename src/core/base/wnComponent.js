@@ -173,6 +173,34 @@ module.exports = {
 		{
 			return attr ? _config[attr] : _config;
 		},
+
+		/**
+		 * Export to JSON the components's config.
+		 */
+		exportConfig: function (obj)
+		{
+			if (typeof obj === 'undefined')
+			{
+				obj = this.getConfig();
+				delete obj.class;
+			}
+
+			if (typeof obj == 'object')
+			{
+
+				delete obj.autoInit;
+				delete obj.id;
+				delete obj.serverID;
+				delete obj.modulePath;
+
+				for (o in obj)
+				{
+					this.exportConfig(obj[o]);
+				}
+			}
+
+			return JSON.stringify(obj, null, '\t');
+		},
 		
 		/**
 		 * Get a file.

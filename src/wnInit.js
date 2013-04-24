@@ -15,7 +15,11 @@
  * @since 1.0.0
  */
 
-var memory = process.memoryUsage().rss;
+global.WNS_SHOW_LOAD = typeof WNS_SHOW_LOAD !== 'undefined' ? WNS_SHOW_LOAD : true;
+global.WNS_QUIET_MODE = typeof WNS_QUIET_MODE !== 'undefined' ? WNS_QUIET_MODE : false;
+
+var memory = process.memoryUsage().rss,
+	sl = WNS_SHOW_LOAD;
 
  console.log('\n  o       o o--o  o--o (TM)');
  console.log('  |   o   | |   | o__');
@@ -31,23 +35,23 @@ try
 	global.sourcePath = 'src/';
 	global.cwd = __dirname+'/../';
 	global._r = require;
-	console.log(' CWD: '+cwd);
-	console.log(' SOURCEPATH: '+cwd+sourcePath);
-	console.log();
+	sl&&console.log(' CWD: '+cwd);
+	sl&&console.log(' SOURCEPATH: '+cwd+sourcePath);
+	sl&&console.log();
 
 	// WNS object.
 	// Will contain the classes to build and load.
 	global.wns = {};
 	global.wns.info=_r(cwd+'package.json');
 
-	console.log(' Loading and compiling:');
+	sl&&console.log(' Loading and compiling:');
 
-	console.log(' - Required utilities..');
+	sl&&console.log(' - Required utilities..');
 	global._walk = _r(cwd+sourcePath+'util/recursiveReadDir');
 	Object.extend = _r(cwd+sourcePath+'util/extend');
 	Object.extend(true,Object,_r(cwd+sourcePath+'util/object'));
 
-	process.stdout.write(' - Required node modules..');
+	sl&&process.stdout.write(' - Required node modules..');
 	var nm = ['http','fs','path','url','zlib','crypto','stream','util','events','buffer'];
 	for (d in wns.info.dependencies)
 		nm.push(d);
@@ -59,10 +63,10 @@ try
 	global.Buffer = buffer.Buffer;
 	cwd=path.normalize(cwd);
 	sourcePath=path.normalize(sourcePath);
-	process.stdout.write(' ('+nm.length+' modules)\n');
+	sl&&process.stdout.write(' ('+nm.length+' modules)\n');
 
 } catch (e) {
-	console.log('Failed to load some dependencies...');
+	sl&&console.log('Failed to load some dependencies...');
 	throw e;
 	process.exit();
 }
@@ -70,7 +74,7 @@ try
 // We need this class for building the rest of the required classes.
 wns.wnBuild = _r(cwd+sourcePath+'wnBuild.js');
 
-process.stdout.write(' - Required classes...');
+sl&&process.stdout.write(' - Required classes...');
 
 var _coreClasses={}, toBuild = {};
 // Recursivelly getting list of all classes in the core/
@@ -105,7 +109,7 @@ _walk(cwd+sourcePath+'core', function (err, classes) {
 
 
 	// We will compile the new classes to the WNS object.
-	var compiled = (new wns.wnBuild(toBuild).build()),
+	var compiled = (new wns.wnBuild(toBuild,cwd).build()),
 		loaded = 0;
 	for (c in toBuild)
 	{
@@ -122,7 +126,7 @@ _walk(cwd+sourcePath+'core', function (err, classes) {
 		}
 	}
 
-	process.stdout.write(' ('+loaded+' classes)\n');
+	sl&&process.stdout.write(' ('+loaded+' classes)\n');
 
 });
 
@@ -131,10 +135,10 @@ Object.defineProperty(global, 'coreClasses', { value: _coreClasses, writable: fa
 
 // Clear require cache.
 memory = (new Number((process.memoryUsage().rss - memory) / 1024 / 1024)).toFixed(2);
-console.log(' - WNS version: '+wns.info.version);
-console.log(' - Core memory usage: '+memory+' mb');
+sl&&console.log(' - WNS version: '+wns.info.version);
+sl&&console.log(' - Core memory usage: '+memory+' mb');
 
-console.log('');
+sl&&console.log('');
 
 // Create a new console
 wns.console = new wns.wnConsole({ modulePath: cwd }, cwd);

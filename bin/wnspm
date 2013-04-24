@@ -1,0 +1,28 @@
+#!/usr/bin/env node
+var prog = require('./client.js');
+
+console.log('  Welcome to WNS Package Manager.')
+console.log('')
+
+prog
+	.version(version)
+	.usage('[action] [packageName]')
+prog
+	.command('install [packageName]')
+	.description('install wns package')
+	.action(function (package) {
+		var module = wns.console.addServer(path.relative(prog.wnsPath,path.resolve('.')));
+		console.log('  Installing `%s` package...',package);
+		module.installPackage(package,function (s) {
+			if (s) 
+				console.log('  Package installed.');
+			else
+				console.log('  Error installing new package.');
+			process.exit();
+		});
+	})
+prog
+	.command('remove [packageName]')
+	.description('remove wns package')
+prog
+	.parse(process.argv);

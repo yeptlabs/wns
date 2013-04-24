@@ -24,6 +24,11 @@ module.exports = {
 	extend: ['wnDataObject'],
 
 	/**
+	 * NPM dependencies
+	 */
+	dependencies: ['mongoose'],
+
+	/**
 	 * PRIVATE
 	 */
 	private: {
@@ -33,25 +38,27 @@ module.exports = {
 		_dbConfig: {
 			native_parser: false,
 			w: 1
-		}
+		},
+		_db: null
 	},
 
 	/**
 	 * Public Variables
 	 */
-	public: {
-
-		/**
-		 * @var string module's name of the database driver
-		 */
-		driverModule: 'mongoose'
-
-	},
+	public: {},
 
 	/**
 	 * Methods
 	 */
 	methods: {
+
+		/**
+		 * Initializer
+		 */
+		init: function (conn) {
+			_db=conn;
+			this.driver = mongoose;
+		},
 
 		/**
 		 * Create mongodb connection then extend this class

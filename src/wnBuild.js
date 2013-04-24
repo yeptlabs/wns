@@ -21,15 +21,17 @@ module.exports=wnBuild;
 /**
  * Constructor
  */
-function wnBuild(classesSource)
+function wnBuild(classesSource,modulePath)
 {
 	this.classesSource = {};
+	this.modulePath = modulePath;
+	this.loadedModules = {};
 
 	for (c in classesSource)
 	{
 		if (this.checkStructure(classesSource[c]))
 		{
-			this.classesSource[c] = Object.extend({ extend: [], public: {}, private: {}, methods:{} },classesSource[c]);
+			this.classesSource[c] = Object.extend({ extend: [], public: {}, private: {}, methods:{}, dependencies: {} },classesSource[c]);
 			if (!this.classesSource[c].extend)
 				this.classesSource[c].extend = [];
 		}
@@ -149,6 +151,13 @@ wnBuild.prototype.buildClass = function (className)
 	classBuilder.prototype.build = function () {
 		eval('var '+className+' = new klass;');
 		eval('var self = '+className+';');
+
+		for (d in targetClass.dependencies)
+		{
+			__builder.loadDependencies(targetClass.dependencies);
+			eval('var '+targetClass.dependencies[d]+'=__builder.loadedModules[targetClass.dependencies[d]];');
+		}
+
 		for (e in build.extend)
 		{
 			var extendSource = __builder.classes[build.extend[e]].source.replace(/\[CLASSNAME\]/g,className);
@@ -192,7 +201,7 @@ wnBuild.prototype.compileClass = function (targetClass)
 		builder = this,
 		build = this.classesSource[targetClass];
 		
-	classSource += "(function () {\n";
+	//classSource += "(function () {\n";
 
 		classSource += "var _=self,";
 		// Declare private vars
@@ -207,6 +216,8 @@ wnBuild.prototype.compileClass = function (targetClass)
 			classSource+=",";
 		}
 		classSource=classSource.substr(0,classSource.length-1)+";\n";
+
+		classSource += "var _className= '"+sourceClass+"';\n";
 	
 		// Redeclare privileged methods
 		for (m in build.methods)
@@ -214,7 +225,7 @@ wnBuild.prototype.compileClass = function (targetClass)
 			classSource += sourceClass+"['"+m+"'] = "+build.methods[m].toString()+";\n";
 		}
 
-	classSource += "})();\n";
+	//classSource += "})();\n";
 
 	// Declare public vars
 	for (p in build.public)
@@ -281,6 +292,21 @@ wnBuild.prototype.removeInvalidDependencies = function (extensions)
 	}
 
 	return _ext;
+};
+
+/**
+ * Install and load npm dependencies.
+ */
+wnBuild.prototype.loadDependencies = function (dep)
+{
+	for (d in dep)
+	{
+		if (!this.loadedModules[dep[d]])
+		{
+			var module=require(path.resolve(this.modulePath+'/node_modules/'+dep[d]+''));
+			this.loadedModules[dep[d]]=module;
+		}
+	}
 };
 
 /**

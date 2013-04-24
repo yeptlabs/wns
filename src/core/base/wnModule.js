@@ -152,7 +152,7 @@ module.exports = {
 				_c[c] = module.exports;
 				_cSource[c]=_class;
 			}
-			var classBuilder = new wns.wnBuild(_c);
+			var classBuilder = new wns.wnBuild(_c,this.getModulePath());
 			this.setComponent('classBuilder',classBuilder);
 			classBuilder.build();
 			for (c in global.coreClasses)
@@ -684,6 +684,50 @@ module.exports = {
 				this.setConfig('modulePath',value);
 			}
 			return this;
+		},
+
+		/**
+		 * Check if the package exists and its required version
+		 */
+		checkPackage: function ()
+		{
+			return true;
+			// http.get('http://wns.yept.net/packages/search/');
+		},
+
+		/**
+		 * Download a new WNS package into the module's directory
+		 * then reconfigure the module's config.json file.
+		 */
+		installPackage: function (packageName,cb)
+		{
+			if (!packageName || !this.checkPackage(packageName))
+				cb&&cb(false);
+
+			self.e.log('Downloading `%d` package...',packageName);
+			var file = fs.createWriteStream(this.modulePath+'/.tmp/'+packageName+'.tar.gz');
+			if (!fs.existsSync(this.modulePath+'/.tmp'))
+				fs.mkdirSync(this.modulePath+'/.tmp');
+			var req = http.request({
+				'method': 'GET',
+				'host': wns.info.wnspm.url,
+				'path': '/package/download'
+			}, function(response) {
+				cb&&cb(true)
+			  	response.pipe(file);
+			});
+			req.on('error',function () {
+				cb&&cb(false)
+			})
+			req.end();			
+		},
+
+		/**
+		 * Removes a installed package.
+		 */
+		removePackage: function ()
+		{
+
 		},
 		
 		/**

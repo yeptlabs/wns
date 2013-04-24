@@ -92,7 +92,7 @@ module.exports = {
 					appName = a,
 					a = 'app-'+a;
 				modules[a]=ref;
-				modules[a].modulePath=this.getConfig('appDirectory')+(modules[a].appPath || modules[a].modulePath);
+				modules[a].modulePath=this.getConfig('appDirectory')+appName+'/';
 				modules[a].appName=appName;
 				modules[a].class='wnApp';
 				this.buildApplication(appName,modules[a].modulePath);
@@ -126,14 +126,16 @@ module.exports = {
 				this.e.log('- Creating new application: '+appName+' on `'+appPath+'`');
 				wrench.copyDirSyncRecursive(cwd+sourcePath+'app/',this.modulePath+appPath);
 				fs.renameSync(this.modulePath+appPath+'app.js', this.modulePath+appPath+appName+'.js');
-				if (this.getConfig('app')[appName].dbEngine!=undefined)
-				{
-					var config = this.getFile(appPath+'config.json');
-					config = new this.c.wnTemplate(config).match({
-						dbEngine: this.getConfig('app')[appName].dbEngine
-					});
-					fs.writeFileSync(this.modulePath+appPath+'config.json',config,'utf8');
-				}
+	
+				var defaultPackage = fs.readFileSync(cwd+sourcePath+'default-package.json');
+				defaultPackage = new this.c.wnTemplate(defaultPackage).match({
+					moduleName: appName
+				});
+				fs.writeFileSync(this.modulePath+appPath+'package.json',defaultPackage);
+
+				var config = this.getFile(appPath+'config.json');
+				config = new this.c.wnTemplate(config).match({});
+				fs.writeFileSync(this.modulePath+appPath+'config.json',config,'utf8');
 			}
 			return this;
 		},

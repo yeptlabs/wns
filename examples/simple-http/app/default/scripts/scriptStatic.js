@@ -1,5 +1,5 @@
 /**
- * Source of the wnModel class.
+ * Source of an wnScript class.
  * 
  * @author: Pedro Nasser
  * @link: http://wns.yept.net/
@@ -9,7 +9,7 @@
 
 /**
  * Description coming soon.
- * 
+ *
  * @author Pedro Nasser
  * @package system.core.base
  * @since 1.0.0
@@ -21,22 +21,17 @@ module.exports = {
 	/**
 	 * Class dependencies
 	 */
-	extend: ['wnComponent'],
+	extend: ['wnScript'],
 
 	/**
-	 * PRIVATE
+	 * PRIVATE Variables
 	 */
-	private: {
-		_errors: [],
-		_validators: null,
-		_scenario: ''
-	},
+	private: {},
 
 	/**
 	 * Public Variables
 	 */
-	public: {
-	},
+	public: {},
 
 	/**
 	 * Methods
@@ -48,25 +43,19 @@ module.exports = {
 		 */	
 		init: function ()
 		{
-
+			this.setInterval(1000);
+			this.start();
 		},
 
 		/**
-		 * Return model's rules.
+		 * Function called every script loop.
+		 * This is where the script should be written.
 		 */
-		rules: function ()
-		{
-			return [];
-		},
-
-		/**
-		 * 
-		 */
-		validate: function ()
-		{
-			return true;
+		run: function ()
+		{	
+			
 		}
-		
+
 	}
 
 };

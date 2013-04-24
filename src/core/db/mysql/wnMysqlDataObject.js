@@ -24,6 +24,11 @@ module.exports = {
 	extend: ['wnDataObject'],
 
 	/**
+	 * NPM dependencies
+	 */
+	dependencies: ['mysql'],
+
+	/**
 	 * PRIVATE
 	 */
 	private: {
@@ -34,18 +39,21 @@ module.exports = {
 	 * Public Variables
 	 */
 	public: {
-
-		/**
-		 * @var string module's name of the database driver
-		 */
-		driverModule: 'mysql'
-
 	},
 
 	/**
 	 * Methods
 	 */
 	methods: {
+
+		/**
+		 * Initializer.
+		 */		
+		init: function (conn)
+		{
+			_db=conn;
+			this.driver = mysql;
+		},
 
 		/**
 		 * Create mongodb connection then extend this class
@@ -65,7 +73,6 @@ module.exports = {
 		_connect: function (cb)
 		{
 			var con = this.driver.createConnection(this.getConfig());
-				
 			con.connect(function (err) {
 				self.e.connect(err,con);
 				if (err)

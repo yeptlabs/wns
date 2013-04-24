@@ -91,11 +91,24 @@ module.exports = {
 			this.app=app;
 			this.controllerName = this.getControllerName();
 			this.setParent(app);
+			this.prepareData();
 
+			if (this.app)
+				this.view=this.app.createClass('wnView',{ controller: this });
+
+			this.afterInit();
+		},
+
+		/**
+		 * Prepare incoming data from GET or POST methods.
+		 */
+		prepareData: function ()
+		{
 			if (this.request)
 			{
 				this.query.GET = {};
 				this.query.POST = { fields: {}, files: {} };
+				this.query.REQUEST = {};
 				Object.extend(true,this.query.POST, this.request.info.body);
  				Object.extend(true,this.query.GET, this.request.parsedUrl.query);
 				Object.extend(true,this.query.GET, this.request.route.params);
@@ -103,12 +116,32 @@ module.exports = {
 				{
 					this.query.GET[g]=this.query.GET[g].replace(/\+/gi,' ')
 				}
+				for (p in this.query.POST.fields)
+				{
+					if (p.match(/\w+\[\w+\]/g))
+					{
+						var name = p.split("[")[0],
+							subname = p.split("[")[1].split(']')[0];
+						if (!this.query.POST.fields[name])
+							this.query.POST.fields[name]={};
+						this.query.POST.fields[name][subname]=this.query.POST.fields[p];
+						delete this.query.POST.fields[p];
+					}
+				}
+				for (p in this.query.GET)
+				{
+					if (p.match(/\w+\[\w+\]/g))
+					{
+						var name = p.split("[")[0],
+							subname = p.split("[")[1].split(']')[0];
+						if (!this.query.GET[name])
+							this.query.GET[name]={};
+						this.query.GET[name][subname]=this.query.GET[p];
+						delete this.query.GET[p];
+					}
+				}
+				Object.extend(true,this.query.REQUEST, this.query.GET, this.query.POST);
 			}
-
-			if (this.app)
-				this.view=this.app.createClass('wnView',{ controller: this });
-
-			this.afterInit();
 		},
 
 		/**

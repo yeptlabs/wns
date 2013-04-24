@@ -113,6 +113,13 @@ module.exports = {
 			if (!fs.existsSync(serverPath))
 				return false;
 
+			console.log("[*] - Creating new `package.js` file.");
+			var defaultPackage = fs.readFileSync(_sourcePath+'/default-package.json');
+			defaultPackage = new this.c.wnTemplate(defaultPackage).match({
+				moduleName: 'server-'+serverPath.substr(0,serverPath.length-1).split('/').pop().replace(/\s/g,'-')
+			});
+			fs.writeFileSync(serverPath+'/package.json',defaultPackage);
+
 			console.log("[*] - Creating new `config.json` file.");
 			fs.writeFileSync(serverPath+'/config.json',
 				fs.readFileSync(_sourcePath+'/default-config.json')
@@ -270,7 +277,7 @@ module.exports = {
 		logHandler: function (e,data) {
 			var prefix = '', sourceName = e.owner.getConfig('id');
 			if (sourceName) prefix = '['+sourceName+']'+' ';
-			console.log(prefix+''+data);
+			(!WNS_QUIET_MODE)&&console.log(prefix+''+data);
 		},
 
 		/**

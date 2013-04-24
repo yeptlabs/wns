@@ -24,5 +24,8 @@
   "scripts": {
     "test": "node test/run"
   },
-  "engines": { "node": ">= 0.6.0" }
+  "engines": { "node": ">= 0.6.0" },
+  "wnspm": {
+  	"host": "wnspm.yept.net"
+  }
 }

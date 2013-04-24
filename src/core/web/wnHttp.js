@@ -125,24 +125,12 @@ module.exports = {
 		 */
 		createRequest: function (app,req,resp)
 		{
-			if (req.method != 'GET' && req.method != 'HEAD' && req.headers['content-type'] != 'multipart/form-data')
-			{
-				var form = new formidable.IncomingForm();
 
-				form.parse(req, function (err, fields, files) {
-					req.body = {
-						fields: fields,
-						files: files
-					};
-					app.createRequest.apply(app,[req,resp]);
-				});
-			}					
-			else
+			var httpRequest, reqConf, url = req.url+'', self = app;
+			try
 			{
-				var httpRequest, reqConf, url = req.url+'', self = app;
-				try
-				{
-					self.once('newRequest',function (e,req,resp) {
+				self.once('newRequest',function (e,req,resp) {
+
 						_requestCount++;
 
 						if (!resp || resp.closed)
@@ -164,14 +152,28 @@ module.exports = {
 							req.run();
 						});
 						app.e.readyRequest(httpRequest);
+				});
+
+				if (req.method != 'GET' && req.method != 'HEAD' && req.headers['content-type'] != 'multipart/form-data')
+				{
+					var form = new formidable;
+
+					form.parse(req, function (err, fields, files) {
+						req.body = {
+							fields: fields,
+							files: files
+						};
+						app.e.newRequest(req,resp);
 					});
+				}					
+				else
+				{
 					app.e.newRequest(req,resp);
 				}
-				catch (e)
-				{
-					self.e.exception&&
-						self.e.exception(e);
-				}
+			} catch (e)
+			{
+				self.e.exception&&
+					self.e.exception(e);
 			}
 		},
 
