@@ -41,7 +41,7 @@ try
 
 	// WNS object.
 	// Will contain the classes to build and load.
-	global.wns = {};
+	process.wns = global.wns = {};
 	global.wns.info=_r(cwd+'package.json');
 
 	sl&&console.log(' Loading and compiling:');

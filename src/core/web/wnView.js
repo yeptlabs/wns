@@ -74,32 +74,34 @@ module.exports = {
 		 * Initializer
 		 */	
 		init: function () {
-		 
 			this.controller = this.getConfig('controller');
-		 
-		 },
+		},
 
 		/**
 		 * Renders the layout of the view with all the page's information.
 		 */
-		render: function () {	
+		render: function (cb) {	
 
-			// Scripts.
-			this.script = {};
-			for (s in this.loadScript) {
-				this.script[this.loadScript[s]] = "<script type='text/javascript'>\n"+((fs.readFileSync(this.controller.app.appPath+this.controller.app.getConfig('path').public+this.controller.app.getConfig('components').view.loadScriptPath+this.loadScript[s]+'.js')).toString())+"\n</script>";
-			}
+			// // Scripts.
+			// this.script = {};
+			// for (s in this.loadScript) {
+			// 	this.script[this.loadScript[s]] = "<script type='text/javascript'>\n"+((fs.readFileSync(this.controller.app.appPath+this.controller.app.getConfig('path').public+this.controller.app.getConfig('components').view.loadScriptPath+this.loadScript[s]+'.js')).toString())+"\n</script>";
+			// }
 
-			// Menu
-			var	_menu = '',
-				_tplMenu = new this.controller.app.c.wnTemplate(this.controller.app.getConfig('components').view.menuItemTemplate);
-			for (m in this.controller.app.getConfig('components').view.menu)
-			{
-				_menu += _tplMenu.match({'label':m,'url':this.controller.app.getConfig('components').view.menu[m][0]});
-			}
-			this.menu = new this.controller.app.c.wnTemplate(this.controller.app.getConfig('components').view.menuTemplate).match({'list':_menu});
+			// this.controller.template.render(this.controller.app.getConfig('components').view.menuItemTemplate)
 
-			return (new this.controller.app.c.wnTemplate(this.layout,false)).match({'view':this});
+			// // Menu
+			// var	_menu = '',
+			// 	_tplMenu = new this.controller.app.c.wnTemplate();
+			// for (m in this.controller.app.getConfig('components').view.menu)
+			// {
+			// 	_menu += _tplMenu.match({'label':m,'url':this.controller.app.getConfig('components').view.menu[m][0]});
+			// }
+			// this.menu = new this.controller.app.c.wnTemplate(this.controller.app.getConfig('components').view.menuTemplate).match({'list':_menu});
+
+			// return (new this.controller.app.c.wnTemplate(this.layout,false)).match({'view':this});
+
+			cb&&cb(self);
 
 		}
 

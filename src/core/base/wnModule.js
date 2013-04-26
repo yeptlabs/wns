@@ -65,16 +65,18 @@ module.exports = {
 		this.setEvents({ 'ready': {} });
 		var ready=this.getEvent('ready');
 		ready.once(function () {
-			var args = Array.prototype.slice.call(arguments);
-			args.shift();
-			
-			self.startComponents();
-			self.prepareModels();
-			self.prepareScripts();
+			process.nextTick(function () {
+				var args = Array.prototype.slice.call(arguments);
+				args.shift();
+				
+				self.startComponents();
+				self.prepareModels();
+				self.prepareScripts();
 
-			self.init.apply(self,args);
-			self.run.apply(self,args);
-			_initialized=true;
+				self.init.apply(self,args);
+				self.run.apply(self,args);
+				_initialized=true;
+			});
 		});
 
 		this.getConfig('autoInit')!=false&&
@@ -152,7 +154,7 @@ module.exports = {
 				_c[c] = module.exports;
 				_cSource[c]=_class;
 			}
-			var classBuilder = new wns.wnBuild(_c,this.getModulePath());
+			var classBuilder = new process.wns.wnBuild(_c,this.getModulePath());
 			this.setComponent('classBuilder',classBuilder);
 			classBuilder.build();
 			for (c in global.coreClasses)
@@ -710,7 +712,7 @@ module.exports = {
 				fs.mkdirSync(this.modulePath+'/.tmp');
 			var req = http.request({
 				'method': 'GET',
-				'host': wns.info.wnspm.url,
+				'host': process.wns.info.wnspm.url,
 				'path': '/package/download'
 			}, function(response) {
 				cb&&cb(true)

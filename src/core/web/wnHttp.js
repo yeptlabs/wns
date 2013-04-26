@@ -130,28 +130,28 @@ module.exports = {
 			try
 			{
 				self.once('newRequest',function (e,req,resp) {
+					_requestCount++;
 
-						_requestCount++;
+					if (!resp || resp.closed)
+						return false;
 
-						if (!resp || resp.closed)
-							return false;
+					reqConf = Object.extend(true,{},self.getComponentConfig('http'),{ id: 'request-'+(+new Date)+'-'+_requestCount })
+					httpRequest = new self.c.wnHttpRequest(reqConf, self.c);
 
-						reqConf = Object.extend(true,{},self.getComponentConfig('http'),{ id: 'request-'+(+new Date)+'-'+_requestCount })
-						httpRequest = new self.c.wnHttpRequest(reqConf, self.c);
-
-						httpRequest.setParent(self);
-						httpRequest.created = +new Date;
-						httpRequest.init(req,resp);
-						httpRequest.e.open();
-						httpRequest.prepare();
-						app.once('readyRequest',function (e,req) {
-							req.once('destroy',function () {
-								reqConf = null;
-								req = null;
-							});
-							req.run();
+					httpRequest.setParent(self);
+					httpRequest.created = +new Date;
+					httpRequest.init(req,resp);
+					httpRequest.e.open();
+					httpRequest.prepare();
+					app.once('readyRequest',function (e,req) {
+						req.once('destroy',function () {
+							reqConf = null;
+							req = null;
 						});
-						app.e.readyRequest(httpRequest);
+						req.run();
+					});
+					app.e.readyRequest(httpRequest);
+
 				});
 
 				if (req.method != 'GET' && req.method != 'HEAD' && req.headers['content-type'] != 'multipart/form-data')
@@ -168,7 +168,9 @@ module.exports = {
 				}					
 				else
 				{
-					app.e.newRequest(req,resp);
+					process.nextTick(function () {
+						app.e.newRequest(req,resp);
+					});
 				}
 			} catch (e)
 			{

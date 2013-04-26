@@ -155,7 +155,7 @@ wnBuild.prototype.buildClass = function (className)
 		for (d in targetClass.dependencies)
 		{
 			__builder.loadDependencies(targetClass.dependencies);
-			eval('var '+targetClass.dependencies[d]+'=__builder.loadedModules[targetClass.dependencies[d]];');
+			eval('var '+targetClass.dependencies[d].replace(/\-/g,'_')+'=__builder.loadedModules[targetClass.dependencies[d]];');
 		}
 
 		for (e in build.extend)

@@ -94,7 +94,13 @@ module.exports = {
 			this.prepareData();
 
 			if (this.app)
+			{
 				this.view=this.app.createClass('wnView',{ controller: this });
+
+				var engineName = this.getConfig('templateEngine') || 'Dust',
+					tplEngine = this.app.c['wn'+engineName+'Template'];
+				this.template= new tplEngine();
+			}
 
 			this.afterInit();
 		},
@@ -208,11 +214,9 @@ module.exports = {
 		 * Get view file and return it.
 		 * @param $view string name of the view to be rendered.
 		 */
-		getView: function (view,data)
+		getView: function (view,cb)
 		{
-			var view = this.app.getFile(this.request.getConfig('path').views+this.getControllerName()+'/'+view+'.tpl');
-				view = (new this.app.c.wnTemplate(view,false)).match(data?data:{});
-			return view;
+			this.app.getFile(this.request.getConfig('path').views+this.getControllerName()+'/'+view+'.tpl',cb);
 		},
 	
 		/**
@@ -223,37 +227,40 @@ module.exports = {
 		render: function (view,data)
 		{
 			var _controller=this.getControllerName(),
-				_layout=this.layout;
-				_view=view,
-				_viewTpl=this.getView(view,data);
+				_layout=this.layout,
+				templateObj = {};
 
-			if (_viewTpl!==false)
-			{
-				var _layoutTpl=this.app.getFile(this.request.getConfig('path').views+'layouts/'+_layout+'.tpl');
+			Object.extend(true,templateObj,data?data:{});
 
-				this.view.name = view;
-				this.view.layout = (new this.app.c.wnTemplate(_layoutTpl?_layoutTpl:'{conteudo}',false)).match({'content':_viewTpl});
-				this.view.language = this.app.getConfig('components').view.language;
-				this.view.title = this.app.getConfig('components').view.titleTemplate;
-
-				var	_contentAll=this.view.render(),
-					_contentAll=new this.app.c.wnTemplate(_contentAll,false).match({
-						self: this.export(),
-						app: this.app.export(),
-						request: this.request.export()
+			this.getView(view,function (viewTpl) {
+				if (viewTpl!==false)
+				{
+					self.view.name = view;
+					self.view.language = self.app.getConfig('components').view.language;
+					self.view.title = self.app.getConfig('components').view.titleTemplate;
+					
+					self.view.render(function () {
+						Object.extend(true,templateObj,{
+							self: self.export(),
+							app: self.app.export(),
+							request: self.request.export(),
+							view:self.view.export()
+						});
+						self.app.getFile(self.request.getConfig('path').views+'layouts/'+_layout+'.tpl',function (layoutTpl) {
+							var layoutTpl = layoutTpl.replace(/{content}/i,viewTpl);
+							self.template.render(layoutTpl, templateObj, function (err,result) {
+								self.request.data+=result;
+								self.request.send();
+							});
+						});
 					});
-
-				_contentAll = (new this.app.c.wnTemplate(_contentAll,false)).match(data?data:{});
-
-				this.request.data+=_contentAll;
-				this.request.send();
-			} else
-			{
-				this.app.e.log('View template not found: '+_controller+'/'+view,404);
-				this.request.send();
-			}
+				} else
+				{
+					self.app.e.log('View template not found: '+_controller+'/'+view,404);
+					self.request.send();
+				}
+			});
 		}
-
 
 	}
 

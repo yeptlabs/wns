@@ -207,22 +207,32 @@ module.exports = {
 		 * The file's path is relative to the module's path.
 		 * @param $filePath string file's path
 		 */
-		getFile: function (filePath,binary,cb)
+		getFile: function (filePath)
 		{
+			if (typeof arguments[1]=='function')
+				var cb = arguments[1];
+
+			if (typeof arguments[2]=='function')
+				var cb = arguments[2];
+
+			if (typeof arguments[1]=='boolean')
+				var binary = arguments[1];
+
 			var realPath = this.instanceOf('wnModule')?this.modulePath+filePath:filePath,
 				cmd = !cb ? 'readFileSync' : 'readFile';
-				try {
-					var _cb = cb ? function (err,file) {
-						cb&&cb(!err ? ((binary===true) ? file : file.toString()) : false);
-					} : null,
-					file = fs[cmd](realPath,_cb);
-				} catch (e)
-				{
-					if (_cb)
-						cb&&cb(false);
-					else
-						return false;
-				}
+
+			try {
+				var _cb = cb ? function (err,file) {
+					cb&&cb(!err ? ((binary===true) ? file : file.toString()) : false);
+				} : null,
+				file = fs[cmd](realPath,_cb);
+			} catch (e)
+			{
+				if (_cb)
+					cb&&cb(false);
+				else
+					return false;
+			}
 			return (file ? (binary===true) ? file : file.toString() : false);
 		},
 
@@ -268,7 +278,7 @@ module.exports = {
 		 */
 		createClass: function (className,config)
 		{
-			var source = this.c || wns;
+			var source = this.c || process.wns;
 			return new source[className](config,source);
 		},
 		

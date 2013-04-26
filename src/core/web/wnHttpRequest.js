@@ -114,6 +114,7 @@ module.exports = {
 			this.parsedUrl=url.parse(this.info.url,true);
 			this.route = this.app.getComponent('urlManager').parseRequest(this) || { translation: this.info.url, params: {}, template: '' };
 			this.template = this.route ? this.route.template : false;
+			this.user = {};
 
 			this.info.once('close',function () { self.e.end(self); });
 			this.info.once('end',function () { self.e.end(self); });
@@ -297,11 +298,24 @@ module.exports = {
 
 			if (this.getConfig('errorPage')!=undefined && !fatal)
 			{
-				this.code = 302;
-				this.header['Location']='/'+this.getConfig('errorPage');
+				return this.redirect('/'+this.getConfig('errorPage'), true);
 			}
 
 			this.send();
+		},
+
+		/**
+		 * Redirect
+		 */
+		redirect: function (url) {
+			var statusCode = typeof arguments[1] == 'number' ? arguments[1] : (typeof arguments[2] == 'number' ? arguments[2] : 302),
+				terminate = typeof arguments[1] == 'boolean' ? arguments[1] : false;
+				
+			this.code = statusCode;
+			this.header['Location'] = url+'' || '/';
+
+			if (terminate)
+				this.send();
 		},
 
 		/**

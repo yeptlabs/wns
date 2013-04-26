@@ -1,5 +1,5 @@
 /**
- * Source of the wnTemplate class.
+ * Source of the wnDustTemplate class.
  * 
  * @author: Pedro Nasser
  * @link: http://wns.yept.net/
@@ -21,9 +21,12 @@ module.exports = {
 	/**
 	 * Class dependencies
 	 */
-	extend: [],
+	extend: ['wnTemplate'],
 
-	constructor: function () {},
+	/**
+	 * NPM dependencies
+	 */
+	dependencies: ["dustjs-linkedin"],
 
 	/**
 	 * PRIVATE
@@ -46,6 +49,19 @@ module.exports = {
 	/**
 	 * Methods
 	 */
-	methods: {}
+	methods: {
+
+		/**
+		 * Render template.
+		 */
+		render: function (text,obj,cb)
+		{
+			// var compiled = dustjs_linkedin.compile(text, "tmp");
+   //  		dustjs_linkedin.loadSource(compiled);
+			// dustjs_linkedin.render('tmp',obj,cb);
+			dustjs_linkedin.renderSource(text,obj,cb);
+		}
+
+	}
 
 };
