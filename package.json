@@ -10,7 +10,9 @@
   "dependencies": {
     "mime": "1.2.x",
     "wrench": "1.4.x",
-    "formidable": "latest"
+    "formidable": "latest",
+    "commander": "latest",
+    "request": "latest"
   },
   "keywords": [
     "web","yii","framework","wns","mvc",

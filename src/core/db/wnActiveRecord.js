@@ -196,7 +196,8 @@ module.exports = {
 		},
 
 		/**
-		 *
+		 * Get the collection instance.
+		 * @return instance collection instance
 		 */
 		getCollection: function ()
 		{
@@ -210,7 +211,16 @@ module.exports = {
 		 */
 		hasAttribute: function (name)
 		{
+			return this.getSchema()[name] !== undefined;
+		},
 
+		/**
+		 * Check if attribute is required
+		 * @return boolean is required?
+		 */
+		isAttributeRequired: function (name)
+		{
+			return this.getSchema()[name].required === true;
 		},
 
 		/**
@@ -225,6 +235,25 @@ module.exports = {
 		getAttribute: function (name)
 		{
 			return _attributes[name];
+		},
+
+		/**
+		 * Returns the named attribute label.
+		 * @param string $name the attribute name
+		 * @return mixed the attribute label
+		 */
+		getAttributeLabel: function (name)
+		{
+			return this.getSchema()[name].label || '';
+		},
+
+		/**
+		 * Check if the attribute has errors.
+		 * @param string $name the attribute name
+		 */
+		hasErrors: function (name)
+		{
+			return false;
 		},
 
 		/**

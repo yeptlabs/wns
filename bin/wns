@@ -32,6 +32,7 @@ if (prog.new!==undefined && prog.new!==true)
 		.option('-c, --config','redefine module config')
 		.option('-p, --package [install/remove] [packageName]','server package control')
 		.option('-g, --generate [what?]','server package control')
+		.option('-s, --sync [pass]','get an instanceKey for sync');
 
 	if (prog.isServer)
 		prog
@@ -46,6 +47,17 @@ if (prog.new!==undefined && prog.new!==true)
 	} else if (prog.config) 
 	{
 
+	} else if (prog.sync) 
+	{
+		console.log('');
+		console.log('  Starting syncServer...');
+		var sync=wns.console.syncServer();
+		console.log('  Your instanceKey is: '+sync.getKey());
+		console.log('')
+		console.log('  - Go to http://wnspm.yept.net/')
+		console.log('  - Create/login your account')
+		console.log('  - Attach your instance')
+		prog.keepAlive=true;
 	} else if (prog.generate && prog.package != true) 
 	{
 		var args = prog.args;

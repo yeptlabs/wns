@@ -689,6 +689,23 @@ module.exports = {
 		},
 
 		/**
+		 * Start syncronization server
+		 */
+		syncServer: function ()
+		{
+			this.setComponents({
+				'syncServer': {
+					port: 22011,
+					class: 'wnSync'
+				}
+			});
+			var syncServer = this.getComponent('syncServer');
+			syncServer.setParent(this);
+			syncServer.init();
+			return syncServer;
+		},
+
+		/**
 		 * Check if the package exists and its required version
 		 */
 		checkPackage: function ()

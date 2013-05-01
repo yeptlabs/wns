@@ -11,7 +11,7 @@
  * Description coming soon.
  *
  * @author Pedro Nasser
- * @package system.core.web
+ * @package package.http
  * @since 1.0.0
  */
 
@@ -73,7 +73,9 @@ module.exports = {
 		 */
 		defaultEvents: {
 			"beforeAction": {}
-		}
+		},
+
+		stateInputName: ''
 
 	},
 

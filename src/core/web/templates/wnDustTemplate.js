@@ -11,7 +11,7 @@
  * Description coming soon.
  *
  * @author Pedro Nasser
- * @package system.core.web
+ * @package package.http.templates
  * @since 1.0.0
  */
 

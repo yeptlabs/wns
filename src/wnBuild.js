@@ -374,15 +374,35 @@ wnBuild.prototype.makeDoc = function (className, docSource)
 		matchDoc = new RegExp('','gim'),
 		matches = docSource.match(/\/\*[\s\S]+?\*\/\s+\w+\:/gim);
 
-	var props = {};
+	var props = {}, type= 'undefined';
 	for (m in matches)
 	{
 		var	def = matches[m],
 			getDoc = def.match(/[\/\*\*](\W|\w)+[\*\/]/gim)[0],
-			prop = def.replace(/[\/\*\*](\W|\w)+[\*\/]/gim,'').replace(/\W/gim,'');
+			prop = def.replace(/[\/\*\*](\W|\w)+[\*\/]/gim,'').replace(/\W/gim,''),
+			params = def.match(/@param \$[\w]+ [\w]+ .+/g),
+			paramsList = [];
 		if (blackList.indexOf(prop)!=-1)
+		{
+			type = prop;
 			continue;
-		props[prop] = getDoc;
+		}
+		for (p in params)
+		{
+			var _param = {};
+			var data = params[p].split(' ')
+			_param.name = data[1];
+			_param.accept = data[2];
+			data=data.splice(3)
+			_param.desc = data.join(' ');
+			paramsList.push(_param);
+		}
+		props[prop] = {
+			desc: getDoc,
+			type: type
+		};
+		if (type == 'methods')
+			props[prop].params = paramsList;
 	}
 
 	Object.defineProperty(this.classes[className], 'doc', {

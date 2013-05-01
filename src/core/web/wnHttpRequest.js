@@ -11,7 +11,7 @@
  * Description coming soon.
  *
  * @author Pedro Nasser
- * @package system.core.web
+ * @package package.http
  * @since 1.0.0
  */
 
@@ -98,6 +98,13 @@ module.exports = {
 
 			this.app = this.getParent();
 
+			var htmlClass = this.getParent().c.wnHtml;
+			this.html = new htmlClass;
+			this.html.setParent(this);
+
+			var htmlEncoderClass = this.getParent().c.wnHtmlEncoder;
+			this.html.encoder = new htmlEncoderClass;
+
 			if (this.info == undefined)
 				return false;
 		},
@@ -165,6 +172,14 @@ module.exports = {
 			});
 			this.e.run(this);
 			return this;
+		},
+
+		/**
+		 * Return the controller url
+		 * @return string controller url
+		 */
+		getUrl: function () {
+			return this.route ? this.route.translation : '';
 		},
 
 		/**
