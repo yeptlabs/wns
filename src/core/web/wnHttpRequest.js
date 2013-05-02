@@ -179,7 +179,7 @@ module.exports = {
 		 * @return string controller url
 		 */
 		getUrl: function () {
-			return this.route ? this.route.translation : '';
+			return this.info.url;
 		},
 
 		/**
@@ -287,17 +287,25 @@ module.exports = {
 
 			var mimetype = this.header['Content-Type']=mime.lookup(this.parsedUrl.pathname);
 			this.fileName = this.getConfig('path').public+_filename;
-			self.app.getFile(self.fileName,true,function (file) {
-				if (!file)
-					self.e.error(404,'File not found',true);
-				else
-				self.app.getFileStat(self.fileName, function (stat) {
-					self.data = file;
-					self.header['Content-Length']=self.data.length;
-					self.stat = stat;
-					self.send();
-				});
-			});
+
+			var s = fs.createReadStream(this.app.modulePath+this.fileName);
+			self.code=200;
+			s.on('error', function () {
+				self.e.error(404,'File not found',true);
+			})
+			self.send(s);
+
+			// self.app.getFile(self.fileName,true,function (file) {
+			// 	if (!file)
+			// 		self.e.error(404,'File not found',true);
+			// 	else
+			// 	self.app.getFileStat(self.fileName, function (stat) {
+			// 		self.data = file;
+			// 		self.header['Content-Length']=self.data.length;
+			// 		self.stat = stat;
+			// 		self.send();
+			// 	});
+			// });
 		},
 
 		/**
@@ -342,9 +350,16 @@ module.exports = {
 			if (self.sent)
 				return false;
 
-			var res = this.response;
+			var res = this.response,
+				data = data || '';
 
-			self.data = Buffer.concat([new Buffer(self.data,'utf8'),new Buffer(data||0)]);
+			if (!data.pipe)
+			{
+				if (Buffer.isBuffer(self.data) || typeof self.data == 'string')
+					self.data = Buffer.concat([new Buffer(self.data,'utf8'),new Buffer(data||0)]);
+			}
+			else 
+				self.data = data;
 
 			this.once('send', function (e,cb) {
 				cb&&cb();
@@ -362,8 +377,15 @@ module.exports = {
 					self.app.e.closedRequest(self);
 				});
 
-				res.write(self.data);
-				res.end();
+				if (self.data.pipe)
+				{
+					self.data.pipe(res);
+				}
+				else 
+				{
+					res.write(self.data);
+					res.end();
+				}
 			});
 		}
 

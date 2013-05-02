@@ -57,8 +57,26 @@ module.exports = {
 		render: function (text,obj,cb)
 		{
 			// var compiled = dustjs_linkedin.compile(text, "tmp");
-   //  		dustjs_linkedin.loadSource(compiled);
+   			// dustjs_linkedin.loadSource(compiled);
 			// dustjs_linkedin.render('tmp',obj,cb);
+
+			if (obj)
+				obj.html=function(chunk, context, bodies, params) {
+					var options = null,
+						args = [];
+				    if (!params.t || !self.parent().request.html[params.t])
+				       return chunk.write('');
+				    if (params.opts && params.opts.substr(0,1)==='(')
+				       options = JSON.parse(params.opts.replace(/\'/g,'"').replace(/\(/g,'{').replace(/\)/g,'}'));
+				    if (params.args && params.args.substr(0,1)==='[')
+				       args = JSON.parse(params.args.replace(/\'/g,'"'));
+				    var type = params.t;
+				    if ((type.indexOf('active')!==-1 || type == 'error') && context.stack.head.model!==undefined)
+				    	args.unshift(context.stack.head.model);
+				    args.push(options);
+				    return chunk.write(self.parent().request.html[type].apply(self.parent().request.html,args));
+				};
+
 			dustjs_linkedin.renderSource(text,obj,cb);
 		}
 

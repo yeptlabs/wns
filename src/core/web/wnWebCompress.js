@@ -36,10 +36,7 @@ module.exports = {
 		/**
 		 * @var object all compress object constructors
 		 */
-		compressMode: {
-			gzip: zlib.createGzip,
-			deflate: zlib.createDeflate
-		},
+		compressMode: {},
 
 		/**
 		 * @var object 
@@ -59,6 +56,10 @@ module.exports = {
 		 */	
 		init: function ()
 		{
+			this.compressMode = { 
+				gzip: zlib.createGzip,
+				deflate: zlib.createDeflate
+			};
 		},
 
 		/**
@@ -92,11 +93,11 @@ module.exports = {
 				res.directWrite = res.write;
 				res.directEnd = res.end;
 
-				req.header['Vary'] = 'Accept-Encoding';
+			req.header['Vary'] = 'Accept-Encoding';
 
 			res.write = function (chunk, encoding)
 			{
-				if (!this.headerSent) this._implicitHeader();
+				//if (!this.headerSent) this._implicitHeader();
 				return stream ? 
 					stream.write(new Buffer(chunk,encoding)) : res.directWrite.call(res,chunk,encoding);
 			};
@@ -129,8 +130,9 @@ module.exports = {
 		 * @param string mode {gzip/deflate}
 		 */
 		createCompression: function (mode) {
-			if (this.compressMode[mode]!=undefined)
-				return this.compressMode[mode](this.getConfig());
+			var compression = this.compressMode[mode];
+			if (compression!=undefined)
+				return compression(this.getConfig());
 			return false;
 		},
 

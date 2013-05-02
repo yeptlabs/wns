@@ -220,7 +220,8 @@ module.exports = {
 		tag: function (tag,htmlOptions,content,closeTag)
 		{
 			var tag = tag || '',
-				content = content || '';
+				content = content || false,
+				closeTag = closeTag || true;
 			html='<' + tag + self.renderAttributes(htmlOptions||{});
 			if(content===false)
 				return closeTag && self.closeFSingleTags ? html+' />' : html+'>';
@@ -404,10 +405,10 @@ module.exports = {
 		 */
 		beginForm: function (action,method,htmlOptions)
 		{
-			var method = method || post,
+			var method = method || 'post',
 				action = action || '',
 				htmlOptions = htmlOptions || {};
-			htmlOptions['action']=_url=self.normalizeUrl(action);
+			htmlOptions['action']=_url=self.normalizeUrl(action)+'';
 			htmlOptions['method']=method;
 			form=self.tag('form',htmlOptions,false,false);
 			hiddens=[];
@@ -426,8 +427,8 @@ module.exports = {
 			request=this.getParent().request;
 			// if(request.enableCsrfValidation && !strcasecmp(method,'post'))
 			// 	hiddens.push(self.hiddenField(request.csrfTokenName,request.getCsrfToken(),{'id':false}));
-			if(hiddens!==[])
-				form+="\n"+self.tag('div',{'style':'display:none'},hiddens.join("\n"));
+			// if(hiddens!==[])
+			// 	form+="\n"+self.tag('div',{'style':'display:none'},hiddens.join("\n"));
 			return form;
 		},
 
@@ -2124,6 +2125,7 @@ module.exports = {
 		{
 			self.resolveName(model,attribute); // turn [a][b]attr into attr
 			error=model.getError(attribute);
+			console.log(error);
 			if(error!='')
 			{
 				if(undefined === (htmlOptions['class']))
@@ -2537,6 +2539,7 @@ module.exports = {
 		 */
 		resolveName: function (model,attribute)
 		{
+			var attribute = attribute || '';
 			if((pos=attribute.indexOf('['))!==-1)
 			{
 				if(pos!==0)  // e.g. name[a][b]

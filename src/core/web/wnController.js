@@ -102,6 +102,7 @@ module.exports = {
 				var engineName = this.getConfig('templateEngine') || 'Dust',
 					tplEngine = this.app.c['wn'+engineName+'Template'];
 				this.template= new tplEngine();
+				this.template.parent = function () { return self; };
 			}
 
 			this.afterInit();
