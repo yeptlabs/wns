@@ -114,10 +114,8 @@ module.exports = {
 				return false;
 
 			console.log("[*] - Creating new `package.js` file.");
-			var defaultPackage = fs.readFileSync(_sourcePath+'/default-package.json');
-			defaultPackage = new this.c.wnTemplate(defaultPackage).match({
-				moduleName: 'server-'+serverPath.substr(0,serverPath.length-1).split('/').pop().replace(/\s/g,'-')
-			});
+			var defaultPackage = fs.readFileSync(_sourcePath+'/default-package.json').toString('utf8');
+			defaultPackage = (defaultPackage+'').replace(/\{moduleName\}/g, 'server-'+serverPath.substr(0,serverPath.length-1).split('/').pop().replace(/\s/g,'-'));
 			fs.writeFileSync(serverPath+'/package.json',defaultPackage);
 
 			console.log("[*] - Creating new `config.json` file.");
@@ -126,11 +124,9 @@ module.exports = {
 			);
 
 			console.log("[*] - Creating new `index.js` file.");
-			var defaultIndex = fs.readFileSync(_sourcePath+'/default-index.js');
-			defaultIndex = new this.c.wnTemplate(defaultIndex).match({
-				sourcePath: './'+relativeSourcePath.replace(/\\/g,'/'),
-				serverPath: './'+relativeServerPath.replace(/\\/g,'/')
-			});
+			var defaultIndex = fs.readFileSync(_sourcePath+'/default-index.js').toString('utf8');
+			defaultIndex = defaultIndex.replace(/\{sourcePath\}/g,'./'+relativeSourcePath.replace(/\\/g,'/'));
+			defaultIndex = defaultIndex.replace(/\{serverPath\}/g,'./'+relativeSourcePath.replace(/\\/g,'/'));
 			fs.writeFileSync(serverPath+'/index.js',defaultIndex);
 
 			console.log('[*] New wnServer created.');

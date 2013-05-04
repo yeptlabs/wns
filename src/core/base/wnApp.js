@@ -11,7 +11,7 @@
  * wnApp is the base class for all applications. 
  *
  * @author Pedro Nasser
- * @package system.core
+ * @package system.core.base
  * @since 1.0.0
  */
 

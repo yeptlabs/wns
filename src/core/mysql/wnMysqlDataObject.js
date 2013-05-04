@@ -1,0 +1,122 @@
+/**
+ * Source of the wnMysqlDataObject class.
+ * 
+ * @author: Pedro Nasser
+ * @link: http://wns.yept.net/
+ * @license: http://yept.net/projects/wns/#license
+ * @copyright: Copyright &copy; 2012 WNS
+ */
+
+/**
+ * Description coming soon.
+ *
+ * @author Pedro Nasser
+ * @package package.mysql
+ * @since 1.0.0
+ */
+
+// Exports
+module.exports = {
+
+	/**
+	 * Class dependencies
+	 */
+	extend: ['wnDataObject'],
+
+	/**
+	 * NPM dependencies
+	 */
+	dependencies: ['mysql'],
+
+	/**
+	 * PRIVATE
+	 */
+	private: {
+		_serverConfig: {}
+	},
+
+	/**
+	 * Public Variables
+	 */
+	public: {
+	},
+
+	/**
+	 * Methods
+	 */
+	methods: {
+
+		/**
+		 * Initializer.
+		 */		
+		init: function (conn)
+		{
+			_db=conn;
+			this.driver = mysql;
+		},
+
+		/**
+		 * Create mongodb connection then extend this class
+		 * with all the Server object.
+		 */
+		_open: function ()
+		{
+			this.setConfig(_serverConfig);
+			this.e.ready();
+		},
+
+		/**
+		 * Connect to the database
+		 * When it cannects it calls the callback function
+		 * @param $cb function callback function
+		 */
+		_connect: function (cb)
+		{
+			var con = this.driver.createConnection(this.getConfig());
+			con.connect(function (err) {
+				self.e.connect(err,con);
+				if (err)
+				{
+					cb(err,null);
+				} else
+				{
+					cb(err,con);
+				}
+			});
+		},
+
+		/**
+		 * Execute a data request
+		 * @param $params object parameters
+		 * @param $cb function callback
+		 */
+		_execute: function (params,cb)
+		{
+			cb&&cb();
+		},
+
+		/**
+		 * Execute a query
+		 * @param $query string query
+		 * @param $cb function callback
+		 */
+		_query: function (query,cb)
+		{
+			this._connect(function (err,con) {
+				if (con)
+				{
+					con.query(query,function (err,rows,fields) {
+						self.e.result(err, rows, fields);
+						cb&&cb(err,rows,fields);
+						con.destroy();
+					});
+				} else
+				{
+					cb&&cb(err);
+				}
+			});
+		}
+	
+	}
+
+};

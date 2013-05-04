@@ -152,11 +152,9 @@ wnBuild.prototype.buildClass = function (className)
 		eval('var '+className+' = new klass;');
 		eval('var self = '+className+';');
 
-		for (d in targetClass.dependencies)
-		{
-			__builder.loadDependencies(targetClass.dependencies);
-			eval('var '+targetClass.dependencies[d].replace(/\-/g,'_')+'=__builder.loadedModules[targetClass.dependencies[d]];');
-		}
+		__builder.loadDependencies(targetClass.dependencies);
+		for (e in targetClass.dependencies)
+			eval('var '+targetClass.dependencies[e].replace(/\-/g,'_')+'=__builder.loadedModules[targetClass.dependencies[d]];');
 
 		for (e in build.extend)
 		{

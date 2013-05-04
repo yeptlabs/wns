@@ -66,7 +66,7 @@ try
 	sl&&process.stdout.write(' ('+nm.length+' modules)\n');
 
 } catch (e) {
-	sl&&console.log('Failed to load some dependencies...');
+	sl&&console.log(' Failed to load some dependencies...');
 	throw e;
 	process.exit();
 }

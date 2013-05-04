@@ -24,7 +24,7 @@
  * Or just get the event object than use the {@link push} method.
  *
  * @author Pedro Nasser
- * @package system.core.base
+ * @package packages.base
  * @since 1.0.0
  */
 
@@ -205,7 +205,9 @@ module.exports = {
 		/**
 		 * Get a file.
 		 * The file's path is relative to the module's path.
-		 * @param $filePath string file's path
+		 * @param string $filePath file's path
+		 * @param boolean $binary is it binary?
+		 * @param function $cb async callback function
 		 */
 		getFile: function (filePath)
 		{
@@ -215,10 +217,8 @@ module.exports = {
 			if (typeof arguments[2]=='function')
 				var cb = arguments[2];
 
-			if (typeof arguments[1]=='boolean')
-				var binary = arguments[1];
-
-			var realPath = this.instanceOf('wnModule')?this.modulePath+filePath:filePath,
+			var binary = typeof arguments[1]=='boolean' ? arguments[1] : false,
+				realPath = this.instanceOf('wnModule')?this.modulePath+filePath:filePath,
 				cmd = !cb ? 'readFileSync' : 'readFile';
 
 			try {
@@ -239,7 +239,7 @@ module.exports = {
 		/**
 		 * Get a file statistic.
 		 * The file's path is relative to the module's path.
-		 * @param $filePath string file's path
+		 * @param string $filePath file's path
 		 */
 		getFileStat: function (filePath,cb)
 		{

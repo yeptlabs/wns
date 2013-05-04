@@ -127,14 +127,12 @@ module.exports = {
 				wrench.copyDirSyncRecursive(cwd+sourcePath+'app/',this.modulePath+appPath);
 				fs.renameSync(this.modulePath+appPath+'app.js', this.modulePath+appPath+appName+'.js');
 	
-				var defaultPackage = fs.readFileSync(cwd+sourcePath+'default-package.json');
-				defaultPackage = new this.c.wnTemplate(defaultPackage).match({
-					moduleName: appName
-				});
+				var defaultPackage = fs.readFileSync(cwd+sourcePath+'default-package.json').toString('utf8');
+				defaultPackage = defaultPackage.replace(/\{moduleName\}/g,appName);
 				fs.writeFileSync(this.modulePath+appPath+'package.json',defaultPackage);
 
 				var config = this.getFile(appPath+'config.json');
-				config = new this.c.wnTemplate(config).match({});
+				config = config;
 				fs.writeFileSync(this.modulePath+appPath+'config.json',config,'utf8');
 			}
 			return this;

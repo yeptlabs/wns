@@ -1,5 +1,5 @@
 /**
- * Source of the wnDbCollection class.
+ * Source of the wnDbMysqlSchema class.
  * 
  * @author: Pedro Nasser
  * @link: http://wns.yept.net/
@@ -11,7 +11,7 @@
  * Description coming soon.
  * 
  * @author Pedro Nasser
- * @package package.db
+ * @package package.mysql
  * @since 1.0.0
  */
 
@@ -21,7 +21,7 @@ module.exports = {
 	/**
 	 * Class dependencies
 	 */
-	extend: ['wnComponent'],
+	extend: ['wnDbSchema'],
 
 	/**
 	 * PRIVATE
@@ -36,6 +36,8 @@ module.exports = {
 	/**
 	 * Methods
 	 */
-	methods: {}
+	methods: {
+
+	}
 
 };

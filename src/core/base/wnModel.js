@@ -81,6 +81,8 @@ module.exports = {
 		 */
 		validate: function (attributes, clearErrors)
 		{
+			return true;
+			
 			var attributes = attributes || null;
 				clearErrors = clearErrors || true;
 			if(clearErrors)
@@ -105,12 +107,12 @@ module.exports = {
 		 * @return CList all the validators declared in the model.
 		 * @since 1.1.2
 		 */
-		public function getValidatorList()
+		getValidatorList: function ()
 		{
-			if($this->_validators===null)
-				$this->_validators=$this->createValidators();
-			return $this->_validators;
-		}
+			if(this._validators===null)
+				this._validators={};
+			return this._validators;
+		},
 
 		/**
 		 * Returns the validators applicable to the current {@link scenario}.
@@ -118,42 +120,59 @@ module.exports = {
 		 * If this is null, the validators for ALL attributes in the model will be returned.
 		 * @return array the validators applicable to the current {@link scenario}.
 		 */
-		public function getValidators($attribute=null)
+		getValidators: function (attribute)
 		{
-			if($this->_validators===null)
-				$this->_validators=$this->createValidators();
+			var attribute = attribute || null;
+			if(this._validators===null)
+				this._validators={};
 
-			$validators=array();
-			$scenario=$this->getScenario();
-			foreach($this->_validators as $validator)
+			validators=[];
+			scenario=this.getScenario();
+			for (v in this._validators)
 			{
-				if($validator->applyTo($scenario))
+				var validator = this._validators[v];
+				if(validator.applyTo(scenario))
 				{
-					if($attribute===null || in_array($attribute,$validator->attributes,true))
-						$validators[]=$validator;
+					if(attribute===null || validator.attributes[attribute]!==undefined)
+						validators.push(validator);
 				}
 			}
-			return $validators;
-		}
+			return validators;
+		},
 
 		/**
-		 * Creates validator objects based on the specification in {@link rules}.
-		 * This method is mainly used internally.
-		 * @return CList validators built based on {@link rules()}.
+		 * Returns the attribute names that are safe to be massively assigned.
+		 * A safe attribute is one that is associated with a validation rule in the current {@link scenario}.
+		 * @return array safe attribute names
 		 */
-		public function createValidators()
+		getSafeAttributeNames: function ()
 		{
-			$validators=new CList;
-			foreach($this->rules() as $rule)
+			var attributes={},
+				unsafe=[],
+				safe=[];
+				validators = this.getValidators();
+			for(v in validators)
 			{
-				if(isset($rule[0],$rule[1]))  // attributes, validator name
-					$validators->add(CValidator::createValidator($rule[1],$this,$rule[0],array_slice($rule,2)));
+				var validator = validators[v];
+				if(!validator.safe)
+				{
+					for (a in validator.attributes)
+						unsafe.push(a);
+				}
 				else
-					throw new CException(Yii::t('yii','{class} has an invalid validation rule. The rule must specify attributes to be validated and the validator name.',
-						array('{class}'=>get_class($this))));
+				{
+					for (a in validator.attributes)
+						attributes[a]=true;
+				}
 			}
-			return $validators;
-		}
+
+			for(u in unsafe)
+				delete attributes[unsafe[u]];
+			for (u in attributes)
+				safe.push(u);
+
+			return safe;
+		},
 
 		/**
 		 * Returns a value indicating whether the attribute is required.
@@ -162,15 +181,19 @@ module.exports = {
 		 * @param string $attribute attribute name
 		 * @return boolean whether the attribute is required
 		 */
-		public function isAttributeRequired($attribute)
+		isAttributeRequired: function (attribute)
 		{
-			foreach($this->getValidators($attribute) as $validator)
+			var attribute = attribute || null,
+				validators = this.getValidators(attribute);
+
+			for (v in validators)
 			{
-				if($validator instanceof CRequiredValidator)
+				var validator = validators[v];
+				if(validator.instanceOf('wnRequiredValidator'))
 					return true;
 			}
 			return false;
-		}
+		},
 
 		/**
 		 * Returns a value indicating whether the attribute is safe for massive assignments.
@@ -178,11 +201,12 @@ module.exports = {
 		 * @return boolean whether the attribute is safe for massive assignments
 		 * @since 1.1
 		 */
-		public function isAttributeSafe($attribute)
+		isAttributeSafe: function (attribute)
 		{
-			$attributes=$this->getSafeAttributeNames();
-			return in_array($attribute,$attributes);
-		}
+			var attribute = attribute || null;
+			attributes=this.getSafeAttributeNames();
+			return attributes[attribute] !== undefined;
+		},
 
 		/**
 		 * Returns a value indicating whether there is any validation error.
