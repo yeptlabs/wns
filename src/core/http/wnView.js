@@ -78,30 +78,25 @@ module.exports = {
 		},
 
 		/**
+		 * Some code to execute every time before rendering.
+		 */
+		beforeRender: function () 
+		{
+
+		},
+
+		/**
 		 * Renders the layout of the view with all the page's information.
 		 */
 		render: function (cb) {	
 
-			// // Scripts.
-			// this.script = {};
-			// for (s in this.loadScript) {
-			// 	this.script[this.loadScript[s]] = "<script type='text/javascript'>\n"+((fs.readFileSync(this.controller.app.appPath+this.controller.app.getConfig('path').public+this.controller.app.getConfig('components').view.loadScriptPath+this.loadScript[s]+'.js')).toString())+"\n</script>";
-			// }
-
-			// this.controller.template.render(this.controller.app.getConfig('components').view.menuItemTemplate)
-
-			// // Menu
-			// var	_menu = '',
-			// 	_tplMenu = new this.controller.app.c.wnTemplate();
-			// for (m in this.controller.app.getConfig('components').view.menu)
-			// {
-			// 	_menu += _tplMenu.match({'label':m,'url':this.controller.app.getConfig('components').view.menu[m][0]});
-			// }
-			// this.menu = new this.controller.app.c.wnTemplate(this.controller.app.getConfig('components').view.menuTemplate).match({'list':_menu});
-
-			// return (new this.controller.app.c.wnTemplate(this.layout,false)).match({'view':this});
-
-			cb&&cb(self);
+			var exprt = {};
+			this.beforeRender();
+			Object.extend(true,exprt,self.data);
+			exprt.view = this.export();
+			self.controller.template.render(this.layout,exprt,function (err,result) {
+				cb&&cb(result);
+			});
 
 		}
 

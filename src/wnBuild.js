@@ -154,7 +154,7 @@ wnBuild.prototype.buildClass = function (className)
 
 		__builder.loadDependencies(targetClass.dependencies);
 		for (e in targetClass.dependencies)
-			eval('var '+targetClass.dependencies[e].replace(/\-/g,'_')+'=__builder.loadedModules[targetClass.dependencies[d]];');
+			eval('var '+targetClass.dependencies[e].replace(/\-/g,'_')+'=__builder.loadedModules[targetClass.dependencies[e]];');
 
 		for (e in build.extend)
 		{
@@ -301,7 +301,7 @@ wnBuild.prototype.loadDependencies = function (dep)
 	{
 		if (!this.loadedModules[dep[d]])
 		{
-			var module=require(path.resolve(this.modulePath+'/node_modules/'+dep[d]+''));
+			var module=require(path.resolve(this.modulePath+'/node_modules/'+dep[d]));
 			this.loadedModules[dep[d]]=module;
 		}
 	}

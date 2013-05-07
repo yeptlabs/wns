@@ -97,12 +97,12 @@ module.exports = {
 
 			if (this.app)
 			{
-				this.view=this.app.createClass('wnView',{ controller: this });
-
 				var engineName = this.getConfig('templateEngine') || 'Dust',
 					tplEngine = this.app.c['wn'+engineName+'Template'];
 				this.template= new tplEngine();
 				this.template.parent = function () { return self; };
+
+				this.view=this.app.createClass('wnView',{ controller: this });
 			}
 
 			this.afterInit();
@@ -234,26 +234,35 @@ module.exports = {
 				templateObj = {};
 
 			Object.extend(true,templateObj,data?data:{});
+			Object.extend(true,templateObj,{
+				self: self.export(),
+				app: self.app.export(),
+				request: self.request.export()
+			});
 
 			this.getView(view,function (viewTpl) {
 				if (viewTpl!==false)
 				{
+					//console.log('got view')
 					self.view.name = view;
 					self.view.language = self.app.getConfig('components').view.language;
 					self.view.title = self.app.getConfig('components').view.titleTemplate;
+					self.view.layout = viewTpl;
+					self.view.data = templateObj;
 					
-					self.view.render(function () {
-						Object.extend(true,templateObj,{
-							self: self.export(),
-							app: self.app.export(),
-							request: self.request.export(),
-							view:self.view.export()
-						});
+					self.view.render(function (viewTpl) {
+						//console.log('render view')
 						self.app.getFile(self.request.getConfig('path').views+'layouts/'+_layout+'.tpl',function (layoutTpl) {
+							//console.log('got layout')
 							var layoutTpl = layoutTpl.replace(/{content}/i,viewTpl);
-							self.template.render(layoutTpl, templateObj, function (err,result) {
-								self.request.data+=result;
-								self.request.send();
+								viewObj = data||{};
+							viewObj.view = self.view.export();
+							self.template.render(layoutTpl, viewObj, function (err,renderLayout) {
+								//console.log('render layout - view')
+								self.template.render(renderLayout, templateObj, function (err,result) {
+									//console.log('render layout - template')
+									self.request.send(result);
+								});
 							});
 						});
 					});

@@ -1460,6 +1460,7 @@ module.exports = {
 		 */
 		activeLabel: function (model,attribute,htmlOptions)
 		{
+			var htmlOptions = htmlOptions || {};
 			if('undefined' !== typeof (htmlOptions['for']))
 			{
 				var _for=htmlOptions['for'];
@@ -2125,7 +2126,6 @@ module.exports = {
 		{
 			self.resolveName(model,attribute); // turn [a][b]attr into attr
 			error=model.getError(attribute);
-			console.log(error);
 			if(error!='')
 			{
 				if(undefined === (htmlOptions['class']))

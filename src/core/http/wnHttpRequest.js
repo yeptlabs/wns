@@ -378,9 +378,7 @@ module.exports = {
 				});
 
 				if (self.data.pipe)
-				{
 					self.data.pipe(res);
-				}
 				else 
 				{
 					res.write(self.data);
