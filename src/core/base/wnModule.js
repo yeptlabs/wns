@@ -65,22 +65,22 @@ module.exports = {
 		this.setEvents({ 'ready': {} });
 		var ready=this.getEvent('ready');
 		ready.once(function () {
-			process.nextTick(function () {
-				var args = Array.prototype.slice.call(arguments);
-				args.shift();
-				
-				self.startComponents();
-				self.prepareModels();
-				self.prepareScripts();
+			var args = Array.prototype.slice.call(arguments);
+			args.shift();
+			
+			self.startComponents();
+			self.prepareModels();
+			self.prepareScripts();
 
-				self.init.apply(self,args);
-				self.run.apply(self,args);
-				_initialized=true;
-			});
+			self.init.apply(self,args);
+			self.run.apply(self,args);
+			_initialized=true;
 		});
 
-		this.getConfig('autoInit')!=false&&
-			this.e.ready.apply(this,arguments);
+		if (this.getConfig('autoInit')!=false)
+			process.nextTick(function () {
+				self.e.ready.apply(this,arguments);
+			});
 	},
 
 	/**
@@ -489,8 +489,10 @@ module.exports = {
 						_modules[id] = module;
 						this.attachModuleEvents(id);
 						onLoad&&onLoad(module);
-						self.e.loadModule(id,module);
-						module.e.ready(modulePath,config);
+						process.nextTick(function () {
+							module.e.ready(modulePath,config);
+							self.e.loadModule(id,module);
+						});
 						return _modules[id];
 					} else
 						return false;

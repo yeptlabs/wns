@@ -187,8 +187,8 @@ module.exports = {
 		 */
 		createServer: function (id)
 		{
-			var m = this.getModule('server-'+id, function (app) {
-				self.e.loadServer(app);
+			var m = this.getModule('server-'+id, function (server) {
+				self.e.loadServer(server);
 			});
 			_serverModules.push(m);
 			return m;

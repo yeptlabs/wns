@@ -229,13 +229,12 @@ module.exports = {
 		 */
 		render: function (view,data)
 		{
-
 			var _controller=this.getControllerName();
 			var _layout=this.layout;
 			var templateObj = {};
 			var renderLayout;
-
 			var data = Object.extend(true,{},data||{});
+
 			Object.extend(true,templateObj,data);
 			Object.extend(true,templateObj,{
 				self: self.export(),
