@@ -54,11 +54,11 @@ module.exports = {
 		/**
 		 * Render template.
 		 */
-		render: function (text,obj,cb)
+		render: function (template,obj,cb)
 		{
-			// var compiled = dustjs_linkedin.compile(text, "tmp");
-   			// dustjs_linkedin.loadSource(compiled);
-			// dustjs_linkedin.render('tmp',obj,cb);
+			var template;
+			var name;
+			var compiled;
 
 			if (obj)
 			{
@@ -71,7 +71,9 @@ module.exports = {
 							}.bind({ html: obj[o]+'' });
 					}
 				}
-				obj.html=function(chunk, context, bodies, params) {
+
+				obj.html=function(chunk, context, bodies, params)
+				{
 					var options = null,
 						args = [];
 				    if (!params.t || !self.parent().request.html[params.t])
@@ -88,9 +90,38 @@ module.exports = {
 				};
 			}
 
-			dustjs_linkedin.helpers=dustjs_helpers.helpers;
-			dustjs_linkedin.renderSource(text,obj,cb);
+			if (typeof template == 'object' && typeof template.name == 'string' && typeof template.source == 'string')
+			{
+				if (!_compiled[template.name])
+				{
+					//console.log('building template')
+					compiled = _compiled[template.name] = dustjs_linkedin.compile(template.source, template.name);
+	   				dustjs_linkedin.loadSource(compiled);
+				}
+				//console.log('rendering')
+				dustjs_linkedin.render(template.name,obj,cb);
+			} else
+			{
+				if (typeof template == 'string')
+					source = template;
+				else 
+					source = template.source;
+				
+				//console.log('runtime rendering')
+				dustjs_linkedin.helpers=dustjs_helpers.helpers;
+				dustjs_linkedin.renderSource(source,obj,cb);
+			}
+
+		},
+
+		/**
+		 * Has the template cached?
+		 */
+		has: function (templateName)
+		{	
+			return _compiled[templateName+'']!==undefined;
 		}
+
 
 	}
 

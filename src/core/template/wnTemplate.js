@@ -42,7 +42,9 @@ module.exports = {
 	 * It's getter function will be `this.getId`, and it's setter `this.setId`.
 	 * To define a PRIVILEGED function you put a underscore before the name.
 	 */
-	private: {},
+	private: {
+		_compiled: {}
+	},
 
 	/**
 	 * Public Variables
@@ -113,6 +115,14 @@ module.exports = {
 			if (path=='') 
 				return this._text;
 		},
+
+		/**
+		 * Default rendering function.
+		 */
+		render: function (text,context,cb)
+		{
+
+		},
 		
 		/**
 		 * Set the suffix of the template.
@@ -132,6 +142,15 @@ module.exports = {
 		{
 			this.prefix = reg || this.prefix;
 			return this;
+		},
+
+		/**
+		 * Has the template cached?
+		 */
+		has: function (templateName)
+		{
+			return false;
+
 		}
 
 	}

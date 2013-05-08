@@ -257,9 +257,15 @@ module.exports = {
 							var layoutTpl = layoutTpl.replace(/{content}/i,viewTpl);
 								viewObj = data||{};
 							viewObj.view = self.view.export();
-							self.template.render(layoutTpl, viewObj, function (err,renderLayout) {
+							self.template.render({
+								name: _layout,
+								source: layoutTpl
+							}, viewObj, function (err,renderLayout) {
 								//console.log('render layout - view')
-								self.template.render(renderLayout, templateObj, function (err,result) {
+								self.template.render({
+									name: _layout,
+									source: renderLayout
+								}, templateObj, function (err,result) {
 									//console.log('render layout - template')
 									self.request.send(result);
 								});
