@@ -489,9 +489,9 @@ module.exports = {
 						_modules[id] = module;
 						this.attachModuleEvents(id);
 						onLoad&&onLoad(module);
+						self.e.loadModule(id,module);
 						process.nextTick(function () {
 							module.e.ready(modulePath,config);
-							self.e.loadModule(id,module);
 						});
 						return _modules[id];
 					} else
