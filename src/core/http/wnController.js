@@ -99,7 +99,7 @@ module.exports = {
 			{
 				var engineName = this.getConfig('templateEngine') || 'Dust',
 					tplEngine = this.app.c['wn'+engineName+'Template'];
-				this.template= new tplEngine();
+				this.template= new tplEngine({},this.app.c);
 				this.template.parent = function () { return self; };
 
 				this.view=this.app.createClass('wnView',{ controller: this });
@@ -263,12 +263,16 @@ module.exports = {
 									return chunk.write(this.html);
 								}.bind({ html: viewTpl });
 
-								self.template.render({
+								var stream=self.template.render({
 									name: _layout,
 									source: layoutTpl
 								}, templateObj, function (err,renderLayout) {
 									self.request.send(renderLayout);
 								});
+								if (stream)
+									stream.addListener('data',function (e,chunk) {
+										self.request.write(chunk);
+									});
 							});
 						});
 					} else

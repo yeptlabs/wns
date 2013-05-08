@@ -342,34 +342,48 @@ module.exports = {
 		},
 
 		/**
-		 * Method that prepare and sends the response.
+		 * Send a chunk to the response.
 		 * @param string/buffer $data response data (optional)
 		 */
-		send: function (data)
+		write: function (data)
 		{
-			if (self.sent)
+			if (!data)
 				return false;
 
-			var res = this.response,
-				data = data || '';
+			var res = this.response;
+				
+			this.prepareSend();	
 
 			if (!data.pipe)
 			{
 				if (Buffer.isBuffer(self.data) || typeof self.data == 'string')
 					self.data = Buffer.concat([new Buffer(self.data,'utf8'),new Buffer(data||0)]);
+				res.write(self.data);
 			}
-			else 
-				self.data = data;
+			else
+			{
+				self.response.piped=true;
+				data.pipe(res);
+				self.data=data;
+			}
+		},
+
+		/**
+		 * Prepare the response to send data.
+		 */
+		prepareSend: function ()
+		{
+			var res = this.response;
+
+			if (self.sent)
+				return false;
+			self.sent=true;
+
+			for (h in self.header)
+				res.setHeader(h,self.header[h]);
+			res.statusCode = self.code;
 
 			this.once('send', function (e,cb) {
-				cb&&cb();
-			});
-
-			this.e.send(function () {
-				self.sent=true;
-				for (h in self.header)
-					res.setHeader(h,self.header[h]);
-				res.statusCode = self.code;
 				self.once('end',function () {
 					self.app.once('closedRequest', function () {
 						self.e.destroy(self);
@@ -377,13 +391,22 @@ module.exports = {
 					self.app.e.closedRequest(self);
 				});
 
-				if (self.data.pipe)
-					self.data.pipe(res);
-				else 
-				{
-					res.write(self.data);
-					res.end();
-				}
+				cb&&cb();
+			});
+		},
+
+		/**
+		 * Sends a final chunk and end the response.
+		 * @param string/buffer $data response data (optional)
+		 */
+		send: function (data)
+		{
+			this.prepareSend();
+			this.write(data);
+
+			this.e.send(function () {
+				if (!self.response.piped)
+					self.response.end();
 			});
 		}
 

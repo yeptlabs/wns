@@ -21,7 +21,7 @@ module.exports = {
 	/**
 	 * Class dependencies
 	 */
-	extend: ['wnTemplate'],
+	extend: ['wnComponent','wnTemplate'],
 
 	/**
 	 * NPM dependencies
@@ -44,7 +44,16 @@ module.exports = {
 	 * Public Variables
 	 * Can be accessed and defined directly.
 	 */
-	public: {},
+	public: {
+
+		/**
+		 * Default events
+		 */
+		defaultEvents: {
+			'data': {}
+		}
+
+	},
 
 	/**
 	 * Methods
@@ -100,7 +109,11 @@ module.exports = {
 	   				dustjs_linkedin.loadSource(compiled);
 				}
 				//console.log('rendering')
-				dustjs_linkedin.render(template.name,obj,cb);
+				dustjs_linkedin.stream(template.name,obj).on('data',function (chunk) {
+					self.e.data(chunk);
+				}).on("end", function() {
+      				cb&&cb();
+    			});
 			} else
 			{
 				if (typeof template == 'string')
@@ -112,6 +125,8 @@ module.exports = {
 				dustjs_linkedin.helpers=dustjs_helpers.helpers;
 				dustjs_linkedin.renderSource(source,obj,cb);
 			}
+
+			return self;
 
 		},
 
