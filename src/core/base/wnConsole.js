@@ -111,7 +111,7 @@ module.exports = {
 			console.log("[*] Building new wnServer on `"+serverPath+"`");
 
 			if (!fs.existsSync(serverPath))
-				return false;
+				fs.mkdirSync(serverPath);
 
 			console.log("[*] - Creating new `package.js` file.");
 			var defaultPackage = fs.readFileSync(_sourcePath+'/default-package.json').toString('utf8');
@@ -126,7 +126,7 @@ module.exports = {
 			console.log("[*] - Creating new `index.js` file.");
 			var defaultIndex = fs.readFileSync(_sourcePath+'/default-index.js').toString('utf8');
 			defaultIndex = defaultIndex.replace(/\{sourcePath\}/g,'./'+relativeSourcePath.replace(/\\/g,'/'));
-			defaultIndex = defaultIndex.replace(/\{serverPath\}/g,'./'+relativeSourcePath.replace(/\\/g,'/'));
+			defaultIndex = defaultIndex.replace(/\{serverPath\}/g,'./'+relativeServerPath.replace(/\\/g,'/'));
 			fs.writeFileSync(serverPath+'/index.js',defaultIndex);
 
 			console.log('[*] New wnServer created.');

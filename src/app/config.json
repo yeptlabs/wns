@@ -2,7 +2,7 @@
 {
 
 	// Application Name
-	"title": "Default WNS WebApp",
+	"title": "WNS App",
 
 	// Auto import
 	"import": [
@@ -10,6 +10,13 @@
 		"scripts/",
 		"components/",
 		"models/"
+	],
+
+	// Default menu
+	"menu": [
+		{ "name": "Home", "link": "/" },
+		{ "name": "About", "link": "/site/about" },
+		{ "name": "Contact", "link": "/site/contact" }
 	],
 
 	// Components
