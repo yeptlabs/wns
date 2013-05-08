@@ -246,7 +246,7 @@ module.exports = {
 					//console.log('got view')
 					self.view.name = view;
 					self.view.language = self.app.getConfig('components').view.language;
-					self.view.title = self.app.getConfig('components').view.titleTemplate;
+					self.view.title = (new self.app.c.wnTemplate(self.app.getConfig('components').view.titleTemplate)).match(templateObj);
 					self.view.layout = viewTpl;
 					self.view.data = templateObj;
 					
@@ -256,7 +256,8 @@ module.exports = {
 							//console.log('got layout')
 							var layoutTpl = layoutTpl.replace(/{content}/i,viewTpl);
 								viewObj = data||{};
-							viewObj.view = self.view.export();
+							templateObj.view = viewObj.view = self.view.export();
+							//console.log(layoutTpl.substr(0,500));
 							self.template.render({
 								name: _layout,
 								source: layoutTpl
