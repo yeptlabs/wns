@@ -62,7 +62,15 @@ module.exports = {
 
 			if (obj)
 			{
-				self.stringHandler(obj);
+				for (o in obj)
+				{
+					if (typeof obj[o] == 'string' && obj[o].match(/\<\/?[a-z]{1,6}\>/ig))
+					{
+						obj[o] = function (chunk) {
+								return chunk.write(this.html);
+							}.bind({ html: obj[o]+'' });
+					}
+				}
 				obj.html=function(chunk, context, bodies, params) {
 					var options = null,
 						args = [];
@@ -82,26 +90,6 @@ module.exports = {
 
 			dustjs_linkedin.helpers=dustjs_helpers.helpers;
 			dustjs_linkedin.renderSource(text,obj,cb);
-		},
-
-		stringHandler: function (obj,n)
-		{
-			var n = n || 0;
-			if (obj && typeof obj == 'object' && n<=3)
-			{
-				for (o in obj)
-				{
-					if (typeof obj[o] == 'string' && obj[o].match(/\<\/?[a-z]{1,6}\>/ig))
-					{
-						obj[o] = function (chunk) {
-								return chunk.write(this.html);
-							}.bind({ html: obj[o]+'' });
-					} else if (obj[o] && typeof obj[o] == 'object') {
-						self.stringHandler(obj[o],n+1);
-					}
-				}
-				return obj[o];
-			}
 		}
 
 	}
