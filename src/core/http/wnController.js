@@ -230,9 +230,10 @@ module.exports = {
 		render: function (view,data)
 		{
 
-			var _controller=this.getControllerName(),
-				_layout=this.layout,
-				templateObj = {};
+			var _controller=this.getControllerName();
+			var _layout=this.layout;
+			var templateObj = {};
+			var renderLayout;
 
 			var data = Object.extend(true,{},data||{});
 			Object.extend(true,templateObj,data);
@@ -257,21 +258,17 @@ module.exports = {
 							//console.log('render view')
 							self.app.getFile(self.request.getConfig('path').views+'layouts/'+_layout+'.tpl',function (layoutTpl) {
 								//console.log('got layout')
-								var layoutTpl = layoutTpl.replace(/{content}/i,viewTpl);
-									viewObj = data||{};
-								templateObj.view = viewObj.view = self.view.export();
+
+								templateObj.view = self.view.export();
+								templateObj.content = function (chunk) {
+									return chunk.write(this.html);
+								}.bind({ html: viewTpl });
+
 								self.template.render({
 									name: _layout,
 									source: layoutTpl
-								}, viewObj, function (err,renderLayout) {
-									//console.log('render layout - view')
-									self.template.render({
-										name: _layout,
-										source: renderLayout
-									}, templateObj, function (err,result) {
-										//console.log('render layout - template')
-										self.request.send(result);
-									});
+								}, templateObj, function (err,renderLayout) {
+									self.request.send(renderLayout);
 								});
 							});
 						});
