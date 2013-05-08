@@ -119,7 +119,7 @@ module.exports = {
 		/**
 		 * Default rendering function.
 		 */
-		render: function (text,context,cb)
+		render: function (template,context,cb)
 		{
 
 		},

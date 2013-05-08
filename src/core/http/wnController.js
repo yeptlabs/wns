@@ -229,55 +229,58 @@ module.exports = {
 		 */
 		render: function (view,data)
 		{
+
 			var _controller=this.getControllerName(),
 				_layout=this.layout,
 				templateObj = {};
 
-			Object.extend(true,templateObj,data?data:{});
+			var data = Object.extend(true,{},data||{});
+			Object.extend(true,templateObj,data);
 			Object.extend(true,templateObj,{
 				self: self.export(),
 				app: self.app.export(),
 				request: self.request.export()
 			});
 
-			this.getView(view,function (viewTpl) {
-				if (viewTpl!==false)
-				{
-					//console.log('got view')
-					self.view.name = view;
-					self.view.language = self.app.getConfig('components').view.language;
-					self.view.title = (new self.app.c.wnTemplate(self.app.getConfig('components').view.titleTemplate)).match(templateObj);
-					self.view.layout = viewTpl;
-					self.view.data = templateObj;
-					
-					self.view.render(function (viewTpl) {
-						//console.log('render view')
-						self.app.getFile(self.request.getConfig('path').views+'layouts/'+_layout+'.tpl',function (layoutTpl) {
-							//console.log('got layout')
-							var layoutTpl = layoutTpl.replace(/{content}/i,viewTpl);
-								viewObj = data||{};
-							templateObj.view = viewObj.view = self.view.export();
-							//console.log(layoutTpl.substr(0,500));
-							self.template.render({
-								name: _layout,
-								source: layoutTpl
-							}, viewObj, function (err,renderLayout) {
-								//console.log('render layout - view')
+			process.nextTick(function () {
+				self.getView(view,function (viewTpl) {
+					if (viewTpl!==false)
+					{
+						//console.log('got view')
+						self.view.name = view;
+						self.view.language = self.app.getConfig('components').view.language;
+						self.view.title = (new self.app.c.wnTemplate(self.app.getConfig('components').view.titleTemplate)).match(templateObj);
+						self.view.layout = viewTpl;
+						self.view.data = templateObj;
+						
+						self.view.render(function (viewTpl) {
+							//console.log('render view')
+							self.app.getFile(self.request.getConfig('path').views+'layouts/'+_layout+'.tpl',function (layoutTpl) {
+								//console.log('got layout')
+								var layoutTpl = layoutTpl.replace(/{content}/i,viewTpl);
+									viewObj = data||{};
+								templateObj.view = viewObj.view = self.view.export();
 								self.template.render({
 									name: _layout,
-									source: renderLayout
-								}, templateObj, function (err,result) {
-									//console.log('render layout - template')
-									self.request.send(result);
+									source: layoutTpl
+								}, viewObj, function (err,renderLayout) {
+									//console.log('render layout - view')
+									self.template.render({
+										name: _layout,
+										source: renderLayout
+									}, templateObj, function (err,result) {
+										//console.log('render layout - template')
+										self.request.send(result);
+									});
 								});
 							});
 						});
-					});
-				} else
-				{
-					self.app.e.log('View template not found: '+_controller+'/'+view,404);
-					self.request.send();
-				}
+					} else
+					{
+						self.app.e.log('View template not found: '+_controller+'/'+view,404);
+						self.request.send();
+					}
+				});
 			});
 		}
 
