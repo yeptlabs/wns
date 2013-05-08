@@ -1,6 +1,6 @@
 {
   "name": "wnserver",
-  "description": "A high-performance scalable component-based, class-based middleware and framework",
+  "description": "A high-performance, scalable and component-based middleware",
   "version": "0.0.6",
   "author": "Pedro Nasser <pedronasser@gmail.com>",
   "contributors": [ 
@@ -18,7 +18,7 @@
     "web","yii","framework","wns","mvc",
     "database","app","http","server","middleware",
     "component","module","model","view",
-    "controller","route","static","orm"
+    "controller","route","static","orm","package"
   ],
   "repository": "git://github.com/yeptlabs/wns",
   "main": "index",
