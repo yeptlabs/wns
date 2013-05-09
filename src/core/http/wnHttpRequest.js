@@ -294,18 +294,6 @@ module.exports = {
 				self.e.error(404,'File not found',true);
 			})
 			self.send(s);
-
-			// self.app.getFile(self.fileName,true,function (file) {
-			// 	if (!file)
-			// 		self.e.error(404,'File not found',true);
-			// 	else
-			// 	self.app.getFileStat(self.fileName, function (stat) {
-			// 		self.data = file;
-			// 		self.header['Content-Length']=self.data.length;
-			// 		self.stat = stat;
-			// 		self.send();
-			// 	});
-			// });
 		},
 
 		/**

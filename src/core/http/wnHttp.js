@@ -29,6 +29,8 @@ module.exports = {
 	private: {
 		_modules: {},
 		_requestCount: 0,
+		_concurrency: 0,
+		_connections: 0,
 		count:0
 	},
 
@@ -74,6 +76,7 @@ module.exports = {
 				self.handler(req,resp);
 			});
 			this.addListener('redirect', function (e,app,req,resp) {
+				//console.log('['+req.connid+'] redirecting request');
 				if (!app)
 					resp.end('Invalid hostname access.');
 				else
@@ -126,7 +129,7 @@ module.exports = {
 		createRequest: function (app,req,resp)
 		{
 
-			var httpRequest, reqConf, url = req.url+'', self = app;
+			var httpRequest, reqConf, _req=req, url = req.url+'', self = app;
 			try
 			{
 				self.once('newRequest',function (e,req,resp) {
@@ -142,9 +145,12 @@ module.exports = {
 					httpRequest.created = +new Date;
 					httpRequest.init(req,resp);
 					httpRequest.e.open();
+					//console.log('['+req.connid+'] preparing request');
 					httpRequest.prepare();
 					app.once('readyRequest',function (e,req) {
 						req.once('destroy',function () {
+							//console.log('['+_req.connid+'] destroyed request');
+							_concurrency--;
 							reqConf = null;
 							req = null;
 						});
@@ -188,6 +194,11 @@ module.exports = {
 		{
 			var servername = request.headers.host.split(':')[0],
 				serverConfig = this.getParent().getModulesConfig();
+
+			request.connid = _connections++;
+			_concurrency++;
+
+			//console.log('['+request.connid+'] new request');
 
 			for (a in serverConfig)
 			{

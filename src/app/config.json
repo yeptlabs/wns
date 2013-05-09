@@ -14,9 +14,7 @@
 
 	// Default menu
 	"menu": [
-		{ "name": "Home", "link": "/" },
-		{ "name": "About", "link": "/site/about" },
-		{ "name": "Contact", "link": "/site/contact" }
+		{ "name": "Home", "link": "/" }
 	],
 
 	// Components
