@@ -95,7 +95,7 @@ module.exports = {
 			exprt.view = this.export();
 			var viewResult='';
 			self.controller.template.render({
-				name: self.name,
+				name: self.controller.controllerName+'/'+self.name,
 				source: self.layout
 			},exprt,function (err,result) {
 				cb&&cb(viewResult);
