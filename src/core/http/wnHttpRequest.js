@@ -98,13 +98,6 @@ module.exports = {
 
 			this.app = this.getParent();
 
-			var htmlClass = this.getParent().c.wnHtml;
-			this.html = new htmlClass;
-			this.html.setParent(this);
-
-			var htmlEncoderClass = this.getParent().c.wnHtmlEncoder;
-			this.html.encoder = new htmlEncoderClass;
-
 			if (this.info == undefined)
 				return false;
 		},

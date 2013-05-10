@@ -97,11 +97,7 @@ module.exports = {
 
 			if (this.app)
 			{
-				var engineName = this.getConfig('templateEngine') || 'Dust',
-					tplEngine = this.app.c['wn'+engineName+'Template'];
-				this.template= new tplEngine({},this.app.c);
-				this.template.parent = function () { return self; };
-
+				this.template = app.template;
 				this.view=this.app.createClass('wnView',{ controller: this });
 			}
 

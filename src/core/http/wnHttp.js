@@ -85,6 +85,7 @@ module.exports = {
 			this.getParent().addListener('loadModule',function (e,moduleName,module) {
 				self.attachModule(moduleName,module);
 			});
+
 			if (this.autoListen)
 				this.listen();
 		},
@@ -102,6 +103,19 @@ module.exports = {
 			module.getEvent('newRequest');
 			module.getEvent('readyRequest');
 			module.getEvent('closedRequest');
+			
+			var htmlClass = module.c.wnHtml;
+			module.html = new htmlClass;
+			module.html.setParent(module);
+
+			var htmlEncoderClass = module.c.wnHtmlEncoder;
+			module.html.encoder = new htmlEncoderClass;
+
+			var engineName = this.getConfig('templateEngine') || 'Dust',
+				tplEngine = module.c['wn'+engineName+'Template'];
+			module.template= new tplEngine({},module.c);
+			module.template.parent = function () { return module; };
+
 			_modules[moduleName]=module;
 		},
 
@@ -128,7 +142,6 @@ module.exports = {
 		 */
 		createRequest: function (app,req,resp)
 		{
-
 			var httpRequest, reqConf, _req=req, url = req.url+'', self = app;
 			try
 			{
@@ -143,6 +156,10 @@ module.exports = {
 
 					httpRequest.setParent(self);
 					httpRequest.created = +new Date;
+					httpRequest.html = app.html;
+					httpRequest.html.encoder = app.html.encoder;
+					httpRequest.template = app.template;
+
 					httpRequest.init(req,resp);
 					httpRequest.e.open();
 					//console.log('['+req.connid+'] preparing request');
@@ -195,6 +212,7 @@ module.exports = {
 			var servername = request.headers.host.split(':')[0],
 				serverConfig = this.getParent().getModulesConfig();
 
+			request.datetime = +new Date;
 			request.connid = _connections++;
 			_concurrency++;
 

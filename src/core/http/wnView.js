@@ -89,7 +89,6 @@ module.exports = {
 		 * Renders the layout of the view with all the page's information.
 		 */
 		render: function (cb) {	
-
 			var exprt = {};
 			this.beforeRender();
 			Object.extend(true,exprt,self.data);
@@ -97,7 +96,6 @@ module.exports = {
 			self.controller.template.render(this.layout,exprt,function (err,result) {
 				cb&&cb(result);
 			});
-
 		}
 
 	}

@@ -1402,19 +1402,19 @@ module.exports = {
 		 */
 		normalizeUrl: function (url)
 		{
-			if(Array.isArray(url))
-			{
-				if('undefined' === typeof (url[0]))
-				{
-					if((c=this.getParent().controller)!==null)
-						url=c.createUrl(url[0],url.splice(1));
-					else
-						url=this.getParent().createUrl(url[0],url.splice(1));
-				}
-				else
-					url='';
-			}
-			return url==='' ? this.getParent().getUrl() : url;
+			// if(Array.isArray(url))
+			// {
+			// 	if('undefined' === typeof (url[0]))
+			// 	{
+			// 		if((c=this.getParent().controller)!==null)
+			// 			url=c.createUrl(url[0],url.splice(1));
+			// 		else
+			// 			url=this.getParent().createUrl(url[0],url.splice(1));
+			// 	}
+			// 	else
+			// 		url='';
+			// }
+			// return url==='' ? this.getParent().getUrl() : url;
 		},
 
 		/**
