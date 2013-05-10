@@ -93,8 +93,15 @@ module.exports = {
 			this.beforeRender();
 			Object.extend(true,exprt,self.data);
 			exprt.view = this.export();
-			self.controller.template.render(this.layout,exprt,function (err,result) {
-				cb&&cb(result);
+			var viewResult='';
+			self.controller.template.render({
+				name: self.name,
+				source: self.layout
+			},exprt,function (err,result) {
+				cb&&cb(viewResult);
+				viewResult=null;
+			}).addListener('data',function (e,chunk) {
+				viewResult+=chunk;
 			});
 		}
 

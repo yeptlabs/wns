@@ -260,7 +260,7 @@ module.exports = {
 								}.bind({ html: viewTpl });
 
 								var stream=self.template.render({
-									name: _layout,
+									name: 'layout-'+_layout,
 									source: layoutTpl
 								}, templateObj, function (err,renderLayout) {
 									self.request.send(renderLayout);
