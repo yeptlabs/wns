@@ -266,7 +266,7 @@ module.exports = {
 									self.request.send(renderLayout);
 								});
 								if (stream)
-									stream.addListener('data',function (e,chunk) {
+									stream.on('data',function (chunk) {
 										self.request.write(chunk);
 									});
 							});

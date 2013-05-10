@@ -100,7 +100,7 @@ module.exports = {
 			},exprt,function (err,result) {
 				cb&&cb(viewResult);
 				viewResult=null;
-			}).addListener('data',function (e,chunk) {
+			}).on('data',function (chunk) {
 				viewResult+=chunk;
 			});
 		}

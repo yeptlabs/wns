@@ -44,16 +44,7 @@ module.exports = {
 	 * Public Variables
 	 * Can be accessed and defined directly.
 	 */
-	public: {
-
-		/**
-		 * Default events
-		 */
-		defaultEvents: {
-			'data': {}
-		}
-
-	},
+	public: {},
 
 	/**
 	 * Methods
@@ -109,10 +100,8 @@ module.exports = {
 	   				dustjs_linkedin.loadSource(compiled);
 				}
 				//console.log('rendering')
-				dustjs_linkedin.stream(template.name,obj).on('data',function (chunk) {
-					self.e.data(chunk);
-				}).on("end", function() {
-      				cb&&cb();
+				return dustjs_linkedin.stream(template.name,obj).on("end", function() {
+					cb&&cb();
     			});
 			} else
 			{
