@@ -1415,6 +1415,7 @@ module.exports = {
 			// 		url='';
 			// }
 			// return url==='' ? this.getParent().getUrl() : url;
+			return url;
 		},
 
 		/**

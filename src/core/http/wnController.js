@@ -66,7 +66,7 @@ module.exports = {
 		/**
 		 * @var string controller title
 		 */
-		title: undefined,
+		title: 'Page',
 
 		/**
 		 * @var string default events
@@ -215,7 +215,42 @@ module.exports = {
 		 */
 		getView: function (view,cb)
 		{
-			this.app.getFile(this.request.getConfig('path').views+this.getControllerName()+'/'+view+'.tpl',cb);
+			var fileName = this.request.getConfig('path').views+this.getControllerName()+'/'+view+'.tpl',
+				lastModif = this.app.cache.get('template-'+self.getControllerName()+'/'+view);
+			if (lastModif)
+			{
+				fs.stat(this.app.modulePath+fileName,function (err,stats) {
+					if (err!==null)
+						cb&&cb(false);
+					else if (stats.mtime.getTime() > lastModif)
+						self.app.getFile(fileName,cb);
+					else
+						cb&&cb('')
+				});
+			} else
+				this.app.getFile(fileName,cb);
+		},
+
+		/**
+		 * Get layout file and return it.
+		 * @param $view string name of the view to be rendered.
+		 */
+		getLayout: function (layout,cb)
+		{
+			var fileName = this.request.getConfig('path').views+'layouts/'+layout+'.tpl',
+				lastModif = this.app.cache.get('template-layout-'+layout);
+			if (lastModif)
+			{
+				fs.stat(this.app.modulePath+fileName,function (err,stats) {
+					if (err!==null)
+						cb&&cb(false);
+					else if (stats.mtime.getTime() > lastModif)
+						self.app.getFile(fileName,cb);
+					else
+						cb&&cb('')
+				});
+			} else
+				this.app.getFile(fileName,cb);
 		},
 	
 		/**
@@ -226,13 +261,12 @@ module.exports = {
 		render: function (view,data)
 		{
 			var _controller=this.getControllerName();
-			var _layout=this.layout;
+			var layout=this.layout;
 			var templateObj = {};
 			var renderLayout;
 			var data = Object.extend(true,{},data||{});
 
-			Object.extend(true,templateObj,data);
-			Object.extend(true,templateObj,{
+			Object.extend(true,templateObj,data,{
 				self: self.export(),
 				app: self.app.export(),
 				request: self.request.export()
@@ -251,7 +285,7 @@ module.exports = {
 						
 						self.view.render(function (viewTpl) {
 							//console.log('render view')
-							self.app.getFile(self.request.getConfig('path').views+'layouts/'+_layout+'.tpl',function (layoutTpl) {
+							self.getLayout(layout,function (layoutTpl) {
 								//console.log('got layout')
 
 								templateObj.view = self.view.export();
@@ -260,7 +294,7 @@ module.exports = {
 								}.bind({ html: viewTpl });
 
 								var stream=self.template.render({
-									name: 'layout-'+_layout,
+									name: 'layout-'+layout,
 									source: layoutTpl
 								}, templateObj, function (err,renderLayout) {
 									self.request.send(renderLayout);

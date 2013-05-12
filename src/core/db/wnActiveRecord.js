@@ -286,7 +286,7 @@ module.exports = {
 		getAttributes: function (attributes)
 		{
 			var attrs = this.getDbConnection().getSchema().getCollection(this.collectionName()),
-				attributes = Object.extend(true,{},this.getDefaults(),_attributes,attributes),
+				attributes = Object.extend(true,{},_attributes,attributes),
 				valid = {};
 			for (a in attributes)
 			{

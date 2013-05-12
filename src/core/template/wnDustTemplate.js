@@ -96,7 +96,7 @@ module.exports = {
 				{
 					//console.log('building template')
 					compiled = dustjs_linkedin.compile(template.source, template.name);
-					self.parent().cache.set('template-'+template.name,true)
+					self.parent().cache.set('template-'+template.name,+new Date)
 	   				dustjs_linkedin.loadSource(compiled);
 				}
 				//console.log('rendering')

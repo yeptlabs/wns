@@ -46,7 +46,7 @@ module.exports = {
 		init: function ()
 		{
 			this.getParent().prependListener('readyRequest',function (e,req) {
-				req.prependListener('run',function () {
+				req.prependOnce('run',function () {
 					if (req.info.headers.cookie)
 					{
 						var cookieData = req.info.headers.cookie.split(';'),
@@ -55,7 +55,7 @@ module.exports = {
 						{
 							var parts = cookieData[c].split('=');
 							cookies[parts[0].trim()]=(parts[1]||'').trim();
-						}3
+						}
 						var reqId=cookies['wns-session-id'];
 						if (reqId)
 						{
@@ -65,7 +65,7 @@ module.exports = {
 						}
 					}
 				});
-				req.prependListener('send',function () {
+				req.prependOnce('send',function () {
 					var reqId = self.getId(req);
 					if (req.user && req.user.logout)
 					{

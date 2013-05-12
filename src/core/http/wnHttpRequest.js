@@ -282,11 +282,13 @@ module.exports = {
 			this.fileName = this.getConfig('path').public+_filename;
 
 			var s = fs.createReadStream(this.app.modulePath+this.fileName);
-			self.code=200;
 			s.on('error', function () {
 				self.e.error(404,'File not found',true);
 			})
-			self.send(s);
+			s.on('open',function () {
+				self.code=200;
+				self.send(s);
+			})
 		},
 
 		/**
@@ -299,6 +301,7 @@ module.exports = {
 		{
 			this.code=code || 500;
 			this.error=code;
+			delete this.header['Content-type'];
 
 			if (this.getConfig('errorPage')!=undefined && !fatal)
 			{
@@ -326,26 +329,26 @@ module.exports = {
 		 * Send a chunk to the response.
 		 * @param string/buffer $data response data (optional)
 		 */
-		write: function (data)
+		write: function (data,sending)
 		{
-			if (!data)
-				return false;
-
 			var res = this.response;
-				
-			this.prepareSend();	
-
-			if (!data.pipe)
-			{
-				if (Buffer.isBuffer(self.data) || typeof self.data == 'string')
-					self.data = Buffer.concat([new Buffer(self.data,'utf8'),new Buffer(data||0)]);
-				res.write(self.data);
+			if (data)
+			{					
+				if (!data.pipe)
+				{
+					if (Buffer.isBuffer(self.data) || typeof self.data == 'string')
+						self.data = Buffer.concat([new Buffer(self.data,'utf8'),new Buffer(data||0)]);
+				}
+				else
+				{
+					self.response.piped=true;
+					self.data=data;
+				}
 			}
-			else
+
+			if (sending)
 			{
-				self.response.piped=true;
-				data.pipe(res);
-				self.data=data;
+				this.prepareSend();
 			}
 		},
 
@@ -360,11 +363,16 @@ module.exports = {
 				return false;
 			self.sent=true;
 
-			for (h in self.header)
-				res.setHeader(h,self.header[h]);
-			res.statusCode = self.code;
-
 			this.once('send', function (e,cb) {
+				for (h in self.header)
+					res.setHeader(h,self.header[h]);
+				res.statusCode = self.code;
+
+				if (self.data.pipe)
+					self.data.pipe(res);
+				else
+					res.write(self.data);
+
 				self.once('end',function () {
 					self.app.once('closedRequest', function () {
 						self.e.destroy(self);
@@ -382,9 +390,7 @@ module.exports = {
 		 */
 		send: function (data)
 		{
-			this.prepareSend();
-			this.write(data);
-
+			this.write(data,true);
 			this.e.send(function () {
 				if (!self.response.piped)
 					self.response.end();
