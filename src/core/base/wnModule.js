@@ -28,7 +28,7 @@ module.exports = {
 	 * @param object $parent parent object.
 	 * @param object $config configuration object.
 	 */	
-	constructor: function (parent,modulePath,config,classes)
+	constructor: function (parent,modulePath,config,npmPath,classes)
 	{
 		this.e.log&&this.e.log('Constructing new `'+this.className+'`...','system');
 
@@ -40,6 +40,7 @@ module.exports = {
 
 		this.preinit.apply(this,arguments); 
 
+		this.npmPath = npmPath || [];
 		this.importClasses();
 		if (classes == undefined)
 		{
@@ -93,7 +94,7 @@ module.exports = {
 		_components: {},
 		_componentsConfig: {},
 		_customClasses: {},
-		_modulesEvents: {},
+		_modulesEvents: {}
 	},
 
 	/**
@@ -129,7 +130,12 @@ module.exports = {
 		{
 			'loadModule': {},
 			'loadComponent': {}
-		}
+		},
+
+		/**
+		 * @var array node_modules directories
+		 */
+		npmPath: []
 	
 	},
 
@@ -154,7 +160,7 @@ module.exports = {
 				_c[c] = module.exports;
 				_cSource[c]=_class;
 			}
-			var classBuilder = new process.wns.wnBuild(_c,this.getModulePath());
+			var classBuilder = new process.wns.wnBuild(_c,this.getModulePath(),this.npmPath);
 			this.setComponent('classBuilder',classBuilder);
 			classBuilder.build();
 			for (c in global.coreClasses)
@@ -485,7 +491,11 @@ module.exports = {
 					{
 						config.id = id;
 						config.autoInit = !(config.autoInit == false);
-						var module = this.createModule(className,modulePath,config);
+						var npmPath = [];
+							for (n in self.npmPath)
+								npmPath.push(self.npmPath[n]);
+						npmPath.unshift(path.resolve(modulePath+'/node_modules/'));
+						var module = this.createModule(className,modulePath,config,npmPath);
 						_modules[id] = module;
 						this.attachModuleEvents(id);
 						onLoad&&onLoad(module);
@@ -522,9 +532,9 @@ module.exports = {
 		 * @param string $config application 
 		 * @return wnModule the module instance, false if the module is disabled or does not exist.
 		 */
-		createModule: function (className,modulePath,config)
+		createModule: function (className,modulePath,config,npmPath)
 		{
-			return new this.c[className](this,modulePath,config);
+			return new this.c[className](this,modulePath,config,npmPath);
 		},
 
 		/**

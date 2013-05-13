@@ -21,10 +21,11 @@ module.exports=wnBuild;
 /**
  * Constructor
  */
-function wnBuild(classesSource,modulePath)
+function wnBuild(classesSource,modulePath,npmPath)
 {
 	this.classesSource = {};
 	this.modulePath = modulePath;
+	this.npmPath = npmPath;
 	this.loadedModules = {};
 
 	for (c in classesSource)
@@ -301,8 +302,23 @@ wnBuild.prototype.loadDependencies = function (dep)
 	{
 		if (!this.loadedModules[dep[d]])
 		{
-			var module=require(path.resolve(this.modulePath+'/node_modules/'+dep[d]));
-			this.loadedModules[dep[d]]=module;
+			var npmPath;
+			for (n in this.npmPath)
+			{
+				var npmDir=path.resolve(this.npmPath[n]+'/'+dep[d]);
+				if (fs.existsSync(npmDir))
+					{ npmPath = npmDir; break; }
+			}
+
+			if (npmPath)
+			{
+				var module=require(npmPath);
+				this.loadedModules[dep[d]]=module;
+			} else
+			{
+				console.log("Error on loading NPM dependency: "+dep[d]);
+				process.exit();
+			}
 		}
 	}
 };

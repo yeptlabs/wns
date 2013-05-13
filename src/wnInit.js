@@ -141,6 +141,6 @@ sl&&console.log(' - Core memory usage: '+memory+' mb');
 sl&&console.log('');
 
 // Create a new console
-wns.console = new wns.wnConsole({ modulePath: cwd }, cwd);
+wns.console = new wns.wnConsole({ modulePath: cwd }, cwd, undefined, [cwd]);
 
 //

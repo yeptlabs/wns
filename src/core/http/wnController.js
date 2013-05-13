@@ -223,7 +223,10 @@ module.exports = {
 					if (err!==null)
 						cb&&cb(false);
 					else if (stats.mtime.getTime() > lastModif)
+					{
+						self.app.cache.set('template-'+self.getControllerName()+'/'+view,false);
 						self.app.getFile(fileName,cb);
+					}
 					else
 						cb&&cb('')
 				});
@@ -245,7 +248,10 @@ module.exports = {
 					if (err!==null)
 						cb&&cb(false);
 					else if (stats.mtime.getTime() > lastModif)
+					{
+						self.app.cache.set('template-layout-'+view,false);
 						self.app.getFile(fileName,cb);
+					}
 					else
 						cb&&cb('')
 				});
@@ -308,7 +314,7 @@ module.exports = {
 					} else
 					{
 						self.app.e.log('View template not found: '+_controller+'/'+view,404);
-						self.request.send();
+						self.request.e.error(404);
 					}
 				});
 			});
