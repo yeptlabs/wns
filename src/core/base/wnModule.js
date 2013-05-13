@@ -494,7 +494,7 @@ module.exports = {
 						var npmPath = [];
 							for (n in self.npmPath)
 								npmPath.push(self.npmPath[n]);
-						npmPath.unshift(path.resolve(modulePath+'/node_modules/'));
+						npmPath.unshift(this.modulePath+modulePath+'/node_modules/');
 						var module = this.createModule(className,modulePath,config,npmPath);
 						_modules[id] = module;
 						this.attachModuleEvents(id);
