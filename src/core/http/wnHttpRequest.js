@@ -394,7 +394,6 @@ module.exports = {
 
 				for (p in _piped)
 				{
-					console.log('piping')
 					_piped[p].send(self.data);
 				}
 
