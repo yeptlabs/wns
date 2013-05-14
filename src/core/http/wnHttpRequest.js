@@ -394,7 +394,9 @@ module.exports = {
 
 				for (p in _piped)
 				{
-					_piped[p].send(self.data);
+					process.nextTick(function () {
+						_piped[p].send(self.data);
+					});
 				}
 
 				self.once('end',function () {
