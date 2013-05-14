@@ -159,6 +159,7 @@ module.exports = {
 					httpRequest.html = app.html;
 					httpRequest.html.encoder = app.html.encoder;
 					httpRequest.template = app.template;
+					httpRequest.http = self;
 
 					httpRequest.init(req,resp);
 					httpRequest.e.open();

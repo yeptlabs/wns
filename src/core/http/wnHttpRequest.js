@@ -117,10 +117,29 @@ module.exports = {
 			this.template = this.route ? this.route.template : false;
 			this.user = {};
 
-			this.info.once('close',function () { self.e.end(self); });
-			this.info.once('end',function () { self.e.end(self); });
+			this.info.once('close',function () {
+				self.dead=true;
+				self.e.end(self);
+				if (_piped.length>0)
+					self.releasePiped();
+			});
+			this.info.once('end',function () {
+				self.dead=true;
+				self.prependOnce('destroy',function () 
+				{
+					if (!self.dataSent&&_piped.length>0)
+						self.releasePiped();
+				});
+				self.e.end(self);
+			});
 			this.info.connection.setTimeout(this.lifeTime,function () {
+				self.dead=true;
 				self.info.connection.end();
+				self.prependOnce('destroy',function () 
+				{
+					if (!self.dataSent&&_piped.length>0)
+						self.releasePiped();
+				});
 				self.e.end(self);
 				self.info.connection.destroy();
 			});
@@ -333,15 +352,31 @@ module.exports = {
 		},
 
 		/**
-		 * Send a chunk to the response.
-		 * @param string/buffer $data response data (optional)
+		 * Pipe a request to this request.
 		 */
 		pipe: function (req)
 		{
-			if (!req || typeof req !== 'object' || !req.getClassName()=='wnHttpRequest')
+			if (!req || typeof req !== 'object' || !req.getClassName()=='wnHttpRequest' || _piped.length>=10)
 				return false;
-
+			
 			_piped.push(req);
+			return true;
+		},
+
+		/**
+		 * Release all piped requests.
+		 */
+		releasePiped: function ()
+		{
+			console.log('releasing');
+			var http = self.http;
+			for (p in _piped)
+			{
+				process.nextTick(function () {
+					// http.createRequest(this.piped.app,this.piped.info,this.piped.response);
+					// this.piped.e.destroy();
+				}.bind({ piped: _piped[p] }));
+			}
 		},
 
 		/**
@@ -392,12 +427,7 @@ module.exports = {
 				else
 					res.write(self.data);
 
-				for (p in _piped)
-				{
-					process.nextTick(function () {
-						_piped[p].send(self.data);
-					});
-				}
+				self.dataSent = true;
 
 				self.once('end',function () {
 					self.app.once('closedRequest', function () {
@@ -405,6 +435,20 @@ module.exports = {
 					});
 					self.app.e.closedRequest(self);
 				});
+
+				if (_piped.length>0)
+				{
+					process.nextTick(function () {
+						var data = this.data;
+						for (p in this.piped)
+						{
+							process.nextTick(function () {
+								this.req.send(data);
+							}.bind({ req: this.piped[p] }));
+						}
+					}.bind({ piped: _piped, data: self.data }));
+					_piped=[];
+				}
 
 				cb&&cb();
 			});
