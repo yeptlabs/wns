@@ -281,14 +281,20 @@ module.exports = {
 			var mimetype = this.header['Content-Type']=mime.lookup(this.parsedUrl.pathname);
 			this.fileName = this.getConfig('path').public+_filename;
 
-			var s = fs.createReadStream(this.app.modulePath+this.fileName);
-			s.on('error', function () {
-				self.e.error(404,'File not found',true);
-			})
-			s.on('open',function () {
-				self.code=200;
-				self.send(s);
-			})
+			fs.stat(this.app.modulePath+this.fileName,function (err,stat) {
+				if (err)
+					return self.e.error(404,'File not found',true);
+				self.stat=stat;
+
+				var s = fs.createReadStream(self.app.modulePath+self.fileName);
+				s.on('error', function () {
+					self.e.error(404,'File not found',true);
+				})
+				s.on('open',function () {
+					self.code=200;
+					self.send(s);
+				});
+			});
 		},
 
 		/**
