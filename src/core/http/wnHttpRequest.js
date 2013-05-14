@@ -28,7 +28,8 @@ module.exports = {
 	 */
 	private: {
 		_controllers: {},
-		_data: null
+		_data: null,
+		_piped: []
 	},
 
 	/**
@@ -335,6 +336,18 @@ module.exports = {
 		 * Send a chunk to the response.
 		 * @param string/buffer $data response data (optional)
 		 */
+		pipe: function (req)
+		{
+			if (!req || typeof req !== 'object' || !req.getClassName()=='wnHttpRequest')
+				return false;
+
+			_piped.push(req);
+		},
+
+		/**
+		 * Send a chunk to the response.
+		 * @param string/buffer $data response data (optional)
+		 */
 		write: function (data,sending)
 		{
 			var res = this.response;
@@ -378,6 +391,12 @@ module.exports = {
 					self.data.pipe(res);
 				else
 					res.write(self.data);
+
+				for (p in _piped)
+				{
+					console.log('piping')
+					_piped[p].send(self.data);
+				}
 
 				self.once('end',function () {
 					self.app.once('closedRequest', function () {
