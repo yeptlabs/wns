@@ -329,6 +329,7 @@ module.exports = {
 					e = 'event-'+e.replace('-','.');
 				event[e]=ref;
 				event[e].class=ref.class || 'wnEvent';
+				event[e].eventName = e.split('-').pop();
 				if (this.hasEvent(e))
 				{
 					Object.extend(true,event[e],this.getEvent(e));

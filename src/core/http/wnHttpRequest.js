@@ -368,15 +368,14 @@ module.exports = {
 		 */
 		releasePiped: function ()
 		{
-			console.log('releasing');
-			var http = self.http;
+		/*	var http = self.http;
 			for (p in _piped)
 			{
 				process.nextTick(function () {
 					// http.createRequest(this.piped.app,this.piped.info,this.piped.response);
 					// this.piped.e.destroy();
 				}.bind({ piped: _piped[p] }));
-			}
+			}*/
 		},
 
 		/**

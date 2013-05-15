@@ -148,7 +148,7 @@ module.exports = {
 				self.once('newRequest',function (e,req,resp) {
 					_requestCount++;
 
-					if (!resp || resp.closed)
+					if (!req || !resp || resp.closed || req.closed)
 						return false;
 
 					reqConf = Object.extend(true,{},self.getComponentConfig('http'),{ id: 'request-'+(+new Date)+'-'+_requestCount })
