@@ -32,6 +32,7 @@ module.exports = {
 	 * PRIVATE
 	 */
 	private: {
+		_collectionObject: null,
 		_config: {
 			database: 'test'
 		},
@@ -45,7 +46,9 @@ module.exports = {
 	/**
 	 * Public Variables
 	 */
-	public: {},
+	public: {
+		openFunc: '__open'
+	},
 
 	/**
 	 * Methods
@@ -56,33 +59,53 @@ module.exports = {
 		 * Initializer
 		 */
 		init: function (conn) {
-			_db=conn;
-			this.driver = mongoose;
+			if (conn)
+			{
+				_db=conn;
+				this.driver = mongoose;
+			}
 		},
 
 		/**
 		 * Create mongodb connection then extend this class
 		 * with all the Server object.
 		 */
-		_open: function ()
+		__open: function ()
 		{
-			var config = this.getConfig(),
-				con = this.driver.createConnection(config.address, config.database, config.port, config);
+			if (_db&&this.driver)
+			{
+				var config = this.getConfig();
+				var userAuth = '';
+				var con = this.driver.createConnection();
+				con.on('error', function (err) {
+					self.e.error(err);
+				});
+				con.on('close',function (err) {
+					self.e.error(err);
+				});
+				con.open(config.address,config.database,config.port,config,function () {
+					Object.extend(true,self,con);
+					Object.defineProperty(self, 'readyState', {
+					    get: function(){ return this._readyState; }
+					  , set: function (val) {
+					      if (!(val in STATES)) {
+					        throw new Error('Invalid connection state: ' + val);
+					      }
 
-			Object.extend(true,this,con);
-			this.on('close',function (err) {
-				self.e.close(err);
-			});
-			this.on('error',function (err) {
-				self.e.error(err);
-			});
-			this.onClose(function (err) {
-				throw err;
-			})
-			this.onOpen(function () {
-				self.e.connect(con);
-				self.e.ready();
-			});
+					      if (this._readyState !== val) {
+					        this._readyState = val;
+
+					        if (STATES.connected === val)
+					          this._hasOpened = true;
+
+					        this.emit(STATES[val]);
+					      }
+					    }
+					});
+					self.e.connect(con._readyState==1,con);
+					self.e.ready(con._readyState==1,con);
+				});
+			}
 		},
 
 		/**
@@ -227,7 +250,11 @@ module.exports = {
 		 */
 		getCollection: function (collectionName)
 		{
-			return this.model(collectionName,this.getDbConnection().getSchema().getMongoSchema(collectionName),collectionName);
+			if (_collectionObject==null)
+			{
+				_collectionObject=this.model(collectionName,this.getDbConnection().getSchema().getMongoSchema(collectionName),collectionName);
+			}
+			return _collectionObject;
 		}
 	
 	}

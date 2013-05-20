@@ -39,6 +39,7 @@ module.exports = {
 	 * Public Variables
 	 */
 	public: {
+		openFunc: '_open'
 	},
 
 	/**

@@ -45,12 +45,27 @@ module.exports = {
 		 */	
 		prepare: function ()
 		{
-			var colls = this.getCollections();
-			for (c in colls)
-				if (_mongoSchema[c] == undefined)
-				{
-					_mongoSchema[c] = new this.getDbConnection().dataObject.base.Schema(colls[c])
-				}
+			var getSchema = function () {
+				var colls = self.getCollections();
+				for (c in colls)
+					if (_mongoSchema[c] == undefined)
+					{
+						for (a in colls[c])
+						{
+							if (typeof colls[c][a].type=='string')
+							{
+								colls[c][a].type=self.getDbConnection().dataObject.base.Schema.Types[colls[c][a].type];
+							}
+						}
+						_mongoSchema[c] = new self.getDbConnection().dataObject.base.Schema(colls[c])
+					}		
+			}
+
+			if (!this.getDbConnection().connected)
+				this.getDbConnection().once('connect',getSchema);
+			else
+				getSchema();
+			
 			return this;
 		},
 
