@@ -215,7 +215,6 @@ module.exports = {
 		 */
 		clearCached: function (req)
 		{
-			console.log('clearing cache');
 			self.setCache('request-'+req.info.url,false);
 			self.setCache('request-etag-'+req.info.url,false);
 			self.setCache('request-modif-'+req.info.url,false);
@@ -224,6 +223,7 @@ module.exports = {
 
 		/**
 		 * Prepare to send the modified.
+		 * @param $req Object request instance
 		 */
 		prepareModified: function (req)
 		{
@@ -243,7 +243,7 @@ module.exports = {
 		{
 			req.once('send',function () {
 				if (!req.stat)
-					return false;
+					return cb&&cb(false);
 
 				self.prepareModified(req);
 				cb&&cb(false);
@@ -274,7 +274,7 @@ module.exports = {
 		cacheRequest: function (req,cb)
 		{
 			if (!req.cacheable)
-				return false;
+				return cb&&cb(false);
 
 			if (self.checkModified(req))
 				self.sendModified(req,cb);

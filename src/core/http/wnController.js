@@ -245,6 +245,7 @@ module.exports = {
 			if (lastModif)
 			{
 				fs.stat(this.app.modulePath+fileName,function (err,stats) {
+					self.request.stat=stats;
 					if (err!==null)
 						cb&&cb(false);
 					else if (stats.mtime.getTime() > lastModif)
