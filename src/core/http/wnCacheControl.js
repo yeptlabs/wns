@@ -210,6 +210,31 @@ module.exports = {
 		},
 
 		/**
+		 * Clear all cached information of a request
+		 * @param $req Object request instance
+		 */
+		clearCached: function (req)
+		{
+			console.log('clearing cache');
+			self.setCache('request-'+req.info.url,false);
+			self.setCache('request-etag-'+req.info.url,false);
+			self.setCache('request-modif-'+req.info.url,false);
+			self.setCache('request-check-'+req.info.url,false);
+		},
+
+		/**
+		 * Prepare to send the modified.
+		 */
+		prepareModified: function (req)
+		{
+			self.defineHeaders(req);
+			self.setCache('request-'+req.info.url,req.data);
+			self.setCache('request-etag-'+req.info.url,self.getEtag(req.stat));
+			self.setCache('request-modif-'+req.info.url,req.stat.mtime);
+			self.setCache('request-check-'+req.info.url,+new Date);
+		},
+
+		/**
 		 * Send to the request a CACHE signal;
 		 * @param $req Object request instance
 		 * @param $cb function callback
@@ -220,11 +245,7 @@ module.exports = {
 				if (!req.stat)
 					return false;
 
-				self.defineHeaders(req);
-				self.setCache('request-'+req.info.url,req.data);
-				self.setCache('request-etag-'+req.info.url,self.getEtag(req.stat));
-				self.setCache('request-modif-'+req.info.url,req.stat.mtime);
-				self.setCache('request-check-'+req.info.url,+new Date);
+				self.prepareModified(req);
 				cb&&cb(false);
 			},true);
 

@@ -49,13 +49,7 @@ module.exports = {
 				req.prependOnce('run',function () {
 					if (req.info.headers.cookie)
 					{
-						var cookieData = req.info.headers.cookie.split(';'),
-							cookies = {};
-						for (c in cookieData)
-						{
-							var parts = cookieData[c].split('=');
-							cookies[parts[0].trim()]=(parts[1]||'').trim();
-						}
+						cookies = req.cookies;
 						var reqId=cookies['wns-session-id'];
 						if (reqId)
 						{
