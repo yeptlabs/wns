@@ -155,7 +155,7 @@ module.exports = {
 		getEtag: function (stat) {
 			if (!stat instanceof Object)
 				return false;
-			return JSON.stringify([stat.ino, stat.size, stat.mtime].join('-'));
+			return JSON.stringify([stat.ino, stat.size, +new Date(stat.mtime)].join('-'));
 		},
 
 		/**
@@ -165,10 +165,13 @@ module.exports = {
 		defineHeaders: function (req) {
 			if (!req.stat)
 				return false;
-			req.header['Cache-Control'] = (self.getConfig('requestDirective')||'max-age=0')+', '+(self.getConfig('responseDirective')||'public');
-			req.header['Last-Modified']	= new (Date)(req.stat.mtime).toUTCString();
-			req.header['ETag']			= self.getEtag(req.stat);
-		    req.header['date']			= new(Date)().toUTCString();
+			if (req.info)
+			{
+				req.header['Cache-Control'] = (self.getConfig('requestDirective')||'max-age=0')+', '+(self.getConfig('responseDirective')||'public');
+				req.header['Last-Modified']	= new (Date)(req.stat.mtime).toUTCString();
+				req.header['ETag']			= self.getEtag(req.stat);
+			    req.header['Date']			= new(Date)().toUTCString();
+			}
 		},
 
 		/**
@@ -178,7 +181,8 @@ module.exports = {
 		 */
 		checkModif: function (req)
 		{
-			var lastCheck = self.getCache('request-check-'+req.info.url);
+			var url = req.url || req.info.url || '';
+			var lastCheck = self.getCache('request-check-'+url);
 			if (self.getConfig('checkModif') && lastCheck && ((+new Date)-lastCheck <= self.getConfig('checkInterval')))
 				return true;
 			return false;
@@ -191,8 +195,10 @@ module.exports = {
 		 */
 		checkModified: function (req)
 		{
-			var etag = self.getCache('request-etag-'+req.info.url);
-			if (etag && req.info.headers['if-none-match'] === etag && self.checkModif(req))
+			var url = req.url || req.info.url || '';
+			var etag = self.getCache('request-etag-'+url);
+			var info = req.info || req;
+			if (etag && info.headers['if-none-match'] === etag && self.checkModif(req))
 				return false;
 			return true;
 		},
@@ -204,9 +210,20 @@ module.exports = {
 		 */
 		sendCached: function (req,cb)
 		{
-			req.code = 304;
-			self.defineHeaders(req);
-			req.send();
+			if (req.info)
+			{
+				req.code = 304;
+				self.defineHeaders(req);
+				req.send();
+			}
+			else 
+			{
+				var resp = req.response;
+				resp.writeHead(304, {
+					'Connection': 'closed'
+				});
+				resp.end();
+			}
 			cb&&cb(true);
 		},
 
@@ -216,10 +233,11 @@ module.exports = {
 		 */
 		clearCached: function (req)
 		{
-			self.setCache('request-'+req.info.url,false);
-			self.setCache('request-etag-'+req.info.url,false);
-			self.setCache('request-modif-'+req.info.url,false);
-			self.setCache('request-check-'+req.info.url,false);
+			var url = req.url || req.info.url || '';
+			self.setCache('request-'+url,false);
+			self.setCache('request-etag-'+url,false);
+			self.setCache('request-modif-'+url,false);
+			self.setCache('request-check-'+url,false);
 		},
 
 		/**
@@ -228,11 +246,12 @@ module.exports = {
 		 */
 		prepareModified: function (req)
 		{
+			var url = req.url || req.info.url || '';
 			self.defineHeaders(req);
-			self.setCache('request-'+req.info.url,req.data);
-			self.setCache('request-etag-'+req.info.url,self.getEtag(req.stat));
-			self.setCache('request-modif-'+req.info.url,req.stat.mtime);
-			self.setCache('request-check-'+req.info.url,+new Date);
+			self.setCache('request-'+url,req.data);
+			self.setCache('request-etag-'+url,self.getEtag(req.stat));
+			self.setCache('request-modif-'+url,req.stat.mtime);
+			self.setCache('request-check-'+url,+new Date);
 		},
 
 		/**

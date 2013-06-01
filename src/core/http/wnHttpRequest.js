@@ -141,7 +141,7 @@ module.exports = {
 				});
 				self.e.end(self);
 			});
-			this.info.connection.setTimeout(this.lifeTime,function () {
+/*			this.info.connection.setTimeout(this.lifeTime,function () {
 				self.dead=true;
 				self.info.connection.end();
 				self.prependOnce('destroy',function () 
@@ -151,7 +151,7 @@ module.exports = {
 				});
 				self.e.end(self);
 				self.info.connection.destroy();
-			});
+			});*/
 
 			// _data = new Buffer(0);
 			// if (this.response)

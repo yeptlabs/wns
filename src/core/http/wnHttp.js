@@ -73,6 +73,7 @@ module.exports = {
 			this.connection=http.createServer(self.e.open);
 			this.autoListen=this.getConfig('autoListen') || true;
 			this.addListener('open',function (e,req,resp) {
+				req.response=resp;
 				self.handler(req,resp);
 			});
 			this.addListener('redirect', function (e,app,req,resp) {

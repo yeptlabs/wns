@@ -73,15 +73,17 @@ module.exports = {
 		 */
 		_connect: function (cb)
 		{
-			var con = this.driver.createConnection(this.getConfig());
-			con.connect(function (err) {
-				self.e.connect(err,con);
+			var pool = this.driver.createPool(this.getConfig());
+			pool.queueLimit = this.getConfig('queueLimit') || pool.queueLimit;
+			pool.connectionLimit = this.getConfig('connectionLimit') || pool.connectionLimit;
+			pool.getConnection(function (err,connection) {
+				self.e.connect(err,connection);
 				if (err)
 				{
 					cb(err,null);
 				} else
 				{
-					cb(err,con);
+					cb(err,connection);
 				}
 			});
 		},
