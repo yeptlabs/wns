@@ -165,6 +165,7 @@ module.exports = {
 		defineHeaders: function (req) {
 			if (!req.stat)
 				return false;
+			req.header['Cache-Control'] = (self.getConfig('requestDirective')||'max-age=0')+', '+(self.getConfig('responseDirective')||'public');
 			req.header['Last-Modified']	= new (Date)(req.stat.mtime).toUTCString();
 			req.header['ETag']			= self.getEtag(req.stat);
 		    req.header['date']			= new(Date)().toUTCString();
