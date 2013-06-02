@@ -181,7 +181,7 @@ module.exports = {
 		 */
 		checkModif: function (req)
 		{
-			var url = req.url || req.info.url || '';
+			var url = req.url || req.info.originalUrl || '';
 			var lastCheck = self.getCache('request-check-'+url);
 			if (self.getConfig('checkModif') && lastCheck && ((+new Date)-lastCheck <= self.getConfig('checkInterval')))
 				return true;
@@ -195,7 +195,7 @@ module.exports = {
 		 */
 		checkModified: function (req)
 		{
-			var url = req.url || req.info.url || '';
+			var url = req.url || req.info.originalUrl || '';
 			var etag = self.getCache('request-etag-'+url);
 			var info = req.info || req;
 			if (etag && info.headers['if-none-match'] === etag && self.checkModif(req))
@@ -233,7 +233,7 @@ module.exports = {
 		 */
 		clearCached: function (req)
 		{
-			var url = req.url || req.info.url || '';
+			var url = req.url || req.info.originalUrl || '';
 			self.setCache('request-'+url,false);
 			self.setCache('request-etag-'+url,false);
 			self.setCache('request-modif-'+url,false);
@@ -246,7 +246,7 @@ module.exports = {
 		 */
 		prepareModified: function (req)
 		{
-			var url = req.url || req.info.url || '';
+			var url = req.url || req.info.originalUrl || '';
 			self.defineHeaders(req);
 			self.setCache('request-'+url,req.data);
 			self.setCache('request-etag-'+url,self.getEtag(req.stat));
@@ -276,10 +276,10 @@ module.exports = {
 			// 		return false;
 			// 	if (req.stat)
 			// 	{
-			// 		self.setCache('request-'+req.info.url,req.data);
-			// 		self.setCache('request-etag-'+req.info.url,self.getEtag(req.stat));
-			// 		self.setCache('request-modif-'+req.info.url,req.stat.mtime);
-			// 		self.setCache('request-check-'+req.info.url,+new Date);
+			// 		self.setCache('request-'+req.info.originalUrl,req.data);
+			// 		self.setCache('request-etag-'+req.info.originalUrl,self.getEtag(req.stat));
+			// 		self.setCache('request-modif-'+req.info.originalUrl,req.stat.mtime);
+			// 		self.setCache('request-check-'+req.info.originalUrl,+new Date);
 			// 		console.log('cached');
 			// 	}
 			// 	cb&&cb(false);
