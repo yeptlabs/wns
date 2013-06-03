@@ -349,10 +349,21 @@ module.exports = {
 		/**
 		 * Redirect
 		 */
-		redirect: function (url) {
-			var statusCode = typeof arguments[1] == 'number' ? arguments[1] : (typeof arguments[2] == 'number' ? arguments[2] : 302),
-				terminate = typeof arguments[1] == 'boolean' ? arguments[1] : false;
-				
+		redirect: function () {
+			var url;
+			var terminate;
+			var statusCode;
+			if (typeof arguments[0]=='number')
+			{
+				url = arguments[1]+'' || '/';
+				statusCode=arguments[0];
+				terminate = new Boolean(arguments[2]).valueOf() || false;
+			} else {
+				url=arguments[0]+'' || '/';
+				statusCode = 307;
+				terminate = new Boolean(arguments[1]).valueOf() || false;
+			}
+		
 			this.code = statusCode;
 			this.header['Location'] = url+'' || '/';
 
