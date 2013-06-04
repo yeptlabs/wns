@@ -99,14 +99,17 @@ module.exports = {
 
 			this.app = this.getParent();
 
-			var cookieData = req.cookie ? req.cookie.split(';') : [],
-				cookies = {};
-			for (c in cookieData)
+			if (req.headers && req.headers.cookie)
 			{
-				var parts = cookieData[c].split('=');
-				cookies[parts[0].trim()]=(parts[1]||'').trim();
+				var cookieData = req.headers.cookie ? req.headers.cookie.split(';') : [],
+					cookies = {};
+				for (c in cookieData)
+				{
+					var parts = cookieData[c].split('=');
+					cookies[parts[0].trim()]=(parts[1]||'').trim();
+				}
+				this.cookies=cookies;
 			}
-			this.cookies=cookies;
 
 			if (this.info == undefined)
 				return false;
