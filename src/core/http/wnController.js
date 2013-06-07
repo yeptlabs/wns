@@ -304,7 +304,7 @@ module.exports = {
 									name: 'layout-'+layout,
 									source: layoutTpl
 								}, templateObj, function (err,renderLayout) {
-									self.request.send(renderLayout);
+									self.request.send();
 								});
 								if (stream)
 									stream.on('data',function (chunk) {

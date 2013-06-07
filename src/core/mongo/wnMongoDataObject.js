@@ -32,7 +32,7 @@ module.exports = {
 	 * PRIVATE
 	 */
 	private: {
-		_collectionObject: null,
+		_collectionObject: {},
 		_config: {
 			database: 'test'
 		},
@@ -250,11 +250,11 @@ module.exports = {
 		 */
 		getCollection: function (collectionName)
 		{
-			if (_collectionObject==null)
+			if (_collectionObject[collectionName]==null)
 			{
-				_collectionObject=this.model(collectionName,this.getDbConnection().getSchema().getMongoSchema(collectionName),collectionName);
+				_collectionObject[collectionName]=this.model(collectionName,this.getDbConnection().getSchema().getMongoSchema(collectionName),collectionName);
 			}
-			return _collectionObject;
+			return _collectionObject[collectionName];
 		}
 	
 	}

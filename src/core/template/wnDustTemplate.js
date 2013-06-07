@@ -90,19 +90,48 @@ module.exports = {
 				};
 			}
 
-			if (typeof template == 'object' && typeof template.name == 'string' && typeof template.source == 'string')
+			if (typeof template == 'object' && typeof template.name == 'string' && (typeof template.source == 'string' || typeof template.file == 'string'))
 			{
+				var _stream = function () {
+					var stream=dustjs_linkedin.stream(template.name,obj);
+					stream.data = new Buffer(0);
+					stream.on("data", function(chunk) {
+						stream.data = Buffer.concat([stream.data,new Buffer(chunk)]);
+	    			});
+	    			stream.on("end", function() {
+						cb&&cb(null,stream.data.toString('utf8'));
+	    			});
+	    			return stream;
+				};
+
 				if (!self.parent().cache.get('template-'+template.name))
 				{
-					//console.log('building template')
-					compiled = dustjs_linkedin.compile(template.source, template.name);
-					self.parent().cache.set('template-'+template.name,+new Date)
-	   				dustjs_linkedin.loadSource(compiled);
+					var _compile = function () {
+						console.log('building template')
+						compiled = dustjs_linkedin.compile(template.source, template.name);
+						self.parent().cache.set('template-'+template.name,+new Date)
+		   				dustjs_linkedin.loadSource(compiled);
+		   				return _stream();			
+					};
+
+					if (template.file)
+					{
+						console.log('getting from file.')
+						fs.readFile(template.file,function (err,f) {
+							console.log("read file")
+							template.source=f+'';
+							return _compile();
+						});
+					}
+					else
+					{
+						console.log('getting from source.')
+						return _compile();
+					}
 				}
-				//console.log('rendering')
-				return dustjs_linkedin.stream(template.name,obj).on("end", function() {
-					cb&&cb();
-    			});
+				else 
+					return _stream();
+				
 			} else
 			{
 				if (typeof template == 'string')

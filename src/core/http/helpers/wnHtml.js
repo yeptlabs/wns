@@ -901,7 +901,7 @@ module.exports = {
 			{
 				// add a hidden field so that if the radio button is not selected, it still submits a value
 				if('undefined' === typeof (htmlOptions['id']) && htmlOptions['id']!==false)
-					uncheckOptions={'id':self[ID_PREFIX].htmlOptions['id']};
+					uncheckOptions={'id':self.ID_PREFIX+htmlOptions['id']};
 				else
 					uncheckOptions={'id':false};
 				hidden=self.hiddenField(name,uncheck,uncheckOptions);
@@ -948,7 +948,7 @@ module.exports = {
 			{
 				// add a hidden field so that if the check box is not checked, it still submits a value
 				if('undefined' === typeof (htmlOptions['id']) && htmlOptions['id']!==false)
-					uncheckOptions={'id':self[ID_PREFIX].htmlOptions['id']};
+					uncheckOptions={'id':self.ID_PREFIX+htmlOptions['id']};
 				else
 					uncheckOptions={'id':false};
 				hidden=self.hiddenField(name,uncheck,uncheckOptions);
@@ -1017,7 +1017,7 @@ module.exports = {
 
 				if('undefined' === typeof (htmlOptions['unselectValue']))
 				{
-					hiddenOptions=(undefined !== htmlOptions['id']) ? {'id':self[ID_PREFIX].htmlOptions['id']} : {'id':false};
+					hiddenOptions=(undefined !== htmlOptions['id']) ? {'id':self.ID_PREFIX+htmlOptions['id']} : {'id':false};
 					hidden=self.hiddenField(substr(htmlOptions['name'],0,-2),htmlOptions['unselectValue'],hiddenOptions);
 					delete (htmlOptions['unselectValue']);
 				}
@@ -1759,7 +1759,7 @@ module.exports = {
 			self.resolveNameID(model,attribute,htmlOptions);
 			// add a hidden field so that if a model only has a file field, we can
 			// still use (undefined !== _POST[$modelClass]) to detect if the input is submitted
-			hiddenOptions=(undefined !== htmlOptions['id']) ? {'id':self[ID_PREFIX].htmlOptions['id']} : {'id':false};
+			hiddenOptions=(undefined !== htmlOptions['id']) ? {'id':self.ID_PREFIX+htmlOptions['id']} : {'id':false};
 			return self.hiddenField(htmlOptions['name'],'',hiddenOptions)
 				+ self.activeInputField('file',model,attribute,htmlOptions);
 		},
@@ -1798,7 +1798,7 @@ module.exports = {
 			else
 				uncheck='0';
 
-			hiddenOptions=(undefined !== htmlOptions['id']) ? {'id':self[ID_PREFIX].htmlOptions['id']} : {'id':false};
+			hiddenOptions=(undefined !== htmlOptions['id']) ? {'id':self.ID_PREFIX+htmlOptions['id']} : {'id':false};
 			hidden=uncheck!==null ? self.hiddenField(htmlOptions['name'],uncheck,hiddenOptions) : '';
 
 			// add a hidden field so that if the radio button is not selected, it still submits a value
@@ -1840,7 +1840,7 @@ module.exports = {
 			else
 				uncheck='0';
 
-			hiddenOptions=(undefined !== htmlOptions['id']) ? {'id':self[ID_PREFIX].htmlOptions['id']} : {'id':false};
+			hiddenOptions=(undefined !== htmlOptions['id']) ? {'id':self.ID_PREFIX+htmlOptions['id']} : {'id':false};
 			hidden=uncheck!==null ? self.hiddenField(htmlOptions['name'],uncheck,hiddenOptions) : '';
 
 			return hidden + self.activeInputField('checkbox',model,attribute,htmlOptions);
@@ -1902,7 +1902,7 @@ module.exports = {
 
 				if('undefined' === typeof (htmlOptions['unselectValue']))
 				{
-					hiddenOptions=(undefined !== htmlOptions['id']) ? {'id':self[ID_PREFIX].htmlOptions['id']} : {'id':false};
+					hiddenOptions=(undefined !== htmlOptions['id']) ? {'id':self.ID_PREFIX+htmlOptions['id']} : {'id':false};
 					hidden=self.hiddenField(substr(htmlOptions['name'],0,-2),htmlOptions['unselectValue'],hiddenOptions);
 					delete (htmlOptions['unselectValue']);
 				}
@@ -2004,7 +2004,7 @@ module.exports = {
 			else
 				uncheck='';
 
-			hiddenOptions=(undefined !== htmlOptions['id']) ? {'id':self[ID_PREFIX].htmlOptions['id']} : {'id':false};
+			hiddenOptions=(undefined !== htmlOptions['id']) ? {'id':self.ID_PREFIX+htmlOptions['id']} : {'id':false};
 			hidden=uncheck!==null ? self.hiddenField(name,uncheck,hiddenOptions) : '';
 
 			return hidden + self.checkBoxList(name,selection,data,htmlOptions);
@@ -2052,7 +2052,7 @@ module.exports = {
 			else
 				uncheck='';
 
-			hiddenOptions=(undefined !== htmlOptions['id']) ? {'id':self[ID_PREFIX].htmlOptions['id']} : {'id':false};
+			hiddenOptions=(undefined !== htmlOptions['id']) ? {'id':self.ID_PREFIX+htmlOptions['id']} : {'id':false};
 			hidden=uncheck!==null ? self.hiddenField(name,uncheck,hiddenOptions) : '';
 
 			return hidden + self.radioButtonList(name,selection,data,htmlOptions);
