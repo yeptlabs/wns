@@ -2595,6 +2595,7 @@ module.exports = {
 			// 	return value;
 			// }
 			// else
+			console.log(model.getAttribute(attribute));
 			return model.getAttribute(attribute) || '';
 		},
 

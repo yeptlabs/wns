@@ -64,8 +64,10 @@ module.exports = {
 				var match = trim(trim(matches[m],'>'),'<'),
 					param = match.split(':')[0],
 					reg = match.split(':').length>1?match.split(':')[1]:'[^\/]+';
-				if (this.translations[param] == undefined) this.params[param] = reg;
-				else {
+				if (this.translations[param] == undefined)
+				{
+					this.params[param] = reg;
+				} else {
 					this.patternList.push({ 'name': param, 'pattern': reg });
 				}
 			}
@@ -167,14 +169,16 @@ module.exports = {
 				}
 
 				// Searching for regexp from the param's list
+				console.log(_urlPiece);
 				for (p in this.params)
 				{
-					var reg = this.params[p],
-						match = _urlPiece.match(new RegExp('\/'+reg,'gi'));
+					var reg = this.params[p];
+					var match = _urlPiece.match(new RegExp('\/'+reg,'gi'));
+
 					if (match != null)
 					{
 						result.params[p] = match[0].replace(/^\//gi, '');
-						_urlPiece=_urlPiece.replace(new RegExp('^\/'+reg,'gi'),'');
+						_urlPiece=_urlPiece.replace(new RegExp('\/'+reg,'gi'),'');
 					}
 				}
 
@@ -193,6 +197,9 @@ module.exports = {
 
 				// Replacing remaning not translated tags..
 				result.translation='/'+result.translation.replace('<(\w+):?(\w+)?>','_');
+
+				console.log(this);
+				console.log(result);
 
 				return result;
 

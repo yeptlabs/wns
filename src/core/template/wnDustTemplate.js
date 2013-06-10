@@ -107,7 +107,7 @@ module.exports = {
 				if (!self.parent().cache.get('template-'+template.name))
 				{
 					var _compile = function () {
-						console.log('building template')
+						//console.log('building template')
 						compiled = dustjs_linkedin.compile(template.source, template.name);
 						self.parent().cache.set('template-'+template.name,+new Date)
 		   				dustjs_linkedin.loadSource(compiled);
@@ -116,16 +116,16 @@ module.exports = {
 
 					if (template.file)
 					{
-						console.log('getting from file.')
+						//console.log('getting from file.')
 						fs.readFile(template.file,function (err,f) {
-							console.log("read file")
+							//console.log("read file")
 							template.source=f+'';
 							return _compile();
 						});
 					}
 					else
 					{
-						console.log('getting from source.')
+						//console.log('getting from source.')
 						return _compile();
 					}
 				}
