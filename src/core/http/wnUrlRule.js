@@ -169,7 +169,6 @@ module.exports = {
 				}
 
 				// Searching for regexp from the param's list
-				console.log(_urlPiece);
 				for (p in this.params)
 				{
 					var reg = this.params[p];
@@ -197,9 +196,6 @@ module.exports = {
 
 				// Replacing remaning not translated tags..
 				result.translation='/'+result.translation.replace('<(\w+):?(\w+)?>','_');
-
-				console.log(this);
-				console.log(result);
 
 				return result;
 
