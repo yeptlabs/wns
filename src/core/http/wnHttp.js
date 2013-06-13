@@ -33,6 +33,7 @@ module.exports = {
 		_connections: 0,
 		_requests: {},
 		_banned: {},
+		_banTimes: {},
 		_config: {
 			keepAlive: false,
 			floodProtection: true,
@@ -115,36 +116,53 @@ module.exports = {
 		floodProtection: function (req,resp)
 		{
 			var remoteAddress = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0] : req.connection.remoteAddress;
-			if (remoteAddress)
+			var url = req.url;
+			var cacheName = remoteAddress;
+
+			if (self.getConfig('fpJustSameUrl')==true)
+				cacheName = remoteAddress+'-'+req.url;
+
+			if (remoteAddress && self.getConfig('whitelist').indexOf(remoteAddress) == -1)
 			{
 				if (_banned[remoteAddress])
 				{
-					resp.writeHead(400);
-					resp.on('end',function () {
+					if (_banTimes[remoteAddress]>1 || +new Date - _banned[remoteAddress] <= self.getConfig('fpBanTime')+Math.floor(self.getConfig('fpBanTime')*0.1+Math.random()*0.5*self.getConfig('fpBanTime')))
+					{
 						req.socket.destroy();
-						resp.socket.destroy();
-					});
-					resp.end();
-					return true;
+						// resp.writeHead(400);
+						// resp.on('end',function () {
+						// 	req.socket.destroy();
+						// 	resp.socket.destroy();
+						// });
+						//resp.end();
+						return true;
+					} else
+						delete _banned[remoteAddress];
 				}
 
-				if (!_requests[remoteAddress])
-					_requests[remoteAddress]=1;
+				if (!_requests[cacheName])
+					_requests[cacheName]=1;
 
-				if (_requests[remoteAddress]<=1)
+				if (!_banTimes[remoteAddress])
+					_banTimes[remoteAddress]=0;
+
+				if (_requests[cacheName]>=self.getConfig('fpMaxRequests'))
 				{
-					resp.writeHead(400);
-					resp.on('end',function () {
-						req.socket.destroy();
-						resp.socket.destroy();
-					});
-					resp.end();
-					_banned[remoteAddress]=true;
+					// resp.writeHead(400 || self.getConfig(''));
+					// resp.on('end',function () {
+					// 	req.socket.destroy();
+					// 	resp.socket.destroy();
+					// });
+					// resp.end();
+					req.socket.destroy();
+					_banned[remoteAddress]=+new Date;
+					_banTimes[remoteAddress]++;
 					return true;
 				}
 
-				_requests[remoteAddress]++;
+				_requests[cacheName]++;
 			}
+
 			return false;
 		},
 
