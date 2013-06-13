@@ -364,10 +364,10 @@ module.exports = {
 			this.once('beforeSave', function () {
 				var builder = self.getQueryBuilder(),
 					query=builder.createInsert(self.collectionName(),self.getAttributes(attributes));
-				query.exec(function (err,d) {
+				query.exec(function (err) {
 					if(!err)
 						self.setIsNewRecord(false);
-					self.e.afterSave(err,d);
+					self.e.afterSave.apply(self,arguments);
 				});
 			}).e.beforeSave();
 
@@ -391,7 +391,7 @@ module.exports = {
 				var builder = self.getQueryBuilder(),
 					query=builder.createDelete(self.collectionName(),criteria);
 				query.exec(function (err) {
-					self.e.afterDelete(err);
+					self.e.afterDelete.apply(self,arguments);
 				});
 			}).e.beforeDelete();
 
@@ -415,7 +415,7 @@ module.exports = {
 				var builder = self.getQueryBuilder(),
 					query=builder.createFind(self.collectionName(),criteria);
 				query.exec(function (err,d) {
-					self.e.afterFind(err,d);
+					self.e.afterFind.apply(self,arguments);
 				});
 			}).e.beforeFind();
 
@@ -439,7 +439,7 @@ module.exports = {
 				var builder = self.getQueryBuilder(),
 					query=builder.createCount(self.collectionName(),criteria);
 				query.exec(function (err,d) {
-					self.e.afterCount(err,d);
+					self.e.afterCount.apply(self,arguments);
 				});
 			}).e.beforeCount();
 
@@ -463,7 +463,7 @@ module.exports = {
 				var builder = self.getQueryBuilder(),
 					query=builder.createUpdate(self.collectionName(),criteria,self.getAttributes(data));
 				query.exec(function (err,affected,raw) {
-					self.e.afterUpdate(err,affected,raw);
+					self.e.afterUpdate.apply(self,arguments);
 				});
 			}).e.beforeUpdate();
 

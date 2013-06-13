@@ -31,6 +31,16 @@ module.exports = {
 		_requestCount: 0,
 		_concurrency: 0,
 		_connections: 0,
+		_requests: {},
+		_banned: {},
+		_config: {
+			keepAlive: false,
+			floodProtection: true,
+			fpBanTime: 2*60*60*1000,
+			fpCheckInterval: 1000,
+			fpMaxRequests: 3,
+			fpJustSameUrl: true
+		},
 		count:0
 	},
 
@@ -70,9 +80,17 @@ module.exports = {
 		 */	
 		init: function (config,c)
 		{
+			setInterval(function () {
+				_requests={};
+			},1000);
+
 			this.connection=http.createServer(self.e.open);
 			this.autoListen=this.getConfig('autoListen') || true;
 			this.addListener('open',function (e,req,resp) {
+				req.socket.setKeepAlive(self.getConfig('keepAlive') || false);
+				req.socket.setTimeout(self.getConfig('timeout') || 5000);
+				if (self.getConfig('floodProtection')==true && self.floodProtection(req,resp))
+					return false;
 				req.response=resp;
 				self.handler(req,resp);
 			});
@@ -89,6 +107,45 @@ module.exports = {
 
 			if (this.autoListen)
 				this.listen();
+		},
+
+		/**
+		 * Flood protection.
+		 */
+		floodProtection: function (req,resp)
+		{
+			var remoteAddress = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0] : req.connection.remoteAddress;
+			if (remoteAddress)
+			{
+				if (_banned[remoteAddress])
+				{
+					resp.writeHead(400);
+					resp.on('end',function () {
+						req.socket.destroy();
+						resp.socket.destroy();
+					});
+					resp.end();
+					return true;
+				}
+
+				if (!_requests[remoteAddress])
+					_requests[remoteAddress]=1;
+
+				if (_requests[remoteAddress]<=1)
+				{
+					resp.writeHead(400);
+					resp.on('end',function () {
+						req.socket.destroy();
+						resp.socket.destroy();
+					});
+					resp.end();
+					_banned[remoteAddress]=true;
+					return true;
+				}
+
+				_requests[remoteAddress]++;
+			}
+			return false;
 		},
 
 		/**

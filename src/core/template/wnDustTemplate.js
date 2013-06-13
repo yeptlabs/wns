@@ -86,7 +86,19 @@ module.exports = {
 				    if ((type.indexOf('active')!==-1 || type == 'error') && context.stack.head.model!==undefined)
 				    	args.unshift(context.stack.head.model);
 				    args.push(options);
-				    return chunk.write(self.parent().html[type].apply(self.parent().html,args));
+
+				    var resultHTML = self.parent().html[type].apply(self.parent().html,args);
+
+				    var c=chunk.write(resultHTML);
+				    return c;
+				};
+
+				obj.m=function(chunk, context, bodies, params)
+				{
+					if (!context.stack.head.model || !params.attr)
+						return chunk;
+					var model = context.stack.head.model;
+				    return chunk.write(model.getAttribute(params.attr));
 				};
 			}
 

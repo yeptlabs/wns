@@ -224,7 +224,7 @@ module.exports = {
 				closeTag = closeTag || true;
 			html='<' + tag + self.renderAttributes(htmlOptions||{});
 			if(content===false)
-				return closeTag && self.closeFSingleTags ? html+' />' : html+'>';
+				return closeTag && self.closeSingleTags ? html+' />' : html+'>';
 			else
 				return closeTag ? html+'>'+content+'</'+tag+'>' : html+'>'+content;
 		},
@@ -2595,7 +2595,6 @@ module.exports = {
 			// 	return value;
 			// }
 			// else
-			console.log(model.getAttribute(attribute));
 			return model.getAttribute(attribute) || '';
 		},
 
@@ -2657,7 +2656,7 @@ module.exports = {
 				return '';
 
 			html='';
-			if('undefined' === typeof (htmlOptions['encode']))
+			if(undefined === htmlOptions['encode'])
 			{
 				raw=!htmlOptions['encode'];
 				delete (htmlOptions['encode']);
@@ -2668,7 +2667,7 @@ module.exports = {
 			for(h in htmlOptions)
 			{
 				var name = h, value = htmlOptions[h];
-				if('undefined' !== typeof (specialAttributes[name]))
+				if(undefined !== specialAttributes[name])
 				{
 					if(value)
 					{
@@ -2678,7 +2677,9 @@ module.exports = {
 					}
 				}
 				else if(value!==null)
+				{
 					html += ' ' + name + '="' + (raw ? value : self.encode(value)) + '"';
+				}
 			}
 
 			return html;

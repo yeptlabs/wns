@@ -34,7 +34,13 @@ module.exports = {
 	private: {
 		_collectionObject: {},
 		_config: {
-			database: 'test'
+			database: 'test',
+			server: {
+				socketOptions: { keepAlive: 1 }
+			},
+			replset: { 
+				socketOptions: { keepAlive: 1 }
+			}
 		},
 		_dbConfig: {
 			native_parser: false,

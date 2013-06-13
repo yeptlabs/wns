@@ -68,6 +68,15 @@ module.exports = {
 		lifeTime: 30000,
 
 		/**
+		 * @var query object
+		 */
+		query: {
+			GET: {},
+			POST: {},
+			REQUEST: {}
+		},
+
+		/**
 		 * @var object events to be preloaded.
 		 */
 		defaultEvents: {
@@ -129,6 +138,55 @@ module.exports = {
 			this.template = this.route ? this.route.template : false;
 			this.user = {};
 
+			this.query.GET = {};
+			this.query.POST = { fields: {}, files: {} };
+			this.query.REQUEST = {};
+
+			Object.extend(true,this.query.POST, this.info.body);
+			Object.extend(true,this.query.GET, this.parsedUrl.query);
+			Object.extend(true,this.query.GET, this.route.params);
+			for (g in this.query.GET)
+			{
+				this.query.GET[g]=this.query.GET[g].replace(/\+/gi,' ')
+			}
+			for (p in this.query.POST.fields)
+			{
+				if (p.match(/\w+\[\w+\]/g))
+				{
+					var name = p.split("[")[0],
+						subname = p.split("[")[1].split(']')[0];
+					if (!this.query.POST.fields[name])
+						this.query.POST.fields[name]={};
+					this.query.POST.fields[name][subname]=this.query.POST.fields[p];
+					delete this.query.POST.fields[p];
+				}
+			}
+			for (p in this.query.POST.files)
+			{
+				if (p.match(/\w+\[\w+\]/g))
+				{
+					var name = p.split("[")[0],
+						subname = p.split("[")[1].split(']')[0];
+					if (!this.query.POST.files[name])
+						this.query.POST.files[name]={};
+					this.query.POST.files[name][subname]=this.query.POST.files[p];
+					delete this.query.POST.files[p];
+				}
+			}
+			for (p in this.query.GET)
+			{
+				if (p.match(/\w+\[\w+\]/g))
+				{
+					var name = p.split("[")[0],
+						subname = p.split("[")[1].split(']')[0];
+					if (!this.query.GET[name])
+						this.query.GET[name]={};
+					this.query.GET[name][subname]=this.query.GET[p];
+					delete this.query.GET[p];
+				}
+			}
+			Object.extend(true,this.query.REQUEST, this.query.GET, this.query.POST);
+
 			this.info.once('close',function () {
 				self.dead=true;
 				self.e.end(self);
@@ -144,7 +202,9 @@ module.exports = {
 				});
 				self.e.end(self);
 			});
-/*			this.info.connection.setTimeout(this.lifeTime,function () {
+
+			
+			this.info.connection.setTimeout(this.lifeTime,function () {
 				self.dead=true;
 				self.info.connection.end();
 				self.prependOnce('destroy',function () 
@@ -154,7 +214,7 @@ module.exports = {
 				});
 				self.e.end(self);
 				self.info.connection.destroy();
-			});*/
+			});
 
 			// _data = new Buffer(0);
 			// if (this.response)
