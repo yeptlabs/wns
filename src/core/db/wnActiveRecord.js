@@ -363,7 +363,7 @@ module.exports = {
 			var self = this;
 			this.once('beforeSave', function () {
 				var builder = self.getQueryBuilder(),
-					query=builder.createInsert(self.collectionName(),self.getAttributes(attributes));
+					query=builder.createInsert(self.collectionName(),attributes);
 				query.exec(function (err) {
 					if(!err)
 						self.setIsNewRecord(false);
@@ -461,7 +461,7 @@ module.exports = {
 			var self = this;
 			this.once('beforeUpdate', function () {
 				var builder = self.getQueryBuilder(),
-					query=builder.createUpdate(self.collectionName(),criteria,self.getAttributes(data));
+					query=builder.createUpdate(self.collectionName(),criteria,data);
 				query.exec(function (err,affected,raw) {
 					self.e.afterUpdate.apply(self,arguments);
 				});

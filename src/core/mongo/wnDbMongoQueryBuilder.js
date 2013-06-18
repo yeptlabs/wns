@@ -96,7 +96,7 @@ module.exports = {
 						'collection': collName,
 						'action': 'update',
 						'criteria': criteria,
-						'data': { $set: data }
+						'data': data
 					});
 				return query;
 			}

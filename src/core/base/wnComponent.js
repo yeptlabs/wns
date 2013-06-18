@@ -279,6 +279,11 @@ module.exports = {
 		createClass: function (className,config)
 		{
 			var source = this.c || process.wns;
+			source.name = '';
+			if (config.id)
+			{
+				source[className].build.id = config.id;
+			}
 			return new source[className](config,source);
 		},
 		

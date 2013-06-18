@@ -35,6 +35,16 @@ try
 	global.sourcePath = 'src/';
 	global.cwd = __dirname+'/../';
 	global._r = require;
+
+	for (p in process.execArgv)
+	{
+		if (process.execArgv[p].indexOf('--expose-debug-as=v8debug') !==-1)
+			var foundDebug = true;
+	}
+	
+	if (!foundDebug)
+		global.v8debug=undefined;
+
 	sl&&console.log(' CWD: '+cwd);
 	sl&&console.log(' SOURCEPATH: '+cwd+sourcePath);
 	sl&&console.log();

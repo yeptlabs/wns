@@ -160,7 +160,7 @@ module.exports = {
 				_c[c] = module.exports;
 				_cSource[c]=_class;
 			}
-			var classBuilder = new process.wns.wnBuild(_c,this.getModulePath(),this.npmPath);
+			var classBuilder = new process.wns.wnBuild(_c,this.getModulePath(),this.npmPath,this.getClassName());
 			this.setComponent('classBuilder',classBuilder);
 			classBuilder.build();
 			for (c in global.coreClasses)
@@ -338,7 +338,7 @@ module.exports = {
 					config.id = id;
 					config.autoInit = (config.autoInit == true);
 					var component = this.createComponent(className,config);
-					if (config.seeParent)
+					if (config.setParent)
 						component.setParent(this);
 					self.e.loadComponent(e,id,component);
 					(!config.autoInit)&&component.init(config);

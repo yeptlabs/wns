@@ -298,11 +298,12 @@ module.exports = {
 				_controller=_plen>0&&_p[1]!=''?_p[1]:this.getConfig('defaultController'),
 				_action=_plen>1&&_p[2]!=''?_p[2]:undefined,
 				controllerPath = this.app.modulePath+this.getConfig('path').controllers+_controller+'.js';
-				
+		
 			this.controller=this.getController(_controller,this);
 
 			if (!this.controller)
 			{
+				console.log("Controller não encontrado");
 				this.e.error(404,'Controller not found');
 				return;
 			}

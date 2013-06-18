@@ -75,7 +75,20 @@ module.exports = {
 			"beforeAction": {}
 		},
 
-		stateInputName: ''
+		/**
+		 * @var client's scripts
+		 */
+		clientScript: [],
+
+		/**
+		 * @var embeded client's scripts
+		 */
+		embedScript: [],
+
+		/**
+		 * @var embed script tag. (regexp)
+		 */
+		embedScriptTag: /\<\[SCRIPT\]\>/gim
 
 	},
 
@@ -208,6 +221,9 @@ module.exports = {
 		 */
 		getLayout: function (layout,cb)
 		{
+			if (layout==null)
+				return cb&&cb('');
+
 			var fileName = this.request.getConfig('path').views+'layouts/'+layout+'.tpl',
 				lastModif = this.app.cache.get('template-layout-'+layout);
 			if (lastModif)
@@ -244,7 +260,7 @@ module.exports = {
 			Object.extend(true,templateObj,data,{
 				self: self.export(),
 				app: self.app.export(),
-				request: self.request.export()
+				request: self.request.export(),
 			});
 
 			process.nextTick(function () {
@@ -272,12 +288,28 @@ module.exports = {
 									name: 'layout-'+layout,
 									source: layoutTpl
 								}, templateObj, function (err,renderLayout) {
-									self.request.send();
+
+									var data = stream.data.toString('utf8');
+									if (data.match(self.embedScriptTag) && (self.clientScript.length>0 || self.embedScript.length>0))
+									{
+
+										var html = '';
+										for (c in self.embedScript)
+											html+='<script type="text/javascript" src="'+self.embedScript[c]+'"></script>';
+
+										for (c in self.clientScript)
+											html+='<script type="text/javascript">'+self.clientScript[c]+'</script>';
+
+										data=data.replace(self.embedScriptTag,html);
+
+									}
+
+									self.request.send(data);
 								});
-								if (stream)
+								/*if (stream)
 									stream.on('data',function (chunk) {
 										self.request.write(chunk);
-									});
+									});*/
 							});
 						});
 					} else

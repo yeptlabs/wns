@@ -56,6 +56,10 @@ module.exports = {
 							{
 								colls[c][a].type=self.getDbConnection().dataObject.base.Schema.Types[colls[c][a].type];
 							}
+							if (typeof colls[c][a].schema=='object')
+							{
+								colls[c][a] = [ new self.getDbConnection().dataObject.base.Schema(colls[c][a].schema) ];
+							}
 						}
 						_mongoSchema[c] = new self.getDbConnection().dataObject.base.Schema(colls[c])
 					}		

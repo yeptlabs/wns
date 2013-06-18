@@ -40,7 +40,8 @@ module.exports = {
 			fpBanTime: 2*60*60*1000,
 			fpCheckInterval: 1000,
 			fpMaxRequests: 3,
-			fpJustSameUrl: true
+			fpJustSameUrl: true,
+			whitelist: []
 		},
 		count:0
 	},
@@ -89,7 +90,7 @@ module.exports = {
 			this.autoListen=this.getConfig('autoListen') || true;
 			this.addListener('open',function (e,req,resp) {
 				req.socket.setKeepAlive(self.getConfig('keepAlive') || false);
-				req.socket.setTimeout(self.getConfig('timeout') || 5000);
+				req.socket.setTimeout(self.getConfig('timeout') || 5000);				
 				if (self.getConfig('floodProtection')==true && self.floodProtection(req,resp))
 					return false;
 				req.response=resp;

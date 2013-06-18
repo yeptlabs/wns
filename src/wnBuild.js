@@ -21,11 +21,12 @@ module.exports=wnBuild;
 /**
  * Constructor
  */
-function wnBuild(classesSource,modulePath,npmPath)
+function wnBuild(classesSource,modulePath,npmPath,moduleClass)
 {
 	this.classesSource = {};
 	this.modulePath = modulePath;
 	this.npmPath = npmPath;
+	this.moduleClass = moduleClass || 'WNS';
 	this.loadedModules = {};
 
 	for (c in classesSource)
@@ -41,6 +42,46 @@ function wnBuild(classesSource,modulePath,npmPath)
 	for (c in this.classesSource)
 	{
 		this.classesSource[c].extend = this.removeInvalidDependencies(this.classesSource[c].extend);
+	}
+
+	this.debugScripts = {};
+	var self = this;
+	this.onDebug = function (event, exec_state, event_data, data)
+	{
+		try {
+		  if (event == Debug.DebugEvent.BeforeCompile) {
+		  	if (Debug.ScriptCompilationType.Eval === event_data.script().compilationType())
+		  	{
+		  		var source = event_data.script().source();
+		  		if (source.match(/^\/\/\@\w+/gim))
+		  		{
+		  			var className = source.match(/^\/\/\@\w+/gim),
+		  				id = source.match(/\/\/\#[\w|\-]+/gim) || '';
+		  				id = id ? id[0].split('#')[1] : '';
+		  				cName=className[0].split('@')[1];
+
+		  			if (className && !self.debugScripts[id+'/'+cName])
+			  			{
+			  			self.debugScripts[id+'/'+cName]=source;
+			  			var fileName = self.moduleClass+"/"+cName;
+			  			if (id!=='')
+			  			{
+			  				fileName = self.moduleClass+"/"+cName+"/"+id;
+			  			}
+			  			event_data.script().setSource(event_data.script().source()+
+			  				" //@ sourceURL=_"+fileName+".js");
+		  			}
+		  		}
+		  	}
+		  }
+		} catch (e) {
+		}	
+	}
+
+	if (v8debug)
+	{
+		var Debug = v8debug.Debug;
+		Debug.setListener(this.onDebug);
 	}
 };
 
@@ -150,20 +191,34 @@ wnBuild.prototype.buildClass = function (className)
 
 	// Class builder.
 	classBuilder.prototype.build = function () {
-		eval('var '+className+' = new klass;');
-		eval('var self = '+className+';');
+		var compiled = '//@'+className+'\n';
+	
+		if (classBuilder.build.id)
+			compiled += '//#'+classBuilder.build.id+'\n';
 
+		compiled+='\n// Initialization\n';
+		compiled+='var '+className+' = new klass;\n';
+		compiled+='var self = '+className+';\n';
+
+		compiled+='\n// NPM Dependencies\n';
 		__builder.loadDependencies(targetClass.dependencies);
 		for (e in targetClass.dependencies)
-			eval('var '+targetClass.dependencies[e].replace(/\-/g,'_')+'=__builder.loadedModules[targetClass.dependencies[e]];');
+			compiled+='var '+targetClass.dependencies[e].replace(/\-/g,'_')+'=__builder.loadedModules["'+targetClass.dependencies[e]+'"];\n';
 
+		compiled+='\n// WNS Extensions\n';
 		for (e in build.extend)
 		{
 			var extendSource = __builder.classes[build.extend[e]].source.replace(/\[CLASSNAME\]/g,className);
-			eval(extendSource);
+			compiled+=extendSource+'\n';
 		}
-		eval(sourceCode.replace(/\[CLASSNAME\]/g,className));
-		eval(className+'.constructor&&'+className+'.constructor.apply('+className+', arguments);');
+
+		compiled+='\n// Class: '+className+' \n';
+		compiled+=sourceCode.replace(/\[CLASSNAME\]/g,className)+'\n';
+
+		compiled+='\n// Constructor call\n';
+		compiled+=className+'.constructor&&'+className+'.constructor.apply('+className+', arguments);\n\n';
+
+		eval(compiled);
 		return self;
 	};
 
