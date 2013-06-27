@@ -9,7 +9,7 @@
 		// Example of app load configuration
 		"default": {
 			"appPath": "default/",
-			"domain": "127.0.0.1"
+			"domain": "*"
 		}
 	},
 
@@ -20,7 +20,7 @@
 			// Component class.
 			"class": "wnHttp",
 			// Listen on port and IP...
-			"listen":[8000,"0.0.0.0"]
+			"listen":[8000]
 		}
 	}
 

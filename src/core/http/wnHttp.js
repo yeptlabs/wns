@@ -65,6 +65,11 @@ module.exports = {
 		},
 
 		/**
+		 * @var object a small cache to fast redirect the request to the right application
+		 */
+		urlShortcut: {},
+
+		/**
 		 * @var boolean Are all events attached?
 		 */
 		eventsAttached: false
@@ -287,28 +292,41 @@ module.exports = {
 		 */
 		handler: function (request,response)
 		{
-			var servername = request.headers.host.split(':')[0],
-				serverConfig = this.getParent().getModulesConfig();
+			var serverName = request.headers.host.split(':')[0]+'';
+			var serverConfig = this.getParent().getModulesConfig();
+			var shortcut = self.urlShortcut[serverName];
 
 			request.datetime = +new Date;
 			request.connid = _connections++;
 			_concurrency++;
 
-			//console.log('['+request.connid+'] new request');
+			if (shortcut!==undefined)
+			{
+				self.e.redirect(shortcut!==null?_modules[shortcut]:null,request,response);
+				return;
+			}
 
 			for (a in serverConfig)
 			{
-				var app=_modules[a],
-					appConfig = app.getConfig();
+				var app=_modules[a];
+				var appConfig = app.getConfig();
+				var domain = serverConfig[a].domain;
+				var domainMatch = new RegExp((domain||'').replace(/\*/g,'(.*)'),'gi');
+				var serverAlias = appConfig.components.http.serveralias+'';
+				var aliasMatch = new RegExp(serverAlias.replace(/\,/g,'|').replace(/\*/g,'(.*)'),'gi');
+
 				if (!app || !appConfig.components.http)
-					continue;
-				if (servername == a || serverConfig[a].domain == servername || (appConfig.components.http.serveralias+'').indexOf(new String(servername)) != -1)
+					continue;				
+
+				if (serverName == a || serverName==domain || serverName.match(domainMatch)!==null || (serverAlias).indexOf(serverName) != -1 || serverName.match(aliasMatch)!==null)
 				{
+					self.urlShortcut[serverName]=a;
 					this.e.redirect(app,request,response);
-					return false;
+					return;
 				} 
 			}
 
+			self.urlShortcut[serverName]=null;
 			this.e.redirect(null,request,response);
 		}
 

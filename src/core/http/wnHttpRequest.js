@@ -124,6 +124,51 @@ module.exports = {
 				return false;
 		},
 
+		// formatQuery: function (obj,name) {
+		// 	for (p in obj)
+		// 	{
+		// 		if (p.match(/\w+\[\w+\]/g))
+		// 		{	
+		// 			var subpaths = p.split("["),
+		// 				name = name || subpaths[0],
+		// 				subname = subpaths[1].split(']')[0];
+					
+		// 			if (!obj[name])
+		// 				obj[name]={};
+
+		// 			obj[name][subname]=this.query.POST.fields[p];
+		// 			delete obj[p];
+		// 		}
+		// 	}
+		// },
+
+		formatQuery: function (obj) {
+
+			if (Object.isPlainObject(obj))
+			{
+
+				for (o in obj)
+				{
+					var path=o.replace(/\[\w+\]/gi,function (match) { return match.replace('[','.').replace(']','') });
+					var paths = path.split('.');
+					var name = paths[0];
+
+					if (paths.length>1)
+					{
+						if (obj[name]===undefined)
+							obj[name]={};
+						paths.shift();
+						obj[name][paths.join('.')]=obj[o];
+						delete obj[o];
+						self.formatQuery(obj[name]);
+					}
+				}
+
+			}
+
+			return obj;
+		},
+
 		/**
 		 * Prepare the request.
 		 */
@@ -149,42 +194,14 @@ module.exports = {
 			{
 				this.query.GET[g]=this.query.GET[g].replace(/\+/gi,' ')
 			}
-			for (p in this.query.POST.fields)
-			{
-				if (p.match(/\w+\[\w+\]/g))
-				{
-					var name = p.split("[")[0],
-						subname = p.split("[")[1].split(']')[0];
-					if (!this.query.POST.fields[name])
-						this.query.POST.fields[name]={};
-					this.query.POST.fields[name][subname]=this.query.POST.fields[p];
-					delete this.query.POST.fields[p];
-				}
-			}
-			for (p in this.query.POST.files)
-			{
-				if (p.match(/\w+\[\w+\]/g))
-				{
-					var name = p.split("[")[0],
-						subname = p.split("[")[1].split(']')[0];
-					if (!this.query.POST.files[name])
-						this.query.POST.files[name]={};
-					this.query.POST.files[name][subname]=this.query.POST.files[p];
-					delete this.query.POST.files[p];
-				}
-			}
-			for (p in this.query.GET)
-			{
-				if (p.match(/\w+\[\w+\]/g))
-				{
-					var name = p.split("[")[0],
-						subname = p.split("[")[1].split(']')[0];
-					if (!this.query.GET[name])
-						this.query.GET[name]={};
-					this.query.GET[name][subname]=this.query.GET[p];
-					delete this.query.GET[p];
-				}
-			}
+
+			// self.result=Object.extend(true,{},{ 'User[email]': 'pedronasser@gmail.com', 'User[password]': '123', 'User[0][1][2][3]': 1 });
+			// self.result=self.formatQuery(self.result);
+			// console.log(util.inspect(self.result,{ depth: 1000 }));
+
+			self.formatQuery(this.query.POST.fields);
+			self.formatQuery(this.query.POST.files);
+			self.formatQuery(this.query.GET);
 			Object.extend(true,this.query.REQUEST, this.query.GET, this.query.POST);
 
 			this.info.once('close',function () {
