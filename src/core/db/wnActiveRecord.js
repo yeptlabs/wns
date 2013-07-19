@@ -450,10 +450,13 @@ module.exports = {
 		 * Update all documents that matches with the criteria.
 		 * @param mixed $criteria wnDbCriteria or object
 		 */
-		update: function (criteria,data,cb)
+		update: function (criteria,data)
 		{
 			if (!criteria || !data)
 				return false;
+
+			var cb = arguments[2] || arguments[3] || undefined;
+			var options = typeof arguments[2]=='object' ? arguments[2] : {};
 
 			if (cb)
 				this.once('afterUpdate',cb);
@@ -461,14 +464,14 @@ module.exports = {
 			var self = this;
 			this.once('beforeUpdate', function () {
 				var builder = self.getQueryBuilder(),
-					query=builder.createUpdate(self.collectionName(),criteria,data);
+					query=builder.createUpdate(self.collectionName(),criteria,data,options);
 				query.exec(function (err,affected,raw) {
 					self.e.afterUpdate.apply(self,arguments);
 				});
 			}).e.beforeUpdate();
 
 			return this;
-		},
+		}
 
 	}
 
