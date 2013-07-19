@@ -165,7 +165,7 @@ module.exports = {
 					var reg = this.patternList[p].pattern;
 					var _param = _urlPiece.match(new RegExp('^\/'+reg,'gi'));
 					result.params[this.patternList[p].name] = (_param[0]).replace(/^\//gi, '');
-					_urlPiece=_urlPiece.replace(new RegExp('^\/'+reg,'gi'),'');
+					_urlPiece=_urlPiece.replace(new RegExp('^\/'+reg,'i'),'');
 				}
 
 				// Searching for regexp from the param's list
@@ -177,7 +177,7 @@ module.exports = {
 					if (match != null)
 					{
 						result.params[p] = match[0].replace(/^\//gi, '');
-						_urlPiece=_urlPiece.replace(new RegExp('\/'+reg,'gi'),'');
+						_urlPiece=_urlPiece.replace(new RegExp('\/'+reg,'i'),'');
 					}
 				}
 
@@ -190,7 +190,7 @@ module.exports = {
 						var _t=(match[m].replace(/[\<|\>]/gi,'')).replace(/^\//,'').replace(/\/$/,''),
 							_param = _t.split(':')[0],
 							_fromParam = this.translations[_param]=='';
-						result.translation=result.translation.replace(new RegExp(match[m],'gi'),_fromParam?result.params[_param]:this.translations[_param]);
+						result.translation=result.translation.replace(new RegExp(match[m],'i'),_fromParam?result.params[_param]:this.translations[_param]);
 					}
 				}
 
