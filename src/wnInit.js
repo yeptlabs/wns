@@ -33,7 +33,10 @@ try
 {
 
 	global.sourcePath = 'src/';
-	global.cwd = __dirname+'/../';
+	global.cwd = __dirname.replace(/\\\\/g,"/").replace(/\\/g,"/")+'/../';
+	mainPath = process.mainModule.filename.replace(/\\\\/g,"/").replace(/\\/g,"/").split('/');
+	mainPath.pop();
+	global.mainPath = mainPath.join("\/");
 	global._r = require;
 
 	for (p in process.execArgv)
@@ -47,6 +50,7 @@ try
 
 	sl&&console.log(' CWD: '+cwd);
 	sl&&console.log(' SOURCEPATH: '+cwd+sourcePath);
+	sl&&console.log(' MAINPATH: '+mainPath);
 	sl&&console.log();
 
 	// WNS object.

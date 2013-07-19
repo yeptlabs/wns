@@ -4,9 +4,8 @@
   "version": "0.0.6-rc2",
   "author": "Pedro Nasser <pedronasser@gmail.com>",
   "contributors": [ 
-    { "name": "Pedro Nasser", "email": "pedronasser@gmail.com" }
+    { "name": "Pedro Nasser", "email": "pedronasser@yept.net" }
   ],
-  "main": "index",
   "dependencies": {
     "mime": "1.2.x",
     "wrench": "1.4.x",
@@ -26,8 +25,8 @@
   "scripts": {
     "test": "node test/run"
   },
-  "engines": { "node": ">= 0.6.0" },
+  "engines": { "node": ">= 0.8.x" },
   "wnspm": {
-  	"host": "wnspm.yept.net"
+    "host": "wnspm.yept.net"
   }
 }

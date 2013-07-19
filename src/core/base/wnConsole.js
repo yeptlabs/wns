@@ -223,9 +223,13 @@ module.exports = {
 		/**
 		 * Create a new wnServer and puts under the management of this console
 		 * @param $serverPath server module path
+		 * @param $relativeMainPath boolean relative to mainPath
 		 */ 
-		addServer: function (serverPath)
+		addServer: function (serverPath,relativeMainPath)
 		{
+			if (relativeMainPath)
+				serverPath = path.relative(cwd,path.resolve(mainPath,serverPath));
+
 			var serverConfig = {},
 				consoleID = this.getServerModules().length+1;
 				serverConfig[consoleID] = { 'modulePath': serverPath, 'serverID': consoleID };

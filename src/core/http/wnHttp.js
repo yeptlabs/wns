@@ -35,6 +35,7 @@ module.exports = {
 		_banned: {},
 		_banTimes: {},
 		_config: {
+			envPort: true,
 			keepAlive: false,
 			floodProtection: true,
 			fpBanTime: 2*60*60*1000,
@@ -90,6 +91,14 @@ module.exports = {
 			setInterval(function () {
 				_requests={};
 			},1000);
+
+			if (self.getConfig().envPort && process.env.PORT)
+			{
+				this.getParent().e.log('Change HTTP listening port to '+process.env.PORT+'...');
+				var httpConfig=self.getConfig();
+				httpConfig.listen[0]= process.env.PORT;
+				self.setConfig(httpConfig);
+			};
 
 			this.connection=http.createServer(self.e.open);
 			this.autoListen=this.getConfig('autoListen') || true;
