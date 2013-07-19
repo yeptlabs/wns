@@ -1,7 +1,7 @@
 {
   "name": "wnserver",
   "description": "A high-performance, scalable and component-based middleware",
-  "version": "0.0.6-rc2",
+  "version": "0.0.6-rc3",
   "author": "Pedro Nasser <pedronasser@gmail.com>",
   "contributors": [ 
     { "name": "Pedro Nasser", "email": "pedronasser@yept.net" }
