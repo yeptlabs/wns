@@ -219,9 +219,9 @@ module.exports = {
 		 */
 		tag: function (tag,htmlOptions,content,closeTag)
 		{
-			var tag = tag || '',
-				content = content || false,
-				closeTag = closeTag || true;
+			var tag = tag!=undefined ? tag : '',
+				content = content!=undefined ? content : false,
+				closeTag = closeTag!=undefined ? closeTag : true;
 			html='<' + tag + self.renderAttributes(htmlOptions||{});
 			if(content===false)
 				return closeTag && self.closeSingleTags ? html+' />' : html+'>';
@@ -856,14 +856,17 @@ module.exports = {
 		 */
 		textArea: function (name,value,htmlOptions)
 		{
-			var value = value||'';
+			var name = arguments[0] || '';
+			var value = (typeof arguments[1]=='string'?arguments[1]:'');
+			var htmlOptions = (typeof arguments[1]=='object'?arguments[1]:arguments[2]) || {};3
 			htmlOptions['name']=name||'';
 			if(undefined === (htmlOptions['id']))
 				htmlOptions['id']=self.getIdByName(name);
 			else if(htmlOptions['id']===false)
 				delete (htmlOptions['id']);
 			self.clientChange('change',htmlOptions);
-			return self.tag('textarea',htmlOptions,(undefined !== htmlOptions['encode']) && !htmlOptions['encode'] ? value : self.encode(value));
+			var tag = self.tag('textarea',htmlOptions,(undefined !== htmlOptions['encode'] && !htmlOptions['encode']) ? value : self.encode(value));
+			return tag;
 		},
 
 		/**
