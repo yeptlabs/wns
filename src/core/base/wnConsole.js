@@ -54,6 +54,7 @@ module.exports = {
 			'loadModule': {},
 			'loadComponent': {},
 			'loadServer': {},
+			'error': {},
 			'log': {
 				handler: 'logHandler'
 			}
@@ -74,7 +75,7 @@ module.exports = {
 		{
 			this.setConfig({ id: '*' });
 			this.listenInput();
-			process.on('uncaughtException', function (e) { console.log(e.stack); });
+			process.on('uncaughtException', function (e) { self.e.exception(e); });
 			this.e.log('wnConsole initialized.');
 		},
 		
