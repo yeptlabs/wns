@@ -115,29 +115,32 @@ module.exports = {
 							args.unshift(evtObj);
 							listener.apply(self,args);
 					}
-					if (evtObj.stopPropagation == true)
-						return true;
-					listener = _listeners.length == 2 ? _listeners[1] : _listeners[0];
-					switch (_arguments.length)
+					if (evtObj.stopPropagation === true)
+						return false;
+					else 
 					{
-						case 0:
-							listener.call(self,evtObj);
-							break;
-						case 1:
-							listener.call(self,evtObj,ieo ? undefined : _arguments[0]);
-							break;
-						case 2:
-							listener.call(self,evtObj,_arguments[ieo ? 1 : 0]);
-							break;
-						case 3:
-							listener.call(self,evtObj,_arguments[ieo ? 1 : 0],_arguments[ieo ? 2 : 1]);
-							break;
-						default:
-							var args = [];
-							for (var a = (ieo ? 1 : 0); a<_arguments.length; a++)
-								args.push(_arguments[a]);
-							args.unshift(evtObj);
-							listener.apply(self,args);
+						listener = _listeners.length == 2 ? _listeners[1] : _listeners[0];
+						switch (_arguments.length)
+						{
+							case 0:
+								listener.call(self,evtObj);
+								break;
+							case 1:
+								listener.call(self,evtObj,ieo ? undefined : _arguments[0]);
+								break;
+							case 2:
+								listener.call(self,evtObj,_arguments[ieo ? 1 : 0],ieo ? undefined : _arguments[1]);
+								break;
+							case 3:
+								listener.call(self,evtObj,_arguments[ieo ? 1 : 0],_arguments[ieo ? 2 : 1],ieo ? undefined : _arguments[2]);
+								break;
+							default:
+								var args = [];
+								for (var a = (ieo ? 1 : 0); a<_arguments.length; a++)
+									args.push(_arguments[a]);
+								args.unshift(evtObj);
+								listener.apply(self,args);
+						}
 					}
 				} else {
 					var listeners = _listeners.slice();

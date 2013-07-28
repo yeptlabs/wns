@@ -11,7 +11,7 @@
  * Description coming soon.
  *
  * @author Pedro Nasser
- * @package system.core.db
+ * @package package.db
  * @since 1.0.0
  */
 
@@ -117,7 +117,7 @@ module.exports = {
 				this.dataObject.addListener('result', function () {
 					self.e.result.apply(self,arguments);
 				});
-				this.dataObject._open();
+				this.dataObject[this.dataObject.openFunc]();
 			}
 		},
 
@@ -161,7 +161,7 @@ module.exports = {
 				this.dataObject.once('connect',function () {
 					cb&&cb();
 				});
-				this.dataObject._open.apply(this.dataObject,arguments);
+				this.dataObject[this.dataObject.openFunc].apply(this.dataObject,arguments);
 			}
 		},
 

@@ -11,7 +11,7 @@
  * Description coming soon.
  * 
  * @author Pedro Nasser
- * @package system.core.db
+ * @package package.db
  * @since 1.0.0
  */
 
@@ -32,7 +32,6 @@ module.exports = {
 		_attributes: {},
 		_collectionName: '',
 		_db: null,
-		
 		_schema: null
 
 	},
@@ -197,7 +196,8 @@ module.exports = {
 		},
 
 		/**
-		 *
+		 * Get the collection instance.
+		 * @return instance collection instance
 		 */
 		getCollection: function ()
 		{
@@ -211,7 +211,16 @@ module.exports = {
 		 */
 		hasAttribute: function (name)
 		{
+			return this.getSchema()[name] !== undefined;
+		},
 
+		/**
+		 * Check if attribute is required
+		 * @return boolean is required?
+		 */
+		isAttributeRequired: function (name)
+		{
+			return this.getSchema()[name].required === true;
 		},
 
 		/**
@@ -225,7 +234,26 @@ module.exports = {
 		 */
 		getAttribute: function (name)
 		{
+			return _attributes[name];
+		},
 
+		/**
+		 * Returns the named attribute label.
+		 * @param string $name the attribute name
+		 * @return mixed the attribute label
+		 */
+		getAttributeLabel: function (name)
+		{
+			return this.getSchema()[name].label || '';
+		},
+
+		/**
+		 * Check if the attribute has errors.
+		 * @param string $name the attribute name
+		 */
+		hasErrors: function (name)
+		{
+			return false;
 		},
 
 		/**
@@ -236,8 +264,19 @@ module.exports = {
 		 */
 		setAttribute: function (name,value)
 		{
-
+			_attributes[name]=value;	
 		},
+
+		/**
+		 * Set all attributes in the object
+		 * @param object $attributes new attributes
+		 */
+		setAttributes: function (attributes)
+		{
+			for (a in attributes)
+				this.setAttribute(a,attributes[a]);
+			return this;
+		},		
 
 		/**
 		 * Returns all column attribute values.
@@ -247,11 +286,13 @@ module.exports = {
 		getAttributes: function (attributes)
 		{
 			var attrs = this.getDbConnection().getSchema().getCollection(this.collectionName()),
-				attributes = Object.extend(true,{},this.getDefaults(),attributes),
+				attributes = Object.extend(true,{},_attributes,attributes),
 				valid = {};
 			for (a in attributes)
+			{
 				if (!!(attrs[a]))
 					valid[a]=attributes[a];
+			}
 			return valid;
 		},
 
@@ -264,7 +305,9 @@ module.exports = {
 		 */
 		save: function (attributes)
 		{
-			return this.getIsNewRecord() ? this.insert(attributes) : this.update(attributes);
+			if (attibutes)
+				this.setAttributes(attributes);
+			return this.getIsNewRecord() ? this.insert(this.getAttributes()) : this.update(this.getAttributes());
 		},
 
 		/**
@@ -320,11 +363,11 @@ module.exports = {
 			var self = this;
 			this.once('beforeSave', function () {
 				var builder = self.getQueryBuilder(),
-					query=builder.createInsert(self.collectionName(),self.getAttributes(attributes));
-				query.exec(function (err,d) {
+					query=builder.createInsert(self.collectionName(),attributes);
+				query.exec(function (err) {
 					if(!err)
 						self.setIsNewRecord(false);
-					self.e.afterSave(err,d);
+					self.e.afterSave.apply(self,arguments);
 				});
 			}).e.beforeSave();
 
@@ -348,7 +391,7 @@ module.exports = {
 				var builder = self.getQueryBuilder(),
 					query=builder.createDelete(self.collectionName(),criteria);
 				query.exec(function (err) {
-					self.e.afterDelete(err);
+					self.e.afterDelete.apply(self,arguments);
 				});
 			}).e.beforeDelete();
 
@@ -372,7 +415,7 @@ module.exports = {
 				var builder = self.getQueryBuilder(),
 					query=builder.createFind(self.collectionName(),criteria);
 				query.exec(function (err,d) {
-					self.e.afterFind(err,d);
+					self.e.afterFind.apply(self,arguments);
 				});
 			}).e.beforeFind();
 
@@ -396,7 +439,7 @@ module.exports = {
 				var builder = self.getQueryBuilder(),
 					query=builder.createCount(self.collectionName(),criteria);
 				query.exec(function (err,d) {
-					self.e.afterCount(err,d);
+					self.e.afterCount.apply(self,arguments);
 				});
 			}).e.beforeCount();
 
@@ -407,10 +450,13 @@ module.exports = {
 		 * Update all documents that matches with the criteria.
 		 * @param mixed $criteria wnDbCriteria or object
 		 */
-		update: function (criteria,data,cb)
+		update: function (criteria,data)
 		{
 			if (!criteria || !data)
 				return false;
+
+			var cb = arguments[2] || arguments[3] || undefined;
+			var options = typeof arguments[2]=='object' ? arguments[2] : {};
 
 			if (cb)
 				this.once('afterUpdate',cb);
@@ -418,14 +464,14 @@ module.exports = {
 			var self = this;
 			this.once('beforeUpdate', function () {
 				var builder = self.getQueryBuilder(),
-					query=builder.createUpdate(self.collectionName(),criteria,self.getAttributes(data));
+					query=builder.createUpdate(self.collectionName(),criteria,data,options);
 				query.exec(function (err,affected,raw) {
-					self.e.afterUpdate(err,affected,raw);
+					self.e.afterUpdate.apply(self,arguments);
 				});
 			}).e.beforeUpdate();
 
 			return this;
-		},
+		}
 
 	}
 

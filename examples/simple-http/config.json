@@ -1,0 +1,27 @@
+// Server configuration
+{
+
+	// Where the applications will be stored.
+	"appDirectory": "app/",
+
+	// Application load system configuration
+	"app": {
+		// Example of app load configuration
+		"default": {
+			"appPath": "default/",
+			"domain": "127.0.0.1"
+		}
+	},
+
+	// Components
+	"components": {
+		// HTTP server configuration (remove/comment to disable)
+		"http": {
+			// Component class.
+			"class": "wnHttp",
+			// Listen on port and IP...
+			"listen":[8000,"0.0.0.0"]
+		}
+	}
+
+}

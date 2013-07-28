@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+var prog = require('./client.js');
+
+console.log('  Welcome to WNS Generator.')
+
+prog
+	.version(version)
+	.usage('[action] [packageName]')
+prog
+	.command('install [packageName]')
+	.description('install wns package')
+prog
+	.command('remove [packageName]')
+	.description('remove wns package')
+prog
+	.parse(process.argv);
+
+prog.outputHelp();
+
+(!prog.keepAlive)&&process.exit()

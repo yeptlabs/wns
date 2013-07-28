@@ -11,7 +11,7 @@
  * Description coming soon.
  *
  * @author Pedro Nasser
- * @package system.core.cache
+ * @package package.dependency
  * @since 1.0.0
  */
 

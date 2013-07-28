@@ -1,21 +1,82 @@
 #!/usr/bin/env node
+var prog = require('./client.js');
 
-var sourcePath = '../src/',
-	autoExit;
-require(sourcePath+'/wnInit');
+console.log('  Welcome to WNS Manager.')
 
-if (process.argv.length>2)
+// Default commands.
+prog
+	.option('-n, --new [name]','setup a new server')
+	.option('-e, --exec [cmd]','execute command on module')
+	.parse(process.argv);
+
+// If is selected create new server...
+if (prog.new!==undefined && prog.new!==true)
 {
-	var cmd = process.argv.slice(2).join(' '),
-		_cwd = (process.cwd()+'/'+cmd).replace(/\\/g,'/');
-	if (fs.existsSync(cmd))
+	var name = prog.new,
+		newPath = path.resolve(process.cwd()+'/'+prog.new).replace(/\\/g,'/')+'/';
+	if (!fs.existsSync(newPath))
+		fs.mkdir(name);
+	var success=wns.console.buildServer(newPath);
+	if (!success)
+		console.log('Could not build new server...');
+} else if (prog.exec) {
+	var cmd = prog.exec+' '+prog.args.join(' ');
+	if (prog.isServer) {
+		var server = wns.console.addServer(path.relative(prog.wnsPath,prog._modulePath))
+		server.exec(cmd);
+	} else if (!isApp)
+		wns.console.exec(cmd);
+} else if (prog.isValidModule)
+{
+	prog
+		.option('-c, --config','redefine module config')
+		.option('-p, --package [install/remove] [packageName]','server package control')
+		.option('-g, --generate [what?]','server package control')
+		.option('-s, --sync [pass]','get an instanceKey for sync');
+
+	if (prog.isServer)
+		prog
+			.option('-r, --run','run module')
+
+	prog
+		.parse(process.argv);
+	if (prog.run)
 	{
-		cmd = "this.buildServer('"+_cwd+"')";
-		autoExit = true;
-	}
-	wns.console.exec(cmd);
-}
+		wns.console.addServer(path.relative(prog.wnsPath,prog._modulePath));
+		prog.keepAlive=true;
+	} else if (prog.config) 
+	{
 
-if (autoExit)
-	process.exit();
+	} else if (prog.sync) 
+	{
+		console.log('');
+		console.log('  Starting syncServer...');
+		var sync=wns.console.syncServer();
+		console.log('  Your instanceKey is: '+sync.getKey());
+		console.log('')
+		console.log('  - Go to http://wnspm.yept.net/')
+		console.log('  - Create/login your account')
+		console.log('  - Attach your instance')
+		prog.keepAlive=true;
+	} else if (prog.generate && prog.package != true) 
+	{
+		var args = prog.args;
+			args.unshift(prog.generate);
+		var fork = require('child_process').fork,
+			wpm = fork(__dirname + '/wnsg', args);
+		wpm.on('close', function () { process.exit(); })
+		prog.keepAlive=true;
+	} else if (prog.package && prog.package != true)
+	{
+		var args = prog.args;
+			args.unshift(prog.package);
+		var fork = require('child_process').fork,
+			wpm = fork(__dirname + '/wnspm', args);
+		wpm.on('close', function () { process.exit(); })
+		prog.keepAlive=true;
+	} else
+		prog.outputHelp();
+} else
+	prog.outputHelp();
 
+(!prog.keepAlive)&&process.exit()

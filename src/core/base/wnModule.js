@@ -28,7 +28,7 @@ module.exports = {
 	 * @param object $parent parent object.
 	 * @param object $config configuration object.
 	 */	
-	constructor: function (parent,modulePath,config,classes)
+	constructor: function (parent,modulePath,config,npmPath,classes)
 	{
 		this.e.log&&this.e.log('Constructing new `'+this.className+'`...','system');
 
@@ -40,6 +40,7 @@ module.exports = {
 
 		this.preinit.apply(this,arguments); 
 
+		this.npmPath = npmPath || [];
 		this.importClasses();
 		if (classes == undefined)
 		{
@@ -77,8 +78,10 @@ module.exports = {
 			_initialized=true;
 		});
 
-		this.getConfig('autoInit')!=false&&
-			this.e.ready.apply(this,arguments);
+		if (this.getConfig('autoInit')!=false)
+			process.nextTick(function () {
+				self.e.ready.apply(this,arguments);
+			});
 	},
 
 	/**
@@ -91,7 +94,7 @@ module.exports = {
 		_components: {},
 		_componentsConfig: {},
 		_customClasses: {},
-		_modulesEvents: {},
+		_modulesEvents: {}
 	},
 
 	/**
@@ -127,7 +130,12 @@ module.exports = {
 		{
 			'loadModule': {},
 			'loadComponent': {}
-		}
+		},
+
+		/**
+		 * @var array node_modules directories
+		 */
+		npmPath: []
 	
 	},
 
@@ -152,7 +160,7 @@ module.exports = {
 				_c[c] = module.exports;
 				_cSource[c]=_class;
 			}
-			var classBuilder = new wns.wnBuild(_c);
+			var classBuilder = new process.wns.wnBuild(_c,this.getModulePath(),this.npmPath,this.getClassName());
 			this.setComponent('classBuilder',classBuilder);
 			classBuilder.build();
 			for (c in global.coreClasses)
@@ -330,7 +338,7 @@ module.exports = {
 					config.id = id;
 					config.autoInit = (config.autoInit == true);
 					var component = this.createComponent(className,config);
-					if (config.seeParent)
+					if (config.setParent)
 						component.setParent(this);
 					self.e.loadComponent(e,id,component);
 					(!config.autoInit)&&component.init(config);
@@ -483,12 +491,18 @@ module.exports = {
 					{
 						config.id = id;
 						config.autoInit = !(config.autoInit == false);
-						var module = this.createModule(className,modulePath,config);
+						var npmPath = [];
+							for (n in self.npmPath)
+								npmPath.push(self.npmPath[n]);
+						npmPath.unshift(this.modulePath+modulePath+'/node_modules/');
+						var module = this.createModule(className,modulePath,config,npmPath);
 						_modules[id] = module;
 						this.attachModuleEvents(id);
 						onLoad&&onLoad(module);
 						self.e.loadModule(id,module);
-						module.e.ready(modulePath,config);
+						process.nextTick(function () {
+							module.e.ready(modulePath,config);
+						});
 						return _modules[id];
 					} else
 						return false;
@@ -518,9 +532,9 @@ module.exports = {
 		 * @param string $config application 
 		 * @return wnModule the module instance, false if the module is disabled or does not exist.
 		 */
-		createModule: function (className,modulePath,config)
+		createModule: function (className,modulePath,config,npmPath)
 		{
-			return new this.c[className](this,modulePath,config);
+			return new this.c[className](this,modulePath,config,npmPath);
 		},
 
 		/**
@@ -684,6 +698,67 @@ module.exports = {
 				this.setConfig('modulePath',value);
 			}
 			return this;
+		},
+
+		/**
+		 * Start syncronization server
+		 */
+		syncServer: function ()
+		{
+			this.setComponents({
+				'syncServer': {
+					port: 22011,
+					class: 'wnSync'
+				}
+			});
+			var syncServer = this.getComponent('syncServer');
+			syncServer.setParent(this);
+			syncServer.init();
+			return syncServer;
+		},
+
+		/**
+		 * Check if the package exists and its required version
+		 */
+		checkPackage: function ()
+		{
+			return true;
+			// http.get('http://wns.yept.net/packages/search/');
+		},
+
+		/**
+		 * Download a new WNS package into the module's directory
+		 * then reconfigure the module's config.json file.
+		 */
+		installPackage: function (packageName,cb)
+		{
+			if (!packageName || !this.checkPackage(packageName))
+				cb&&cb(false);
+
+			self.e.log('Downloading `%d` package...',packageName);
+			var file = fs.createWriteStream(this.modulePath+'/.tmp/'+packageName+'.tar.gz');
+			if (!fs.existsSync(this.modulePath+'/.tmp'))
+				fs.mkdirSync(this.modulePath+'/.tmp');
+			var req = http.request({
+				'method': 'GET',
+				'host': process.wns.info.wnspm.url,
+				'path': '/package/download'
+			}, function(response) {
+				cb&&cb(true)
+			  	response.pipe(file);
+			});
+			req.on('error',function () {
+				cb&&cb(false)
+			})
+			req.end();			
+		},
+
+		/**
+		 * Removes a installed package.
+		 */
+		removePackage: function ()
+		{
+
 		},
 		
 		/**
