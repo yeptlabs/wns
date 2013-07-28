@@ -21,15 +21,19 @@ module.exports=wnBuild;
 /**
  * Constructor
  */
-function wnBuild(classesSource)
+function wnBuild(classesSource,modulePath,npmPath,moduleClass)
 {
 	this.classesSource = {};
+	this.modulePath = modulePath;
+	this.npmPath = npmPath;
+	this.moduleClass = moduleClass || 'WNS';
+	this.loadedModules = {};
 
 	for (c in classesSource)
 	{
 		if (this.checkStructure(classesSource[c]))
 		{
-			this.classesSource[c] = Object.extend({ extend: [], public: {}, private: {}, methods:{} },classesSource[c]);
+			this.classesSource[c] = Object.extend({ extend: [], public: {}, private: {}, methods:{}, dependencies: {} },classesSource[c]);
 			if (!this.classesSource[c].extend)
 				this.classesSource[c].extend = [];
 		}
@@ -38,6 +42,46 @@ function wnBuild(classesSource)
 	for (c in this.classesSource)
 	{
 		this.classesSource[c].extend = this.removeInvalidDependencies(this.classesSource[c].extend);
+	}
+
+	this.debugScripts = {};
+	var self = this;
+	this.onDebug = function (event, exec_state, event_data, data)
+	{
+		try {
+		  if (event == Debug.DebugEvent.BeforeCompile) {
+		  	if (Debug.ScriptCompilationType.Eval === event_data.script().compilationType())
+		  	{
+		  		var source = event_data.script().source();
+		  		if (source.match(/^\/\/\@\w+/gim))
+		  		{
+		  			var className = source.match(/^\/\/\@\w+/gim),
+		  				id = source.match(/\/\/\#[\w|\-]+/gim) || '';
+		  				id = id ? id[0].split('#')[1] : '';
+		  				cName=className[0].split('@')[1];
+
+		  			if (className && !self.debugScripts[id+'/'+cName])
+			  			{
+			  			self.debugScripts[id+'/'+cName]=source;
+			  			var fileName = self.moduleClass+"/"+cName;
+			  			if (id!=='')
+			  			{
+			  				fileName = self.moduleClass+"/"+cName+"/"+id;
+			  			}
+			  			event_data.script().setSource(event_data.script().source()+
+			  				" //@ sourceURL=_"+fileName+".js");
+		  			}
+		  		}
+		  	}
+		  }
+		} catch (e) {
+		}	
+	}
+
+	if (v8debug)
+	{
+		var Debug = v8debug.Debug;
+		Debug.setListener(this.onDebug);
 	}
 };
 
@@ -147,15 +191,34 @@ wnBuild.prototype.buildClass = function (className)
 
 	// Class builder.
 	classBuilder.prototype.build = function () {
-		eval('var '+className+' = new klass;');
-		eval('var self = '+className+';');
+		var compiled = '//@'+className+'\n';
+	
+		if (classBuilder.build.id)
+			compiled += '//#'+classBuilder.build.id+'\n';
+
+		compiled+='\n// Initialization\n';
+		compiled+='var '+className+' = new klass;\n';
+		compiled+='var self = '+className+';\n';
+
+		compiled+='\n// NPM Dependencies\n';
+		__builder.loadDependencies(targetClass.dependencies);
+		for (e in targetClass.dependencies)
+			compiled+='var '+targetClass.dependencies[e].replace(/\-/g,'_')+'=__builder.loadedModules["'+targetClass.dependencies[e]+'"];\n';
+
+		compiled+='\n// WNS Extensions\n';
 		for (e in build.extend)
 		{
 			var extendSource = __builder.classes[build.extend[e]].source.replace(/\[CLASSNAME\]/g,className);
-			eval(extendSource);
+			compiled+=extendSource+'\n';
 		}
-		eval(sourceCode.replace(/\[CLASSNAME\]/g,className));
-		eval(className+'.constructor&&'+className+'.constructor.apply('+className+', arguments);');
+
+		compiled+='\n// Class: '+className+' \n';
+		compiled+=sourceCode.replace(/\[CLASSNAME\]/g,className)+'\n';
+
+		compiled+='\n// Constructor call\n';
+		compiled+=className+'.constructor&&'+className+'.constructor.apply('+className+', arguments);\n\n';
+
+		eval(compiled);
 		return self;
 	};
 
@@ -192,7 +255,7 @@ wnBuild.prototype.compileClass = function (targetClass)
 		builder = this,
 		build = this.classesSource[targetClass];
 		
-	classSource += "(function () {\n";
+	//classSource += "(function () {\n";
 
 		classSource += "var _=self,";
 		// Declare private vars
@@ -207,6 +270,8 @@ wnBuild.prototype.compileClass = function (targetClass)
 			classSource+=",";
 		}
 		classSource=classSource.substr(0,classSource.length-1)+";\n";
+
+		classSource += "var _className= '"+sourceClass+"';\n";
 	
 		// Redeclare privileged methods
 		for (m in build.methods)
@@ -214,7 +279,7 @@ wnBuild.prototype.compileClass = function (targetClass)
 			classSource += sourceClass+"['"+m+"'] = "+build.methods[m].toString()+";\n";
 		}
 
-	classSource += "})();\n";
+	//classSource += "})();\n";
 
 	// Declare public vars
 	for (p in build.public)
@@ -284,6 +349,36 @@ wnBuild.prototype.removeInvalidDependencies = function (extensions)
 };
 
 /**
+ * Install and load npm dependencies.
+ */
+wnBuild.prototype.loadDependencies = function (dep)
+{
+	for (d in dep)
+	{
+		if (!this.loadedModules[dep[d]])
+		{
+			var npmPath;
+			for (n in this.npmPath)
+			{
+				var npmDir=path.resolve(this.npmPath[n]+'/'+dep[d]);
+				if (fs.existsSync(npmDir))
+					{ npmPath = npmDir; break; }
+			}
+
+			if (npmPath)
+			{
+				var module=require(npmPath);
+				this.loadedModules[dep[d]]=module;
+			} else
+			{
+				console.log("Error on loading NPM dependency: "+dep[d]);
+				process.exit();
+			}
+		}
+	}
+};
+
+/**
  * Create new memory instance to the object
  * @param mixed $property any kind of property
  * @result mixed new instance of the property
@@ -348,15 +443,35 @@ wnBuild.prototype.makeDoc = function (className, docSource)
 		matchDoc = new RegExp('','gim'),
 		matches = docSource.match(/\/\*[\s\S]+?\*\/\s+\w+\:/gim);
 
-	var props = {};
+	var props = {}, type= 'undefined';
 	for (m in matches)
 	{
 		var	def = matches[m],
 			getDoc = def.match(/[\/\*\*](\W|\w)+[\*\/]/gim)[0],
-			prop = def.replace(/[\/\*\*](\W|\w)+[\*\/]/gim,'').replace(/\W/gim,'');
+			prop = def.replace(/[\/\*\*](\W|\w)+[\*\/]/gim,'').replace(/\W/gim,''),
+			params = def.match(/@param \$[\w]+ [\w]+ .+/g),
+			paramsList = [];
 		if (blackList.indexOf(prop)!=-1)
+		{
+			type = prop;
 			continue;
-		props[prop] = getDoc;
+		}
+		for (p in params)
+		{
+			var _param = {};
+			var data = params[p].split(' ')
+			_param.name = data[1];
+			_param.accept = data[2];
+			data=data.splice(3)
+			_param.desc = data.join(' ');
+			paramsList.push(_param);
+		}
+		props[prop] = {
+			desc: getDoc,
+			type: type
+		};
+		if (type == 'methods')
+			props[prop].params = paramsList;
 	}
 
 	Object.defineProperty(this.classes[className], 'doc', {

@@ -2,7 +2,7 @@
 {
 
 	// Application Name
-	"title": "Default WNS WebApp",
+	"title": "WNS App",
 
 	// Auto import
 	"import": [
@@ -10,6 +10,11 @@
 		"scripts/",
 		"components/",
 		"models/"
+	],
+
+	// Default menu
+	"menu": [
+		{ "name": "Home", "link": "/" }
 	],
 
 	// Components
@@ -32,14 +37,15 @@
 			"errorPage": "site/error"
 		},
 
-		// wnDbConnection configuration (remove/comment to disable)
-		"database": {
-			"class": "wnDbConnection",
-			"alias": "db",
-			"engine": "{dbEngine}",
-			"address": "localhost",
-			"port": 1234
-		},
+		// wnDbConnection configuration (remove comment to enable)
+		// Supported databases: mysql, mongodb
+		// "database": {
+		// 	"class": "wnDbConnection",
+		// 	"alias": "db",
+		// 	"engine": "(TYPE YOUR DATABASE ENGINE HERE)",
+		// 	"address": "localhost",
+		// 	"port": 1234
+		// },
 
 		// wnCache configuration (remove/comment to disable)
 		"cache": {

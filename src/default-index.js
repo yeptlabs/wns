@@ -22,6 +22,13 @@
 	// Initialize the webNode.
 	require('{sourcePath}wnInit.js');
 
+	// Prepare the event 'loadServer' to change the listening port.
+	wns.console.addListener('loadServer',function (e,server) {
+		var httpConfig=server.getConfig().components.http;
+		httpConfig.listen[0]=process.env.PORT || httpConfig.listen[0];
+		server.setComponents({ http: httpConfig });
+	});
+
 	// Create the server using the following configuration file.
 	// Push the new server to the wnConsole.
 	wns.console.addServer('{serverPath}');

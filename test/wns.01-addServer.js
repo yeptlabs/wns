@@ -31,15 +31,17 @@ var serverConfig = {},
 
 this.setServers(serverConfig);
 var server = this.createServer(consoleID);
-console.log(' ')
-console.log('[SERVER CONFIG] -------------------');
-console.log(util.inspect(server.getConfig()));
-console.log(' ')
-console.log('[APP CONFIG] -------------------');
-console.log(util.inspect(server.getApplication('test').getConfig()));
-console.log(' ')
-this.selectServer(consoleID);
+server.once('ready',function () {
+	console.log(' ')
+	console.log('[SERVER CONFIG] -------------------');
+	console.log(util.inspect(server.getConfig()));
+	console.log(' ')
+	console.log('[APP CONFIG] -------------------');
+	console.log(util.inspect(server.getApplication('test').getConfig()));
+	console.log(' ')
+	self.selectServer(consoleID);
+	self.e.endTest();
+});
 
-this.e.endTest();
 
 'executed addServer test.'

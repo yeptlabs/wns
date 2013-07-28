@@ -24,7 +24,7 @@
  * Or just get the event object than use the {@link push} method.
  *
  * @author Pedro Nasser
- * @package system.core.base
+ * @package packages.base
  * @since 1.0.0
  */
 
@@ -173,35 +173,73 @@ module.exports = {
 		{
 			return attr ? _config[attr] : _config;
 		},
+
+		/**
+		 * Export to JSON the components's config.
+		 */
+		exportConfig: function (obj)
+		{
+			if (typeof obj === 'undefined')
+			{
+				obj = this.getConfig();
+				delete obj.class;
+			}
+
+			if (typeof obj == 'object')
+			{
+
+				delete obj.autoInit;
+				delete obj.id;
+				delete obj.serverID;
+				delete obj.modulePath;
+
+				for (o in obj)
+				{
+					this.exportConfig(obj[o]);
+				}
+			}
+
+			return JSON.stringify(obj, null, '\t');
+		},
 		
 		/**
 		 * Get a file.
 		 * The file's path is relative to the module's path.
-		 * @param $filePath string file's path
+		 * @param string $filePath file's path
+		 * @param boolean $binary is it binary?
+		 * @param function $cb async callback function
 		 */
-		getFile: function (filePath,binary,cb)
+		getFile: function (filePath)
 		{
-			var realPath = this.instanceOf('wnModule')?this.modulePath+filePath:filePath,
+			if (typeof arguments[1]=='function')
+				var cb = arguments[1];
+
+			if (typeof arguments[2]=='function')
+				var cb = arguments[2];
+
+			var binary = typeof arguments[1]=='boolean' ? arguments[1] : false,
+				realPath = this.instanceOf('wnModule')?this.modulePath+filePath:filePath,
 				cmd = !cb ? 'readFileSync' : 'readFile';
-				try {
-					var _cb = cb ? function (err,file) {
-						cb&&cb(!err ? ((binary===true) ? file : file.toString()) : false);
-					} : null,
-					file = fs[cmd](realPath,_cb);
-				} catch (e)
-				{
-					if (_cb)
-						cb&&cb(false);
-					else
-						return false;
-				}
+
+			try {
+				var _cb = cb ? function (err,file) {
+					cb&&cb(!err ? ((binary===true) ? file : file.toString()) : false);
+				} : null,
+				file = fs[cmd](realPath,_cb);
+			} catch (e)
+			{
+				if (_cb)
+					cb&&cb(false);
+				else
+					return false;
+			}
 			return (file ? (binary===true) ? file : file.toString() : false);
 		},
 
 		/**
 		 * Get a file statistic.
 		 * The file's path is relative to the module's path.
-		 * @param $filePath string file's path
+		 * @param string $filePath file's path
 		 */
 		getFileStat: function (filePath,cb)
 		{
@@ -240,7 +278,12 @@ module.exports = {
 		 */
 		createClass: function (className,config)
 		{
-			var source = this.c || wns;
+			var source = this.c || process.wns;
+			source.name = '';
+			if (config.id)
+			{
+				source[className].build.id = config.id;
+			}
 			return new source[className](config,source);
 		},
 		
@@ -291,6 +334,7 @@ module.exports = {
 					e = 'event-'+e.replace('-','.');
 				event[e]=ref;
 				event[e].class=ref.class || 'wnEvent';
+				event[e].eventName = e.split('-').pop();
 				if (this.hasEvent(e))
 				{
 					Object.extend(true,event[e],this.getEvent(e));

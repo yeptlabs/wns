@@ -3,5 +3,5 @@
 /node_modules
 /app/*
 /config.json
-/index.js
 *.log
+/test/tmp

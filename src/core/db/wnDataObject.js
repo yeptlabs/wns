@@ -11,7 +11,7 @@
  * Description coming soon.
  *
  * @author Pedro Nasser
- * @package system.core.db
+ * @package package.db
  * @since 1.0.0
  */
 
@@ -69,13 +69,6 @@ module.exports = {
 		init: function (conn)
 		{
 			_db=conn;
-			try {
-				this.driver = _r(this.driverModule);
-			} catch (e)
-			{
-				this.getParent().e.log&&
-					this.getParent().e.log('wnDataObject.init: Could not load the database driver. ['+this.driverName+']');
-			}
 		},
 
 		/**

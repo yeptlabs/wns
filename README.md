@@ -1,21 +1,38 @@
 [![WNS](http://dl.dropbox.com/u/21773527/WNS-Logo.png)](http://wns.yept.net)
 
-## Welcome to WNS (v0.0.5) [![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
+## Welcome to WNS (v0.0.6) [![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
 
-##### WNS is a high-performance scalable component-based, class-based MIDDLEWARE
+##### WNS is a high-performance, scalable and component-based MIDDLEWARE
 
-###### Build anything in a highly scalable way.
+## Main Features
 
-## Main Components
+ - Package System
+ - Module and Components
+ - Full event system
+ - Classes
 
- - HTTP Server
- - Controller/View
- - ActiveRecord
- - Database
- - Cache
- - Url Manager
- - Script
- - Events
+## Core Packages
+
+***Soon this packages will be removed from core package.
+Will be available in the Package Management system.***
+
+- **BASE**: Core classes.
+- **HTTP**: Full http package
+ - Session system
+ - Compression system
+ - MVC
+ - Cache control
+ - Url management
+ - Routes
+ - HTTP Helpers
+- **DB**: Base classes for database integration
+- **MONGO**: Classes for MongoDB integration
+- **MYSQL**: Classes for MySQL integration
+- **SYNC**: Classes for the sync system, used on package management.
+- **TEMPLATE**: Classes for template system.
+ - DustJS template integration
+- **VALIDATOR**: Classes for model validation.
+- **CACHE**: Classes for cache system.
 
 ## Philosophy
 
@@ -33,12 +50,12 @@
 
 ## More information:
 
-- Why? [LOOK HERE](http://wns.yept.net/)
-- Who uses? [LOOK HERE](http://wns.yept.net/site/cases)
-- Show me one! [LOOK HERE](http://wns.yept.net/site/examples)
-- Am I alone? [LOOK HERE](http://wns.yept.net/site/community)
-- How it works? [LOOK HERE](http://wns.yept.net/api/)
-- FAQ you? [LOOK HERE](http://wns.yept.net/site/faq/)
+- About [LOOK HERE](http://wns.yept.net/)
+- Cases [LOOK HERE](http://wns.yept.net/site/cases)
+- Examples [LOOK HERE](http://wns.yept.net/site/examples)
+- Community [LOOK HERE](http://wns.yept.net/site/community)
+- API and Documentation [LOOK HERE](http://wns.yept.net/api/)
+- FAQ [LOOK HERE](http://wns.yept.net/site/faq/)
 
 ## License 
 

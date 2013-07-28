@@ -1,22 +1,23 @@
 {
   "name": "wnserver",
-  "description": "A high-performance scalable component-based, class-based middleware and framework",
-  "version": "0.0.5",
+  "description": "A high-performance, scalable and component-based middleware",
+  "version": "0.0.6-rc5",
   "author": "Pedro Nasser <pedronasser@gmail.com>",
   "contributors": [ 
-    { "name": "Pedro Nasser", "email": "pedronasser@gmail.com" }
+    { "name": "Pedro Nasser", "email": "pedronasser@yept.net" }
   ],
-  "main": "index",
   "dependencies": {
     "mime": "1.2.x",
     "wrench": "1.4.x",
-    "formidable": "latest"
+    "formidable": "latest",
+    "commander": "latest",
+    "request": "latest"
   },
   "keywords": [
     "web","yii","framework","wns","mvc",
     "database","app","http","server","middleware",
     "component","module","model","view",
-    "controller","route","static","orm"
+    "controller","route","static","orm","package"
   ],
   "repository": "git://github.com/yeptlabs/wns",
   "main": "index",
@@ -24,5 +25,8 @@
   "scripts": {
     "test": "node test/run"
   },
-  "engines": { "node": ">= 0.6.0" }
+  "engines": { "node": ">= 0.8.x" },
+  "wnspm": {
+    "host": "wnspm.yept.net"
+  }
 }

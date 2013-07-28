@@ -1,39 +1,65 @@
-<!doctype html>
-<html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{view.title}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{self.desc}">
+    <meta name="author" content="{app.author}">
 
-	<meta charset="utf-8" />
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <!-- Le styles -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+    </style>
+    <link href="/css/bootstrap-responsive.min.css" rel="stylesheet">
 
-	<title>{view.title}</title>
-	<meta name="description" content="{view.description}" />
-	<meta name="keywords" content="{view.keywords}" />
-	<meta name="Robots" CONTENT="INDEX, FOLLOW" />
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="/js/html5shiv.js"></script>
+    <![endif]-->
 
-	<link rel="stylesheet" type="text/css" href="/css/style.css" media="all">
-	<script type='text/javascript' src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+  </head>
 
-</head>
-	<body>
+  <body>
 
-		<div id="body">
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">{app.title}</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+            	{#app.menu}{#.}
+            		<li><a href="{link}">{name}</a></li>
+            	{/.}{/app.menu}
+            </ul>
+            <form class="navbar-form pull-right">
+              <input class="span2" type="text" placeholder="Email">{~s}
+              <input class="span2" type="password" placeholder="Password">{~s}
+              <button type="submit" class="btn">Sign in</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
 
-			<div id="header">
-				<h1>{app.title}</h1>
-				<ul id='menu'>
-					<li><a href='/site/index'>Home</a></li>
-				</ul>
-			</div>
-			
-			<div id="main">
-				<div id="content">
-					{content}
-				</div>
-			</div>
+    <div class="container">
 
-			<div id="bottom">
-				© {app.title} - All rights reserved
-			</div>
-	
-		</div>
-	</body>
+{content}
+
+      <hr>
+
+      <footer>
+        <p style='text-align:right'>© {app.title} - Powered by <a href='http://wns.yept.net/'>WNS Middleware</p></p>
+      </footer>
+
+    </div>
+
+    <script src="/js/jquery.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+
+  </body>
 </html>

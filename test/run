@@ -41,6 +41,7 @@ wns.console.addListener('exception', function (err,e) {
 	wns.console.e.endTest();
 	wns.console.e.errorTest(e);
 });
+wns.console.testDir = testDir;
 
 function refreshIdle () {
 	clearTimeout(idleTimeout);
@@ -92,10 +93,10 @@ getTests(function (err,tests) {
 				validTests++;
 				args.callee();
 			});
-				//testTimeout=setTimeout(function () {
-				//	wns.console.errors++;
-				//	wns.console.e.endTest();
-				//},10000);
+			testTimeout=setTimeout(function () {
+				wns.console.errors++;
+				wns.console.e.endTest();
+			},10000);
 			process.nextTick(function () {
 				try {
 					console.log('[*] Running: '+tests[i]);

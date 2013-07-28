@@ -54,6 +54,7 @@ module.exports = {
 			'loadModule': {},
 			'loadComponent': {},
 			'loadServer': {},
+			'error': {},
 			'log': {
 				handler: 'logHandler'
 			}
@@ -74,7 +75,7 @@ module.exports = {
 		{
 			this.setConfig({ id: '*' });
 			this.listenInput();
-			process.on('uncaughtException', function (e) { console.log(e.stack); });
+			process.on('uncaughtException', function (e) { self.e.exception(e); });
 			this.e.log('wnConsole initialized.');
 		},
 		
@@ -111,7 +112,12 @@ module.exports = {
 			console.log("[*] Building new wnServer on `"+serverPath+"`");
 
 			if (!fs.existsSync(serverPath))
-				return false;
+				fs.mkdirSync(serverPath);
+
+			console.log("[*] - Creating new `package.js` file.");
+			var defaultPackage = fs.readFileSync(_sourcePath+'/default-package.json').toString('utf8');
+			defaultPackage = (defaultPackage+'').replace(/\{moduleName\}/g, 'server-'+serverPath.substr(0,serverPath.length-1).split('/').pop().replace(/\s/g,'-'));
+			fs.writeFileSync(serverPath+'/package.json',defaultPackage);
 
 			console.log("[*] - Creating new `config.json` file.");
 			fs.writeFileSync(serverPath+'/config.json',
@@ -119,11 +125,9 @@ module.exports = {
 			);
 
 			console.log("[*] - Creating new `index.js` file.");
-			var defaultIndex = fs.readFileSync(_sourcePath+'/default-index.js');
-			defaultIndex = new this.c.wnTemplate(defaultIndex).match({
-				sourcePath: './'+relativeSourcePath.replace(/\\/g,'/'),
-				serverPath: './'+relativeServerPath.replace(/\\/g,'/')
-			});
+			var defaultIndex = fs.readFileSync(_sourcePath+'/default-index.js').toString('utf8');
+			defaultIndex = defaultIndex.replace(/\{sourcePath\}/g,'./'+relativeSourcePath.replace(/\\/g,'/'));
+			defaultIndex = defaultIndex.replace(/\{serverPath\}/g,'./'+relativeServerPath.replace(/\\/g,'/'));
 			fs.writeFileSync(serverPath+'/index.js',defaultIndex);
 
 			console.log('[*] New wnServer created.');
@@ -184,8 +188,8 @@ module.exports = {
 		 */
 		createServer: function (id)
 		{
-			var m = this.getModule('server-'+id, function (app) {
-				self.e.loadServer(app);
+			var m = this.getModule('server-'+id, function (server) {
+				self.e.loadServer(server);
 			});
 			_serverModules.push(m);
 			return m;
@@ -220,9 +224,13 @@ module.exports = {
 		/**
 		 * Create a new wnServer and puts under the management of this console
 		 * @param $serverPath server module path
+		 * @param $relativeMainPath boolean relative to mainPath
 		 */ 
-		addServer: function (serverPath)
+		addServer: function (serverPath,relativeMainPath)
 		{
+			if (relativeMainPath)
+				serverPath = path.relative(cwd,path.resolve(mainPath,serverPath));
+
 			var serverConfig = {},
 				consoleID = this.getServerModules().length+1;
 				serverConfig[consoleID] = { 'modulePath': serverPath, 'serverID': consoleID };
@@ -270,7 +278,7 @@ module.exports = {
 		logHandler: function (e,data) {
 			var prefix = '', sourceName = e.owner.getConfig('id');
 			if (sourceName) prefix = '['+sourceName+']'+' ';
-			console.log(prefix+''+data);
+			(!WNS_QUIET_MODE)&&console.log(prefix+''+data);
 		},
 
 		/**
