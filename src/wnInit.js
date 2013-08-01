@@ -1,25 +1,17 @@
 /**
- * @WNS - A NodeJS MVC Framework and HTTP Server
+ * @WNS - The NodeJS Middleware and Framework
  * 
- * @author: Pedro Nasser
- * @link: http://wns.yept.net/
- * @license: http://yept.net/projects/wns/#license
- * @copyright: Copyright &copy; 2012 WNS
+ * @copyright: Copyright &copy; 2012- YEPT &reg;
+ * @page: http://wns.yept.net/
+ * @docs: http://wns.yept.net/docs/
+ * @license: http://wns.yept.net/license/
  */
 
 /**
- * Description coming soon.
+ * WNS`s main file. It initiates and load every thing.
  *
  * @author Pedro Nasser
- * @package system
- * @since 1.0.0
  */
-
-global.WNS_SHOW_LOAD = typeof WNS_SHOW_LOAD !== 'undefined' ? WNS_SHOW_LOAD : true;
-global.WNS_QUIET_MODE = typeof WNS_QUIET_MODE !== 'undefined' ? WNS_QUIET_MODE : false;
-
-var memory = process.memoryUsage().rss,
-	sl = WNS_SHOW_LOAD;
 
  console.log('\n  o       o o--o  o--o (TM)');
  console.log('  |   o   | |   | o__');
@@ -28,45 +20,58 @@ var memory = process.memoryUsage().rss,
  console.log('\n         powered by YEPT(R)');
  console.log();
 
-// Loading requirements..
+
+
+// DEFINING ZONE...
+
+global.WNS_SHOW_LOAD = typeof WNS_SHOW_LOAD !== 'undefined' ? WNS_SHOW_LOAD : true;
+global.WNS_QUIET_MODE = typeof WNS_QUIET_MODE !== 'undefined' ? WNS_QUIET_MODE : false;
+global.WNS_TEST = (process.argv.indexOf('--test') != -1 || process.env.TEST ? true : false)
+global._r = require;
+
+// Checking for v8debug
+if (process.execArgv.indexOf('--expose-debug-as=v8debug') !==-1)
+	var foundDebug = true;
+else
+	global.v8debug=undefined;
+
+var memory = process.memoryUsage().rss,
+	sl = WNS_SHOW_LOAD;
+
+
+
+// LOADING ZONE...
 try
 {
 
+	// Defining base paths
 	global.sourcePath = 'src/';
 	global.cwd = __dirname.replace(/\\\\/g,"/").replace(/\\/g,"/")+'/../';
 	mainPath = process.mainModule.filename.replace(/\\\\/g,"/").replace(/\\/g,"/").split('/');
 	mainPath.pop();
 	global.mainPath = mainPath.join("\/");
-	global._r = require;
-
-	for (p in process.execArgv)
-	{
-		if (process.execArgv[p].indexOf('--expose-debug-as=v8debug') !==-1)
-			var foundDebug = true;
-	}
-	
-	if (!foundDebug)
-		global.v8debug=undefined;
 
 	sl&&console.log(' CWD: '+cwd);
 	sl&&console.log(' SOURCEPATH: '+cwd+sourcePath);
 	sl&&console.log(' MAINPATH: '+mainPath);
 	sl&&console.log();
 
-	// WNS object.
-	// Will contain the classes to build and load.
+	// WNS's Global Object
 	process.wns = global.wns = {};
+	// Importing WNS package info
 	global.wns.info=_r(cwd+'package.json');
 
 	sl&&console.log(' Loading and compiling:');
 
+	// Importing some utils.
 	sl&&console.log(' - Required utilities..');
 	global._walk = _r(cwd+sourcePath+'util/recursiveReadDir');
 	Object.extend = _r(cwd+sourcePath+'util/extend');
 	Object.extend(true,Object,_r(cwd+sourcePath+'util/object'));
 
+	// Importing node's core modules and npm modules.
 	sl&&process.stdout.write(' - Required node modules..');
-	var nm = ['http','fs','path','url','zlib','crypto','stream','util','events','buffer'];
+	var nm = ['http','fs','path','url','zlib','crypto','stream','util','events','buffer','domain'];
 	for (d in wns.info.dependencies)
 		nm.push(d);
 	for (n in nm)
@@ -80,16 +85,20 @@ try
 	sl&&process.stdout.write(' ('+nm.length+' modules)\n');
 
 } catch (e) {
+	// Catch any error...
 	sl&&console.log(' Failed to load some dependencies...');
 	throw e;
 	process.exit();
 }
 
-// We need this class for building the rest of the required classes.
+
+
+// BUILDING ZONE...
+
+// Get THE BUILDER.
 wns.wnBuild = _r(cwd+sourcePath+'wnBuild.js');
 
 sl&&process.stdout.write(' - Required classes...');
-
 var _coreClasses={}, toBuild = {};
 // Recursivelly getting list of all classes in the core/
 _walk(cwd+sourcePath+'core', function (err, classes) {
@@ -108,14 +117,11 @@ _walk(cwd+sourcePath+'core', function (err, classes) {
 
 		// Check structure.
 		if (wns.wnBuild.prototype.checkStructure(module.exports))
-		{
 			// Send it to the build list.
 			toBuild[className] = module.exports;
-		} else
-		{
+		else
 			// Send it to the WNS.
 			wns[className] = module.exports;
-		}
 
 		// Store class source.
 		_coreClasses[className] = _class; 
@@ -126,7 +132,6 @@ _walk(cwd+sourcePath+'core', function (err, classes) {
 	var compiled = (new wns.wnBuild(toBuild,cwd).build()),
 		loaded = 0;
 	for (c in toBuild)
-	{
 		if (compiled[c].loaded)
 		{
 			// Store compiled classes as read-only.
@@ -138,7 +143,6 @@ _walk(cwd+sourcePath+'core', function (err, classes) {
 			});
 			loaded++;
 		}
-	}
 
 	sl&&process.stdout.write(' ('+loaded+' classes)\n');
 
@@ -154,7 +158,9 @@ sl&&console.log(' - Core memory usage: '+memory+' mb');
 
 sl&&console.log('');
 
-// Create a new console
-wns.console = new wns.wnConsole({ modulePath: cwd }, cwd, undefined, [cwd]);
+// FINISHED LOADING...
 
-//
+
+
+// START WNS CONSOLE
+wns.console = new wns.wnConsole({ modulePath: cwd }, cwd, undefined, [cwd]);

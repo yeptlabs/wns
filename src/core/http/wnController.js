@@ -200,17 +200,22 @@ module.exports = {
 				lastModif = this.app.cache.get('template-'+self.getControllerName()+'/'+view);
 			if (lastModif)
 			{
-				fs.stat(this.app.modulePath+fileName,function (err,stats) {
-					if (err!==null)
-						cb&&cb(false);
-					else if (stats.mtime.getTime() > lastModif)
-					{
-						self.app.cache.set('template-'+self.getControllerName()+'/'+view,false);
-						self.app.getFile(fileName,cb);
-					}
-					else
-						cb&&cb('')
-				});
+				if (self.app.getConfig('devMode'))
+					fs.stat(this.app.modulePath+fileName,function (err,stats) {
+						if (err!==null)
+							cb&&cb(false);
+						else if (stats.mtime.getTime() > lastModif)
+						{
+							self.app.cache.set('template-'+self.getControllerName()+'/'+view,false);
+							self.app.getFile(fileName,cb);
+						}
+						else
+							cb&&cb('')
+					});
+				else
+				{
+					cb&&cb('');
+				}
 			} else
 				this.app.getFile(fileName,cb);
 		},
@@ -228,18 +233,21 @@ module.exports = {
 				lastModif = this.app.cache.get('template-layout-'+layout);
 			if (lastModif)
 			{
-				fs.stat(this.app.modulePath+fileName,function (err,stats) {
-					self.request.stat=stats;
-					if (err!==null)
-						cb&&cb(false);
-					else if (stats.mtime.getTime() > lastModif)
-					{
-						self.app.cache.set('template-layout-'+view,false);
-						self.app.getFile(fileName,cb);
-					}
-					else
-						cb&&cb('')
-				});
+				if (self.app.getConfig('devMode'))
+					fs.stat(this.app.modulePath+fileName,function (err,stats) {
+						self.request.stat=stats;
+						if (err!==null)
+							cb&&cb(false);
+						else if (stats.mtime.getTime() > lastModif)
+						{
+							self.app.cache.set('template-layout-'+view,false);
+							self.app.getFile(fileName,cb);
+						}
+						else
+							cb&&cb('')
+					});
+				else
+					cb&&cb('');
 			} else
 				this.app.getFile(fileName,cb);
 		},

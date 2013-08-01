@@ -1,21 +1,18 @@
 /**
- * Source of the wnEvent class.
+ * @WNS - The NodeJS Middleware and Framework
  * 
- * @author: Pedro Nasser
- * @link: http://wns.yept.net/
- * @license: http://yept.net/projects/wns/#license
- * @copyright: Copyright &copy; 2012 WNS
+ * @copyright: Copyright &copy; 2012- YEPT &reg;
+ * @page: http://wns.yept.net/
+ * @docs: http://wns.yept.net/docs/
+ * @license: http://wns.yept.net/license/
  */
 
 /**
- * Description coming soon.
+ * Source of the wnEvent class
  *
  * @author Pedro Nasser
- * @package system.core.base
- * @since 1.0.0
  */
 
-// Exports
 module.exports = {
 
 	/**
@@ -45,7 +42,10 @@ module.exports = {
         /**
          * Raises the event.
          * Push event and arguments to all event's listeners.
-         * @return boolean the event has been emitted?
+         * @param object $eventObject (optional)
+         * @param mixed $arg1 (optional)
+         * @param mixed $argN (optional)
+         * @return boolean
          */
         push: function ()
 		{
@@ -197,7 +197,7 @@ module.exports = {
 
 		/**
 		 * Check if passed all filters
-		 * @return boolean if passed.
+		 * @return boolean
 		 */
 		checkFilters: function ()
 		{
@@ -210,7 +210,8 @@ module.exports = {
 
         /**
          * Add a new handler to this event.'
-         * @param $listener function listener of the event
+         * @param function $listener listener of the event
+         * @param boolean $prepend
          */
         addListener: function (listener,prepend)
 		{

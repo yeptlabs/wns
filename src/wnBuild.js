@@ -1,19 +1,16 @@
 /**
- * Source of the wnBuild class.
+ * @WNS - The NodeJS Middleware and Framework
  * 
- * @author: Pedro Nasser
- * @link: http://wns.yept.net/
- * @license: http://yept.net/projects/wns/#license
- * @copyright: Copyright &copy; 2012 WNS
+ * @copyright: Copyright &copy; 2012- YEPT &reg;
+ * @page: http://wns.yept.net/
+ * @docs: http://wns.yept.net/docs/
+ * @license: http://wns.yept.net/license/
  */
 
 /**
- * This class it's the main class of WNS.
- * It converts JSON, in the correct format, to WNS classes.
+ * This the source of WNS's 'class-based feature'.
  *
  * @author Pedro Nasser
- * @package system
- * @since 1.0.0
  */
 
 module.exports=wnBuild;
@@ -23,11 +20,14 @@ module.exports=wnBuild;
  */
 function wnBuild(classesSource,modulePath,npmPath,moduleClass)
 {
+	var self = this
+
 	this.classesSource = {};
 	this.modulePath = modulePath;
 	this.npmPath = npmPath;
 	this.moduleClass = moduleClass || 'WNS';
 	this.loadedModules = {};
+	this.debugScripts = {};
 
 	for (c in classesSource)
 	{
@@ -40,12 +40,8 @@ function wnBuild(classesSource,modulePath,npmPath,moduleClass)
 	}
 
 	for (c in this.classesSource)
-	{
 		this.classesSource[c].extend = this.removeInvalidDependencies(this.classesSource[c].extend);
-	}
 
-	this.debugScripts = {};
-	var self = this;
 	this.onDebug = function (event, exec_state, event_data, data)
 	{
 		try {
@@ -74,8 +70,7 @@ function wnBuild(classesSource,modulePath,npmPath,moduleClass)
 		  		}
 		  	}
 		  }
-		} catch (e) {
-		}	
+		} catch (e) {}	
 	}
 
 	if (v8debug)
@@ -419,6 +414,100 @@ wnBuild.prototype.newValue = function (property)
 			return obj;
 		}
 	}
+};
+
+/**
+ * Generate the unit test from the classSource
+ * @param string $classname name of the class
+ * @param wnClass $docSource class object source
+ */
+wnBuild.prototype.makeTest = function (className, docSource)
+{
+
+	if (this.classes[className]==undefined)
+		return false;
+
+	var comments = docSource.match(/\/\*[\s\S]+?\*\//gim),
+		blackList = 'methods extend private public';
+		typeList = 'this boolean string function array object self';
+
+	for (c in comments)
+		if (c < 2)
+			docSource=docSource.replace(comments[c],'');
+
+	var findIt = new RegExp('','gim');
+	var matchDoc = new RegExp('','gim');
+	var matches = docSource.match(/\/\*[\s\S]+?\*\/\s+\w+\:/gim);
+	var props = {}, type= 'undefined';
+
+	for (m in matches)
+	{
+		var validTypes = [];		
+		var	def = matches[m],
+			getDoc = def.match(/[\/\*\*](\W|\w)+[\*\/]/gim)[0],
+			prop = def.replace(/[\/\*\*](\W|\w)+[\*\/]/gim,'').replace(/\W/gim,''),
+			params = def.match(/@param \$[\w]+ [\w]+ .+/g),
+			returns = def.match(/@return .+/g),
+			paramsList = [];
+
+		if (blackList.indexOf(prop)!=-1)
+		{
+			type = prop;
+			continue;
+		}
+
+		for (p in params)
+		{
+			var _param = {};
+			var data = params[p].split(' ')
+			_param.name = data[1];
+			_param.accept = data[2];
+			data=data.splice(3)
+			_param.desc = data.join(' ');
+			paramsList.push(_param);
+		}
+
+		if (returns !==null && returns.length>0)
+		{
+			returns=(returns[0]+'').toLowerCase();
+			var types = returns.split(' ')[1].split('|');
+			for (t in types)
+				if (typeList.indexOf(types[t])!==-1)
+					validTypes.push(types[t]);
+		}
+
+		if (validTypes.length>0)
+			props[prop] = function (klass) 
+			{
+				if (typeof klass[this.prop] !== 'function')
+					return false;
+
+				var exec, self = this;
+				try {
+					var d = domain.create();
+					d.on('error', function(er) {});
+					d.run(function() {
+					  exec = klass[self.prop].apply(klass,params);
+					});
+				} catch (e) {
+					return false;
+				}
+
+				var typof = typeof exec;
+
+				for (v in this.validTypes)
+					if (this.validTypes[0].indexOf(typof)===-1 && this.validTypes[v]!=='mixed' && this.validTypes[v]!=='any')
+						console.log(' ~> ['+this.prop+'] Expected `'+this.validTypes+'` but it was `'+typof+'`');
+
+			}.bind({ prop: prop, validTypes: validTypes });
+	}
+
+	Object.defineProperty(this.classes[className], 'test', {
+		value: props,
+		writable: true,
+		configurable: true,
+		enumerable: false
+	});
 };
 
 /**

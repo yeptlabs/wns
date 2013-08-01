@@ -146,6 +146,7 @@ module.exports = {
 
 		/**
 		 * Compile and store all classes to this module.
+		 * @return this
 		 */
 		importClasses: function ()
 		{
@@ -163,8 +164,14 @@ module.exports = {
 			var classBuilder = new process.wns.wnBuild(_c,this.getModulePath(),this.npmPath,this.getClassName());
 			this.setComponent('classBuilder',classBuilder);
 			classBuilder.build();
+
 			for (c in global.coreClasses)
 				classBuilder.makeDoc(c,_cSource[c]);
+
+			if (WNS_TEST)
+				for (c in global.coreClasses)
+					classBuilder.makeTest(c,_cSource[c]);
+
 			return this;
 		},
 
@@ -378,7 +385,7 @@ module.exports = {
 		 */
 		createComponent: function (className,config)
 		{
-			var component = new this.c[className](config,this.c);
+			var component = this.createClass(className,config);
 			component.setParent(this);
 			return component;
 		},

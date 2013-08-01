@@ -1,15 +1,17 @@
 [![WNS](http://dl.dropbox.com/u/21773527/WNS-Logo.png)](http://wns.yept.net)
 
-## Welcome to WNS (v0.0.6) [![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
+## Welcome to WNS (v0.0.61) [![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
 
-##### WNS is a high-performance, scalable and component-based MIDDLEWARE
+##### WNS is a high-performance, scalable and component-based MIDDLEWARE and FRAMEWORK
 
 ## Main Features
 
- - Package System
- - Module and Components
- - Full event system
- - Classes
+ - PACKAGE system
+ - Full EVENT system
+ - Component-based source code
+ - Class-based source code
+ - File modification MONITOR
+ - Easy UNIT TESTING
 
 ## Core Packages
 
