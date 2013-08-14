@@ -1,4 +1,4 @@
-{
+ {
   "name": "wnserver",
   "description": "A high-performance, scalable and component-based middleware",
   "version": "0.0.61",
@@ -15,18 +15,37 @@
     "request": "latest"
   },
   "keywords": [
-    "web","yii","framework","wns","mvc",
-    "database","app","http","server","middleware",
-    "component","module","model","view",
-    "controller","route","static","orm","package"
+    "web",
+    "yii",
+    "framework",
+    "wns",
+    "mvc",
+    "database",
+    "app",
+    "http",
+    "server",
+    "middleware",
+    "component",
+    "module",
+    "model",
+    "view",
+    "controller",
+    "route",
+    "static",
+    "orm",
+    "package"
   ],
   "repository": "git://github.com/yeptlabs/wns",
   "main": "index",
-  "bin": { "wns": "./bin/wns" },
+  "bin": {
+    "wns": "./bin/wns"
+  },
   "scripts": {
     "test": "node index --test"
   },
-  "engines": { "node": ">= 0.8.x" },
+  "engines": {
+    "node": ">= 0.8.x"
+  },
   "wnspm": {
     "host": "wnspm.yept.net"
   }

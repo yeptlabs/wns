@@ -130,7 +130,7 @@ module.exports = {
 		 */
 		getClassName: function ()
 		{
-			return _className;
+			return className;
 		},
 
 		/**
@@ -294,6 +294,8 @@ module.exports = {
 			}
 
 			var instance = new source[className](config,source);
+			// if (className=='wnEvent')
+			// 	console.log(instance.getEventName());
 			if (WNS_TEST && builder)
 			{
 				console.log('- Testing '+className)

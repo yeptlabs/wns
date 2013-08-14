@@ -21,12 +21,12 @@
  console.log();
 
 
-
 // DEFINING ZONE...
 
-global.WNS_SHOW_LOAD = typeof WNS_SHOW_LOAD !== 'undefined' ? WNS_SHOW_LOAD : true;
-global.WNS_QUIET_MODE = typeof WNS_QUIET_MODE !== 'undefined' ? WNS_QUIET_MODE : false;
-global.WNS_TEST = (process.argv.indexOf('--test') != -1 || process.env.TEST ? true : false)
+global.WNS_SHOW_LOAD = (process.argv.indexOf('--silent') != -1 ? true : (typeof WNS_SHOW_LOAD !== 'undefined' ? WNS_SHOW_LOAD : true));
+global.WNS_QUIET_MODE = (process.argv.indexOf('--quiet') != -1 ? true : (typeof WNS_QUIET_MODE !== 'undefined' ? WNS_QUIET_MODE : false));
+global.WNS_TEST = (process.argv.indexOf('--test') != -1 || process.env.TEST ? true : false);
+global.WNS_DEV = (process.argv.indexOf('--dev') != -1 || process.env.DEV ? true : false);
 global._r = require;
 
 // Checking for v8debug
@@ -36,7 +36,8 @@ else
 	global.v8debug=undefined;
 
 var memory = process.memoryUsage().rss,
-	sl = WNS_SHOW_LOAD;
+	sl = WNS_SHOW_LOAD,
+	builder;
 
 
 
@@ -54,7 +55,11 @@ try
 	sl&&console.log(' CWD: '+cwd);
 	sl&&console.log(' SOURCEPATH: '+cwd+sourcePath);
 	sl&&console.log(' MAINPATH: '+mainPath);
-	sl&&console.log();
+	sl&&process.stdout.write(' MODES: ');
+	for (g in global)
+		if (g.indexOf('WNS_')!=-1 && global[g]==true)
+			sl&&process.stdout.write(g.replace('WNS_','')+' ');
+	sl&&console.log("\n");
 
 	// WNS's Global Object
 	process.wns = global.wns = {};
@@ -67,7 +72,7 @@ try
 	sl&&console.log(' - Required utilities..');
 	global._walk = _r(cwd+sourcePath+'util/recursiveReadDir');
 	Object.extend = _r(cwd+sourcePath+'util/extend');
-	Object.extend(true,Object,_r(cwd+sourcePath+'util/object'));
+	Object.extend(true,Object,_r(cwd+sourcePath+'util\/object'));
 
 	// Importing node's core modules and npm modules.
 	sl&&process.stdout.write(' - Required node modules..');
@@ -129,7 +134,12 @@ _walk(cwd+sourcePath+'core', function (err, classes) {
 
 
 	// We will compile the new classes to the WNS object.
-	var compiled = (new wns.wnBuild(toBuild,cwd).build()),
+	builder = new wns.wnBuild(toBuild,{
+		getClassName: function () { return 'WNS' },
+		getModulePath: function () { return cwd },
+		npmPath: [cwd+'node_modules/'],
+	});
+	var compiled = builder.build(),
 		loaded = 0;
 	for (c in toBuild)
 		if (compiled[c].loaded)
@@ -155,6 +165,8 @@ Object.defineProperty(global, 'coreClasses', { value: _coreClasses, writable: fa
 memory = (new Number((process.memoryUsage().rss - memory) / 1024 / 1024)).toFixed(2);
 sl&&console.log(' - WNS version: '+wns.info.version);
 sl&&console.log(' - Core memory usage: '+memory+' mb');
+builder.buildTime&&
+sl&&console.log(' - Build time: '+builder.buildTime+' ms');
 
 sl&&console.log('');
 

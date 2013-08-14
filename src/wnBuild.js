@@ -8,27 +8,33 @@
  */
 
 /**
- * This the source of WNS's 'class-based feature'.
- *
+ * WNS class builder
+ * @version 0.2.0
  * @author Pedro Nasser
  */
 
 module.exports=wnBuild;
+var buildStart, buildEnd;
 
 /**
- * Constructor
- */
-function wnBuild(classesSource,modulePath,npmPath,moduleClass)
+ * Constructo; */
+function wnBuild(classesSource,parent)
 {
-	var self = this
+	var self = this;
 
+	if (!parent.getModulePath || !parent.getClassName || !parent.npmPath)
+		{ console.log('BUILD ERROR: '+parent+' is not a module.'); process.exit(); }
+
+	buildStart=+new Date;
 	this.classesSource = {};
-	this.modulePath = modulePath;
-	this.npmPath = npmPath;
-	this.moduleClass = moduleClass || 'WNS';
+	this.sourceCode = {};
+	this.modulePath = parent.getModulePath() || '.';
+	this.npmPath = parent.npmPath || [];
+	this.moduleClass = parent.getClassName() || 'WNS';
+	this.compiled = {};
 	this.loadedModules = {};
-	this.debugScripts = {};
 
+	// Check all classes structures..
 	for (c in classesSource)
 	{
 		if (this.checkStructure(classesSource[c]))
@@ -39,79 +45,9 @@ function wnBuild(classesSource,modulePath,npmPath,moduleClass)
 		}
 	}
 
+	// Remove invalid dependencies.
 	for (c in this.classesSource)
 		this.classesSource[c].extend = this.removeInvalidDependencies(this.classesSource[c].extend);
-
-	this.onDebug = function (event, exec_state, event_data, data)
-	{
-		try {
-		  if (event == Debug.DebugEvent.BeforeCompile) {
-		  	if (Debug.ScriptCompilationType.Eval === event_data.script().compilationType())
-		  	{
-		  		var source = event_data.script().source();
-		  		if (source.match(/^\/\/\@\w+/gim))
-		  		{
-		  			var className = source.match(/^\/\/\@\w+/gim),
-		  				id = source.match(/\/\/\#[\w|\-]+/gim) || '';
-		  				id = id ? id[0].split('#')[1] : '';
-		  				cName=className[0].split('@')[1];
-
-		  			if (className && !self.debugScripts[id+'/'+cName])
-			  			{
-			  			self.debugScripts[id+'/'+cName]=source;
-			  			var fileName = self.moduleClass+"/"+cName;
-			  			if (id!=='')
-			  			{
-			  				fileName = self.moduleClass+"/"+cName+"/"+id;
-			  			}
-			  			event_data.script().setSource(event_data.script().source()+
-			  				" //@ sourceURL=_"+fileName+".js");
-		  			}
-		  		}
-		  	}
-		  }
-		} catch (e) {}	
-	}
-
-	if (v8debug)
-	{
-		var Debug = v8debug.Debug;
-		Debug.setListener(this.onDebug);
-	}
-};
-
-/**
- * Check if the class is compiled.
- * @param string $className class name
- * @return boolean exists?
- */
-wnBuild.prototype.exists = function (className)
-{
-	return this.classes[className] != undefined && this.classes[className].loaded;
-};
-
-/**
- * Recompile a class from classesSource with new properties.
- * @param string $className class name
- * @param object $obj class extension object
- * @return object recompiled class object
- */
-wnBuild.prototype.recompile = function (className,obj)
-{
-	this.classes[className] = this.classes[className] || {};
-	this.classes[className].loaded = false;
-
-	var _nc = Object.extend(true,this.classes[className].build,obj);
-	this.classesSource[className] = _nc;
-	var _c = this.buildClass(className);
-
-	if (_c.loaded == true)
-	{
-		return _c;
-	} else
-	{
-		return this.classes[className];
-	}
 };
 
 /**
@@ -127,6 +63,7 @@ wnBuild.prototype.build = function ()
 			_done++;
 
 	this.classes = {};
+	// this.protos={};
 	while (_done > 0)
 	{
 		for (c in this.classesSource)
@@ -147,6 +84,9 @@ wnBuild.prototype.build = function ()
 		}
 	}
 
+	buildEnded=+new Date;
+	this.buildTime = buildEnded - buildStart;
+
 	return this.classes;
 };
 
@@ -164,8 +104,7 @@ wnBuild.prototype.buildClass = function (className)
 
 	var build = Object.extend(true,{},targetClass),
 		__self = this,
-		_ext = [],
-		sourceCode = this.compileClass(className);
+		_ext = [];
 
 	(function (extend) {
 		for (e in extend)
@@ -179,43 +118,20 @@ wnBuild.prototype.buildClass = function (className)
 	})(build.extend);
 	build.extend = _ext;
 
-	var __builder = this,
-		__extend = build.extend;
-	eval("var classBuilder = function "+className+"() { return this.build.apply(undefined,arguments); }");
-	eval("var klass = function "+className+"() {}");
+	// Creating sourceCode and prototype.
+	this.compileClass(className,_ext);
 
-	// Class builder.
-	classBuilder.prototype.build = function () {
-		var compiled = '//@'+className+'\n';
-	
-		if (classBuilder.build.id)
-			compiled += '//#'+classBuilder.build.id+'\n';
-
-		compiled+='\n// Initialization\n';
-		compiled+='var '+className+' = new klass;\n';
-		compiled+='var self = '+className+';\n';
-
-		compiled+='\n// NPM Dependencies\n';
-		__builder.loadDependencies(targetClass.dependencies);
-		for (e in targetClass.dependencies)
-			compiled+='var '+targetClass.dependencies[e].replace(/\-/g,'_')+'=__builder.loadedModules["'+targetClass.dependencies[e]+'"];\n';
-
-		compiled+='\n// WNS Extensions\n';
-		for (e in build.extend)
-		{
-			var extendSource = __builder.classes[build.extend[e]].source.replace(/\[CLASSNAME\]/g,className);
-			compiled+=extendSource+'\n';
-		}
-
-		compiled+='\n// Class: '+className+' \n';
-		compiled+=sourceCode.replace(/\[CLASSNAME\]/g,className)+'\n';
-
-		compiled+='\n// Constructor call\n';
-		compiled+=className+'.constructor&&'+className+'.constructor.apply('+className+', arguments);\n\n';
-
-		eval(compiled);
-		return self;
-	};
+	var builder = this;
+	// Preparing the builder caller.
+	var evalBuilder = "var classBuilder = function "+className+"() {\n";
+		evalBuilder += '	builder.loadDependencies(build.dependencies);\n';
+		evalBuilder += '	for (e in build.dependencies)\n';
+		evalBuilder += "		eval ('var '+build.dependencies[e].replace(\/\\\-\/g,\"_\")+'=builder.loadedModules[build.dependencies[e]];');\n";
+		evalBuilder += '	eval(builder.compiled[className]);\n';
+		evalBuilder += "	eval('var klass = new '+className+';');\n";
+		evalBuilder += '	klass.construct&&klass.construct.apply(klass,arguments);\n';
+		evalBuilder += '	return klass;\n}';
+	eval(evalBuilder);
 
 	Object.defineProperty(classBuilder, 'build', {
 		value: build,
@@ -225,7 +141,7 @@ wnBuild.prototype.buildClass = function (className)
 	});
 
 	Object.defineProperty(classBuilder, 'source', {
-		value: sourceCode,
+		value: this.sourceCode[className],
 		writable: false,
 		enumerable: false,
 		configurable: false
@@ -239,24 +155,53 @@ wnBuild.prototype.buildClass = function (className)
 	return classBuilder;
 };
 
-wnBuild.prototype.compileClass = function (targetClass)
+/**
+ * Get the target class object.
+ * Build a compiled source code from the target class and it's extensions.
+ * Then evaluate the source code. Saving the new class prototype.
+ * @param string $className
+ * @param array $extend class extension list
+ */
+wnBuild.prototype.compileClass = function (targetClass,extend)
 {
-	var targetClass = targetClass+'',
-		sourceClass = '[CLASSNAME]';
-	if (!this.classesSource[targetClass] || this.classesSource[targetClass].source)
-		return 'k.constructor=function () { throw new Error("Error on compiling class `'+targetClass+'`"); }';
+	var targetClass = targetClass+'';
 
-	var classSource = sourceClass+".className = '"+sourceClass+"';\n",
+	if (!this.classesSource[targetClass] || this.classesSource[targetClass].source)
+		process.exit("Error on compiling class `"+targetClass+"`");
+
+	var classLoader = '';
 		builder = this,
 		build = this.classesSource[targetClass];
-		
-	//classSource += "(function () {\n";
 
+	classLoader+='//@'+targetClass+'\n\n';
+
+	classLoader+='\n// Initialization\n';
+	classLoader+='var self={}, className="'+targetClass+'";\n';
+	classLoader+='function '+targetClass+'() { self = this; this.className = "'+targetClass+'"; };\n';
+	classLoader+='var klass = '+targetClass+';\n';
+	classLoader+='var classProto = '+targetClass+'.prototype;\n';
+	classLoader+='var __extend = '+util.inspect(extend)+';\n';
+	classLoader+='classProto.construct = function () {};\n';
+
+	classLoader+='\n// Importing WNS extensions\n\n';
+
+	for (e in extend)
+	{
+		classLoader+='// - Extend: '+ extend[e]+'\n';
+		var extendSource = builder.sourceCode[extend[e]];
+		classLoader+=extendSource+'\n';
+	}
+
+	classLoader +='\n// Class: '+targetClass+' \n';
+
+	var classSource = "(function () {\n";
+
+		classSource += '\n// Declaring private vars \n';
 		classSource += "var _=self,";
 		// Declare private vars
 		for (p in build.private)
 		{
-			if (p == '__builder')
+			if (p == 'classProto' || p == 'klass')
 				continue;
 			if (typeof build.private[p] != 'function')
 				classSource += p+" = "+util.inspect(build.private[p],false,null,false);
@@ -265,36 +210,80 @@ wnBuild.prototype.compileClass = function (targetClass)
 			classSource+=",";
 		}
 		classSource=classSource.substr(0,classSource.length-1)+";\n";
-
-		classSource += "var _className= '"+sourceClass+"';\n";
 	
+		classSource += '\n// Declaring methods\n';
+
 		// Redeclare privileged methods
 		for (m in build.methods)
 		{
-			classSource += sourceClass+"['"+m+"'] = "+build.methods[m].toString()+";\n";
+			classSource += "classProto['"+m+"'] = "+build.methods[m].toString()+";\n";
 		}
 
-	//classSource += "})();\n";
+		classSource += '\n// Declaring public vars\n';
 
-	// Declare public vars
-	for (p in build.public)
+		// Declare public vars
+		for (p in build.public)
+		{
+			if (p == 'classProto' || p == 'klass')
+				continue;
+			if (typeof build.public[p] != 'function')
+				classSource += "classProto['"+p+"'] = "+util.inspect(build.public[p],false,null,false)+";\n";
+			else
+				classSource += "classProto['"+p+"'] = "+build.public[m].toString()+";\n";
+		}
+
+		classSource += '\n// Constructor\n';
+
+		if (build.hasOwnProperty('constructor'))
+			classSource += 'classProto.construct='+build.constructor.toString()+";\n";
+
+		// Replace all unknown functions.
+		classSource = classSource.replace(/\[Function\]/gim, 'function () {}');
+
+	classSource += "\n})();\n";
+
+	classLoader += classSource;
+
+	try {
+		this.sourceCode[targetClass] = classSource;
+		this.compiled[targetClass] = classLoader;
+	} catch (e)
 	{
-		if (p == '__builder')
-			continue;
-		if (typeof build.public[p] != 'function')
-			classSource += sourceClass+"['"+p+"'] = "+util.inspect(build.public[p],false,null,false)+"; ";
-		else
-			classSource += sourceClass+"['"+p+"'] = "+build.public[m].toString()+"; ";
+		console.log('\nError on compiling `'+targetClass+'`: '+e.message);
+		process.exit();
 	}
-
-	if (build.hasOwnProperty('constructor'))
-		classSource += sourceClass+'.constructor='+build.constructor.toString()+";\n";
-
-	// Replace all unknown functions.
-	classSource = classSource.replace(/\[Function\]/gim, 'function () {}');
-
-	return classSource;
 }
+
+/**
+ * Recompile a class from classesSource with new properties.
+ * @param string $targetClass class name
+ * @param object $obj class extension object
+ * @return object recompiled class object
+ */
+wnBuild.prototype.recompile = function (className,obj)
+{
+	this.classes[className] = this.classes[className] || {};
+	this.classes[className].loaded = false;
+
+	var _nc = Object.extend(true,this.classes[className].build,obj);
+	this.classesSource[className] = _nc;
+	var _c = this.buildClass(className);
+
+	if (_c.loaded == true)
+		return _c;
+	else
+		return this.classes[className];
+};
+
+/**
+ * Check if the class is compiled.
+ * @param string $className class name
+ * @return boolean exists?
+ */
+wnBuild.prototype.exists = function (className)
+{
+	return this.classes[className] != undefined && this.classes[className].loaded;
+};
 
 /**
  * Check class source structure.
@@ -366,55 +355,12 @@ wnBuild.prototype.loadDependencies = function (dep)
 				this.loadedModules[dep[d]]=module;
 			} else
 			{
-				console.log("Error on loading NPM dependency: "+dep[d]);
+				console.log("\nCan't find the `"+dep[d]+"` module.\n");
 				process.exit();
 			}
 		}
 	}
-};
-
-/**
- * Create new memory instance to the object
- * @param mixed $property any kind of property
- * @result mixed new instance of the property
- */
-wnBuild.prototype.newValue = function (property)
-{
-	if (property == null || property == undefined)
-		return property;
-
-	var type = typeof property;
-
-	if (type != 'object')
-	{
-		if (property==undefined || property==null)
-			return property;
-		if (type === 'function')
-			return property;
-		if (type === 'boolean')
-			return property == true;
-		if (type == 'string')
-			return property + "";
-		var _i = new (global[type.substr(0,1).toUpperCase()+type.substr(1).toLowerCase()])(property);
-
-		return (type == 'number') && _i.toValue ? _i.toValue() : _i;
-	}
-	else {
-		if (property.length != undefined)
-		{
-			var obj = new Array;
-			for (p in property)
-				obj.push(property[p]);
-			return obj;
-		} else
-		{
-			var obj=new Object;
-			for (p in property)
-				obj[p]=property[p];
-			return obj;
-		}
-	}
-};
+};   
 
 /**
  * Generate the unit test from the classSource

@@ -35,7 +35,14 @@ module.exports = {
 		if (modulePath==undefined)
 			modulePath = cwd;
 
-		this.setParent(parent);
+		try {
+			this.setParent(parent);
+		} catch (e)
+		{
+			if (e)
+				console.log(this);
+		}
+
 		this.setModulePath(path.resolve(path.resolve(parent.modulePath,modulePath))+'/');
 
 		this.preinit.apply(this,arguments); 
@@ -65,7 +72,8 @@ module.exports = {
 
 		this.setEvents({ 'ready': {} });
 		var ready=this.getEvent('ready');
-		ready.once(function () {
+		ready.once(function (e) {
+			e.stopPropagation=true;
 			var args = Array.prototype.slice.call(arguments);
 			args.shift();
 			
@@ -161,13 +169,15 @@ module.exports = {
 				_c[c] = module.exports;
 				_cSource[c]=_class;
 			}
-			var classBuilder = new process.wns.wnBuild(_c,this.getModulePath(),this.npmPath,this.getClassName());
+			var classBuilder = new process.wns.wnBuild(_c,this);
 			this.setComponent('classBuilder',classBuilder);
 			classBuilder.build();
 
+			// Make documentation
 			for (c in global.coreClasses)
 				classBuilder.makeDoc(c,_cSource[c]);
 
+			// Make test
 			if (WNS_TEST)
 				for (c in global.coreClasses)
 					classBuilder.makeTest(c,_cSource[c]);
