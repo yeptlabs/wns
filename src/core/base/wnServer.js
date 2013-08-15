@@ -109,6 +109,7 @@ module.exports = {
 					appClass = Object.extend(true,{},appClass,module.exports);
 					cb.classesSource[className] = appClass;
 					cb.classes[className]=cb.buildClass(className);
+					cb.uglify=null;
 				}
 				modules[a].autoInit=false;
 			}

@@ -1,8 +1,10 @@
 [![WNS](http://dl.dropbox.com/u/21773527/WNS-Logo.png)](http://wns.yept.net)
 
-## Welcome to WNS (v0.0.61) [![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
+## Welcome to WNS Middleware (v0.0.62) [![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
 
-##### WNS is a high-performance, scalable and component-based MIDDLEWARE and FRAMEWORK
+##### What's the idea?
+To build your application/service, just installing, configuring, extending **COMPONENTS** and **PACKAGES**.
+You can easly integrate you application/service with any **Node.JS module**. Trust me.
 
 ## Main Features
 
@@ -59,7 +61,7 @@ Will be available in the Package Management system.***
 - API and Documentation [LOOK HERE](http://wns.yept.net/api/)
 - FAQ [LOOK HERE](http://wns.yept.net/site/faq/)
 
-## License 
+## License MIT
 
 Copyright (c) 2012 Pedro Nasser <pedronasser@yept.net>
 

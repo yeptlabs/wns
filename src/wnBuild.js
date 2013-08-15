@@ -13,11 +13,13 @@
  * @author Pedro Nasser
  */
 
+
 module.exports=wnBuild;
 var buildStart, buildEnd;
 
 /**
- * Constructo; */
+ * Constructor;
+ */
 function wnBuild(classesSource,parent)
 {
 	var self = this;
@@ -63,6 +65,7 @@ wnBuild.prototype.build = function ()
 			_done++;
 
 	this.classes = {};
+
 	// this.protos={};
 	while (_done > 0)
 	{
@@ -86,6 +89,9 @@ wnBuild.prototype.build = function ()
 
 	buildEnded=+new Date;
 	this.buildTime = buildEnded - buildStart;
+	if (!WNS_DEV)
+		this.uglify.kill();
+	this.uglify=null;
 
 	return this.classes;
 };
@@ -101,6 +107,30 @@ wnBuild.prototype.buildClass = function (className)
 
 	if (!this.checkDependencies(targetClass.extend))
 		return false;
+
+	if (!WNS_DEV && !this.uglify)
+	{
+		var reset = function (obj)
+		{
+			if (typeof obj == 'object' && obj.constructor)
+			{	
+				try {
+					for (o in obj)
+					{
+						reset(obj[o]);
+					}
+				} catch (e) { return null; }
+			}
+			else
+				return null;
+		};
+		this.uglify = require('uglify-js');
+		this.uglify.kill = function () {
+			reset(this.toplevel);
+			reset(this.uglify);
+		};
+		this.uglify.reset = reset;
+	}
 
 	var build = Object.extend(true,{},targetClass),
 		__self = this,
@@ -155,6 +185,25 @@ wnBuild.prototype.buildClass = function (className)
 	return classBuilder;
 };
 
+wnBuild.prototype.minify = function (code,className) {
+	if (WNS_DEV)
+		return code;
+	try {
+		this.toplevel = this.uglify.parse(code,{
+			filename: "?"
+		});
+		this.toplevel.figure_out_scope();
+		var compressor = this.uglify.Compressor({ warnings: false });
+		var compressed = this.toplevel.transform(compressor);
+		code = compressed.print_to_string();
+	} catch (e)
+	{
+		console.log('Erron when trying to minify `'+className+'`: '+e.message); console.log(e.stack);
+		process.exit();
+	}
+	return code;
+};
+
 /**
  * Get the target class object.
  * Build a compiled source code from the target class and it's extensions.
@@ -164,40 +213,36 @@ wnBuild.prototype.buildClass = function (className)
  */
 wnBuild.prototype.compileClass = function (targetClass,extend)
 {
-	var targetClass = targetClass+'';
+	try {
+		var targetClass = targetClass+'';
 
-	if (!this.classesSource[targetClass] || this.classesSource[targetClass].source)
-		process.exit("Error on compiling class `"+targetClass+"`");
+		if (!this.classesSource[targetClass] || this.classesSource[targetClass].source)
+			process.exit("Error on compiling class `"+targetClass+"`");
 
-	var classLoader = '';
-		builder = this,
-		build = this.classesSource[targetClass];
+		var classLoader = '';
+			builder = this,
+			build = this.classesSource[targetClass];
 
-	classLoader+='//@'+targetClass+'\n\n';
+		classLoader+='//@'+targetClass+'\n';
+		classLoader+='var self={}, className="'+targetClass+'";\n';
+		classLoader+='function '+targetClass+'() { self = this; this.className = "'+targetClass+'"; }\n';
+		classLoader+='var klass = '+targetClass+',\n';
+		classLoader+=' classProto = '+targetClass+'.prototype,\n';
+		classLoader+=' __extend = '+util.inspect(extend)+';\n';
+		classLoader+='classProto.construct = function () {};\n';
 
-	classLoader+='\n// Initialization\n';
-	classLoader+='var self={}, className="'+targetClass+'";\n';
-	classLoader+='function '+targetClass+'() { self = this; this.className = "'+targetClass+'"; };\n';
-	classLoader+='var klass = '+targetClass+';\n';
-	classLoader+='var classProto = '+targetClass+'.prototype;\n';
-	classLoader+='var __extend = '+util.inspect(extend)+';\n';
-	classLoader+='classProto.construct = function () {};\n';
+		classLoader+='\n// Importing WNS extensions\n\n';
 
-	classLoader+='\n// Importing WNS extensions\n\n';
+		for (e in extend)
+		{
+			classLoader+='// - Extension: '+ extend[e]+'\n';
+			var extendSource = builder.sourceCode[extend[e]];
+			classLoader+=extendSource;
+		}
 
-	for (e in extend)
-	{
-		classLoader+='// - Extend: '+ extend[e]+'\n';
-		var extendSource = builder.sourceCode[extend[e]];
-		classLoader+=extendSource+'\n';
-	}
-
-	classLoader +='\n// Class: '+targetClass+' \n';
-
-	var classSource = "(function () {\n";
-
-		classSource += '\n// Declaring private vars \n';
-		classSource += "var _=self,";
+		classLoader +='\n// Begin of '+targetClass+' \n';
+		classSource = '\n// Declaring private vars \n';
+		classSource = 'var _=self,';
 		// Declare private vars
 		for (p in build.private)
 		{
@@ -210,7 +255,7 @@ wnBuild.prototype.compileClass = function (targetClass,extend)
 			classSource+=",";
 		}
 		classSource=classSource.substr(0,classSource.length-1)+";\n";
-	
+
 		classSource += '\n// Declaring methods\n';
 
 		// Redeclare privileged methods
@@ -219,7 +264,7 @@ wnBuild.prototype.compileClass = function (targetClass,extend)
 			classSource += "classProto['"+m+"'] = "+build.methods[m].toString()+";\n";
 		}
 
-		classSource += '\n// Declaring public vars\n';
+		//classSource += '\n// Declaring public vars\n';
 
 		// Declare public vars
 		for (p in build.public)
@@ -232,7 +277,7 @@ wnBuild.prototype.compileClass = function (targetClass,extend)
 				classSource += "classProto['"+p+"'] = "+build.public[m].toString()+";\n";
 		}
 
-		classSource += '\n// Constructor\n';
+		//classSource += '\n// Constructor\n';
 
 		if (build.hasOwnProperty('constructor'))
 			classSource += 'classProto.construct='+build.constructor.toString()+";\n";
@@ -240,11 +285,9 @@ wnBuild.prototype.compileClass = function (targetClass,extend)
 		// Replace all unknown functions.
 		classSource = classSource.replace(/\[Function\]/gim, 'function () {}');
 
-	classSource += "\n})();\n";
+		classLoader += classSource;
 
-	classLoader += classSource;
-
-	try {
+		classLoader=builder.minify(classLoader,targetClass);
 		this.sourceCode[targetClass] = classSource;
 		this.compiled[targetClass] = classLoader;
 	} catch (e)
@@ -267,7 +310,11 @@ wnBuild.prototype.recompile = function (className,obj)
 
 	var _nc = Object.extend(true,this.classes[className].build,obj);
 	this.classesSource[className] = _nc;
+
 	var _c = this.buildClass(className);
+	if (!WNS_DEV)
+		this.uglify.kill();
+	this.uglify=null;
 
 	if (_c.loaded == true)
 		return _c;
