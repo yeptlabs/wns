@@ -1,18 +1,16 @@
 /**
- * Source of the wnServer class.
+ * @WNS - The NodeJS Middleware and Framework
  * 
- * @author: Pedro Nasser
- * @link: http://wns.yept.net/
- * @license: http://yept.net/projects/wns/#license
- * @copyright: Copyright &copy; 2012 WNS
+ * @copyright: Copyright &copy; 2012- YEPT &reg;
+ * @page: http://wns.yept.net/
+ * @docs: http://wns.yept.net/docs/
+ * @license: http://wns.yept.net/license/
  */
 
 /**
- * Description coming soon.
+ * No description yet.
  *
  * @author Pedro Nasser
- * @package system.core.base
- * @since 1.0.0
  */
 
 // Exports
@@ -100,15 +98,18 @@ module.exports = {
 				if (fs.existsSync(realModulePath+appName+'.js'))
 				{
 					modules[a].class='wnApp_'+appName;
-					var module = {},
-						className = modules[a].class,
-					 _class = fs.readFileSync(realModulePath+appName+'.js','utf-8').toString();
-					eval(_class);
-					var cb = this.getComponent('classBuilder'),
-						appClass = cb.classesSource['wnApp'];
-					appClass = Object.extend(true,{},appClass,module.exports);
-					cb.classesSource[className] = appClass;
-					cb.classes[className]=cb.buildClass(className);
+					var className = modules[a].class;
+					var classSource = fs.readFileSync(realModulePath+appName+'.js','utf-8').toString();
+					var cb = this.getComponent('classBuilder');
+					var appClass = cb.classesCode['wnApp'];
+					if (typeof appClass == 'string')
+						cb.addSource(className,appClass,true);
+					else
+						for (a in appClass)
+							cb.addSource(className,appClass[a],true);
+					cb.addSource(className,classSource);
+					cb.classes[className]=self.c[className]=cb.buildClass(className);
+					cb.uglify=null;
 				}
 				modules[a].autoInit=false;
 			}

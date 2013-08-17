@@ -1,18 +1,16 @@
 /**
- * Source of the wnHttp class.
+ * @WNS - The NodeJS Middleware and Framework
  * 
- * @author: Pedro Nasser
- * @link: http://wns.yept.net/
- * @license: http://yept.net/projects/wns/#license
- * @copyright: Copyright &copy; 2012 WNS
+ * @copyright: Copyright &copy; 2012- YEPT &reg;
+ * @page: http://wns.yept.net/
+ * @docs: http://wns.yept.net/docs/
+ * @license: http://wns.yept.net/license/
  */
 
 /**
- * Description coming soon.
+ * No description yet.
  *
  * @author Pedro Nasser
- * @package package.http
- * @since 1.0.0
  */
 
 // Exports
@@ -195,16 +193,12 @@ module.exports = {
 			module.getEvent('readyRequest');
 			module.getEvent('closedRequest');
 			
-			var htmlClass = module.c.wnHtml;
-			module.html = new htmlClass;
+			module.html = module.createClass('wnHtml',{});
 			module.html.setParent(module);
+			module.html.encoder = module.createClass('wnHtmlEncoder',{});
 
-			var htmlEncoderClass = module.c.wnHtmlEncoder;
-			module.html.encoder = new htmlEncoderClass;
-
-			var engineName = this.getConfig('templateEngine') || 'Dust',
-				tplEngine = module.c['wn'+engineName+'Template'];
-			module.template= new tplEngine({},module.c);
+			var engineName = this.getConfig('templateEngine') || 'Dust';
+			module.template = module.createClass('wn'+engineName+'Template',{});
 			module.template.parent = function () { return module; };
 
 			_modules[moduleName]=module;

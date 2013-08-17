@@ -1,19 +1,16 @@
 /**
- * Source of the wnHtml class.
+ * @WNS - The NodeJS Middleware and Framework
  * 
- * @author: Pedro Nasser
- * @link: http://wns.yept.net/
- * @license: http://yept.net/projects/wns/#license
- * @copyright: Copyright &copy; 2012 WNS
+ * @copyright: Copyright &copy; 2012- YEPT &reg;
+ * @page: http://wns.yept.net/
+ * @docs: http://wns.yept.net/docs/
+ * @license: http://wns.yept.net/license/
  */
 
 /**
- * wnClass is a static class that provides a collection of helper methods for creating HTML views.
- * This is a port from Yii Framework (https://raw.github.com/yiisoft/yii/master/framework/web/helpers/CHtml.php)
+ * No description yet.
  *
- * @author {AUTHOR}
- * @package package.http.helpers
- * @since 1.0.0
+ * @author Pedro Nasser
  */
 
 // Exports
