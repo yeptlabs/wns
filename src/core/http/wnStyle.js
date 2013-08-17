@@ -19,7 +19,7 @@ module.exports = {
 	/**
 	 * Class dependencies
 	 */
-	extend: ['wnDbSchema'],
+	extend: ['wnComponent'],
 
 	/**
 	 * PRIVATE
@@ -35,6 +35,13 @@ module.exports = {
 	 * Methods
 	 */
 	methods: {
+
+		/**
+		 * Initializer
+		 */	
+		init: function ()
+		{
+		}
 
 	}
 

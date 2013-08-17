@@ -1,18 +1,16 @@
 /**
- * Source of the wnConsole class.
+ * @WNS - The NodeJS Middleware and Framework
  * 
- * @author: Pedro Nasser
- * @link: http://wns.yept.net/
- * @license: http://yept.net/projects/wns/#license
- * @copyright: Copyright &copy; 2012 WNS
+ * @copyright: Copyright &copy; 2012- YEPT &reg;
+ * @page: http://wns.yept.net/
+ * @docs: http://wns.yept.net/docs/
+ * @license: http://wns.yept.net/license/
  */
 
 /**
- * Description coming soon.
+ * No description yet.
  *
  * @author Pedro Nasser
- * @package system.core.base
- * @since 1.0.0
  */
 
 // Exports
@@ -54,7 +52,7 @@ module.exports = {
 			'loadModule': {},
 			'loadComponent': {},
 			'loadServer': {},
-			'error': {},
+			'exception': {},
 			'log': {
 				handler: 'logHandler'
 			}
@@ -109,28 +107,28 @@ module.exports = {
 				relativeSourcePath = path.relative(serverPath,_sourcePath)+'/',
 				relativeServerPath = path.relative(cwd,serverPath);
 
-			console.log("[*] Building new wnServer on `"+serverPath+"`");
+			self.e.log("[*] Building new wnServer on `"+serverPath+"`");
 
 			if (!fs.existsSync(serverPath))
 				fs.mkdirSync(serverPath);
 
-			console.log("[*] - Creating new `package.js` file.");
+			self.e.log("[*] - Creating new `package.js` file.");
 			var defaultPackage = fs.readFileSync(_sourcePath+'/default-package.json').toString('utf8');
 			defaultPackage = (defaultPackage+'').replace(/\{moduleName\}/g, 'server-'+serverPath.substr(0,serverPath.length-1).split('/').pop().replace(/\s/g,'-'));
 			fs.writeFileSync(serverPath+'/package.json',defaultPackage);
 
-			console.log("[*] - Creating new `config.json` file.");
+			self.e.log("[*] - Creating new `config.json` file.");
 			fs.writeFileSync(serverPath+'/config.json',
 				fs.readFileSync(_sourcePath+'/default-config.json')
 			);
 
-			console.log("[*] - Creating new `index.js` file.");
+			self.e.log("[*] - Creating new `index.js` file.");
 			var defaultIndex = fs.readFileSync(_sourcePath+'/default-index.js').toString('utf8');
 			defaultIndex = defaultIndex.replace(/\{sourcePath\}/g,'./'+relativeSourcePath.replace(/\\/g,'/'));
 			defaultIndex = defaultIndex.replace(/\{serverPath\}/g,'./'+relativeServerPath.replace(/\\/g,'/'));
 			fs.writeFileSync(serverPath+'/index.js',defaultIndex);
 
-			console.log('[*] New wnServer created.');
+			self.e.log('[*] New wnServer created.');
 
 			return true;
 		},
@@ -235,11 +233,11 @@ module.exports = {
 				consoleID = this.getServerModules().length+1;
 				serverConfig[consoleID] = { 'modulePath': serverPath, 'serverID': consoleID };
 
-			this.e.log('Building wnServer from `'+serverPath+'`');
+			this.e.log('[*] Building wnServer from `'+serverPath+'`');
 
 			if (!fs.existsSync(this.modulePath+serverPath))
 			{
-				this.e.log('Failed to load wnServer from path.');
+				this.e.log('[*] Failed to load wnServer from path.');
 				return false;
 			}
 		
@@ -259,10 +257,10 @@ module.exports = {
 		{
 			if (this.hasServer(id))
 			{		
-				this.e.log('Console active in SERVER#' + id);
+				this.e.log('[*] Console active in SERVER#' + id);
 				this.activeServer = id;
 			} else {
-				this.e.log('Console active in NONE');
+				this.e.log('[*] Console active in NONE');
 				this.activeServer = -1;
 			}
 		},
@@ -303,7 +301,7 @@ module.exports = {
 		exceptionHandler: function (e,err)
 		{
 			if (typeof err == 'string' || typeof err != 'object' || err.stack == undefined)
-				err = new Error(err);
+				return false;
 
 			e.owner.e.log('ERROR: '+err.message,'exception');
 

@@ -1,31 +1,52 @@
 {
   "name": "wnserver",
   "description": "A high-performance, scalable and component-based middleware",
-  "version": "0.0.6-rc5",
-  "author": "Pedro Nasser <pedronasser@gmail.com>",
-  "contributors": [ 
-    { "name": "Pedro Nasser", "email": "pedronasser@yept.net" }
-  ],
+  "version": "0.0.63",
+  "author": "Pedro Nasser <pedro@yept.net>",
+  "devDependencies": {
+    "chai": "*",
+    "mocha": "*"
+  },
   "dependencies": {
     "mime": "1.2.x",
     "wrench": "1.4.x",
     "formidable": "latest",
     "commander": "latest",
-    "request": "latest"
+    "request": "latest",
+    "uglify-js": "~2.3.6"
   },
   "keywords": [
-    "web","yii","framework","wns","mvc",
-    "database","app","http","server","middleware",
-    "component","module","model","view",
-    "controller","route","static","orm","package"
+    "web",
+    "yii",
+    "framework",
+    "wns",
+    "mvc",
+    "database",
+    "app",
+    "http",
+    "server",
+    "middleware",
+    "component",
+    "module",
+    "model",
+    "view",
+    "controller",
+    "route",
+    "static",
+    "orm",
+    "package"
   ],
   "repository": "git://github.com/yeptlabs/wns",
   "main": "index",
-  "bin": { "wns": "./bin/wns" },
-  "scripts": {
-    "test": "node test/run"
+  "bin": {
+    "wns": "./bin/wns"
   },
-  "engines": { "node": ">= 0.8.x" },
+  "scripts": {
+    "test": "node index --test"
+  },
+  "engines": {
+    "node": ">= 0.8.x"
+  },
   "wnspm": {
     "host": "wnspm.yept.net"
   }

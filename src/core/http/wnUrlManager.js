@@ -1,20 +1,18 @@
 /**
- * Source of the wnUrlManager class.
+ * @WNS - The NodeJS Middleware and Framework
  * 
- * @author: Pedro Nasser
- * @link: http://wns.yept.net/
- * @license: http://yept.net/projects/wns/#license
- * @copyright: Copyright &copy; 2012 WNS
+ * @copyright: Copyright &copy; 2012- YEPT &reg;
+ * @page: http://wns.yept.net/
+ * @docs: http://wns.yept.net/docs/
+ * @license: http://wns.yept.net/license/
  */
 
 /**
- * Description coming soon.
+ * No description yet.
  *
  * @author Pedro Nasser
- * @package package.http
- * @since 1.0.0
  */
-
+ 
 // Exports
 module.exports = {
 
@@ -74,7 +72,7 @@ module.exports = {
 
 		/**
 		 * Returns the list of wnUrlRule objects
-		 * @return array list of all wnUrlRules
+		 * @return object
 		 */
 		getRulesList: function ()
 		{

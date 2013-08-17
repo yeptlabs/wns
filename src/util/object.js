@@ -19,37 +19,24 @@ var	toString = Object.prototype.toString,
 	  "[object Object]": "object"
 	},
 	jQuery = {
-	  isFunction: function (obj) {
-		return jQuery.type(obj) === "function"
-	  },
-	  isArray: Array.isArray ||
-	  function (obj) {
-		return jQuery.type(obj) === "array"
-	  },
-	  isWindow: function (obj) {
-		return obj != null && obj == obj.window
-	  },
-	  isNumeric: function (obj) {
-		return !isNaN(parseFloat(obj)) && isFinite(obj)
-	  },
-	  type: function (obj) {
-		return obj == null ? String(obj) : class2type[toString.call(obj)] || "object"
-	  },
-	  isPlainObject: function (obj) {
-		if (!obj || jQuery.type(obj) !== "object" || obj.nodeType) {
-		  return false
+
+		isFunction: function (obj) {
+			return jQuery.type(obj) === "function"
+		},
+		isArray: Array.isArray ||
+			function (obj) {
+				return jQuery.type(obj) === "array"
+			},
+		isWindow: function (obj) {
+			return obj != null && obj == obj.window
+		},
+		isNumeric: function (obj) {
+			return !isNaN(parseFloat(obj)) && isFinite(obj)
+		},
+		type: function (obj) {
+			return obj == null ? String(obj) : class2type[toString.call(obj)] || "object"
 		}
-		try {
-		  if (obj.constructor && !hasOwn.call(obj, "constructor") && !hasOwn.call(obj.constructor.prototype, "isPrototypeOf")) {
-			return false
-		  }
-		} catch (e) {
-		  return false
-		}
-		var key;
-		for (key in obj) {}
-		return key === undefined || hasOwn.call(obj, key)
-	  }
+
 	};
 
 module.exports = {
@@ -63,6 +50,8 @@ module.exports = {
 	},
 
 	isPlainObject: function( obj ) {
+		var key;
+
 		// Must be an Object.
 		// Because of IE, we also have to check the presence of the constructor property.
 		// Make sure that DOM nodes and window objects don't pass through, as well
@@ -73,8 +62,8 @@ module.exports = {
 		try {
 			// Not own constructor property must be Object
 			if ( obj.constructor &&
-				!hasOwn.call(obj, "constructor") &&
-				!hasOwn.call(obj.constructor.prototype, "isPrototypeOf") ) {
+				!core_hasOwn.call(obj, "constructor") &&
+				!core_hasOwn.call(obj.constructor.prototype, "isPrototypeOf") ) {
 				return false;
 			}
 		} catch ( e ) {
@@ -82,13 +71,19 @@ module.exports = {
 			return false;
 		}
 
+		// Support: IE<9
+		// Handle iteration over inherited properties before own properties.
+		if ( jQuery.support.ownLast ) {
+			for ( key in obj ) {
+				return core_hasOwn.call( obj, key );
+			}
+		}
+
 		// Own properties are enumerated firstly, so to speed up,
 		// if last one is own, then all properties are own.
-
-		var key;
 		for ( key in obj ) {}
 
-		return key === undefined || hasOwn.call( obj, key );
+		return key === undefined || core_hasOwn.call( obj, key );
 	}
 
 };

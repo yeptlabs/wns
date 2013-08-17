@@ -1,140 +1,153 @@
 /**
- * Source of the wnBuild class.
+ * @WNS - The NodeJS Middleware and Framework
  * 
- * @author: Pedro Nasser
- * @link: http://wns.yept.net/
- * @license: http://yept.net/projects/wns/#license
- * @copyright: Copyright &copy; 2012 WNS
+ * @copyright: Copyright &copy; 2012- YEPT &reg;
+ * @page: http://wns.yept.net/
+ * @docs: http://wns.yept.net/docs/
+ * @license: http://wns.yept.net/license/
  */
 
 /**
- * This class it's the main class of WNS.
- * It converts JSON, in the correct format, to WNS classes.
- *
+ * WNS class builder
+ * @version 0.2.0
  * @author Pedro Nasser
- * @package system
- * @since 1.0.0
  */
 
 module.exports=wnBuild;
+var buildStart, buildEnd, self;
 
 /**
- * Constructor
+ * Constructor;
  */
-function wnBuild(classesSource,modulePath,npmPath,moduleClass)
+function wnBuild(sourceCode,parent)
 {
+	self=this;
+
+	if (!parent.getModulePath || !parent.getClassName || !parent.npmPath)
+		{ console.log('BUILD ERROR: '+parent+' is not a module.'); process.exit(); }
+
+	buildStart=+new Date;
+
+	// Owner of the build.
+	this.parent = parent;
+	// Store classes's file source
+	this.classesCode = sourceCode;
+	// Object to store classes's build object.
+	this.classesBuild = {};
+	// Store classes.
+	this.classes = {};
+	// Object to store not compiled class source
 	this.classesSource = {};
-	this.modulePath = modulePath;
-	this.npmPath = npmPath;
-	this.moduleClass = moduleClass || 'WNS';
+	// Object to store compiled class source
+	this.compiledSource = {};
+
+	// Store parent information.
+	this.modulePath = parent.getModulePath() || '.';
+	this.npmPath = parent.npmPath || [];
+	this.moduleClass = parent.getClassName() || 'WNS';
+
+	// NPM already loaded modules.
 	this.loadedModules = {};
 
-	for (c in classesSource)
-	{
-		if (this.checkStructure(classesSource[c]))
-		{
-			this.classesSource[c] = Object.extend({ extend: [], public: {}, private: {}, methods:{}, dependencies: {} },classesSource[c]);
-			if (!this.classesSource[c].extend)
-				this.classesSource[c].extend = [];
-		}
-	}
-
-	for (c in this.classesSource)
-	{
-		this.classesSource[c].extend = this.removeInvalidDependencies(this.classesSource[c].extend);
-	}
-
-	this.debugScripts = {};
-	var self = this;
-	this.onDebug = function (event, exec_state, event_data, data)
-	{
-		try {
-		  if (event == Debug.DebugEvent.BeforeCompile) {
-		  	if (Debug.ScriptCompilationType.Eval === event_data.script().compilationType())
-		  	{
-		  		var source = event_data.script().source();
-		  		if (source.match(/^\/\/\@\w+/gim))
-		  		{
-		  			var className = source.match(/^\/\/\@\w+/gim),
-		  				id = source.match(/\/\/\#[\w|\-]+/gim) || '';
-		  				id = id ? id[0].split('#')[1] : '';
-		  				cName=className[0].split('@')[1];
-
-		  			if (className && !self.debugScripts[id+'/'+cName])
-			  			{
-			  			self.debugScripts[id+'/'+cName]=source;
-			  			var fileName = self.moduleClass+"/"+cName;
-			  			if (id!=='')
-			  			{
-			  				fileName = self.moduleClass+"/"+cName+"/"+id;
-			  			}
-			  			event_data.script().setSource(event_data.script().source()+
-			  				" //@ sourceURL=_"+fileName+".js");
-		  			}
-		  		}
-		  	}
-		  }
-		} catch (e) {
-		}	
-	}
-
-	if (v8debug)
-	{
-		var Debug = v8debug.Debug;
-		Debug.setListener(this.onDebug);
-	}
+	this.load();
 };
 
 /**
- * Check if the class is compiled.
- * @param string $className class name
- * @return boolean exists?
+ * Add a specifica source code to the builder
+ * @param string $className
+ * @param string $sourceCode
  */
-wnBuild.prototype.exists = function (className)
+wnBuild.prototype.addSource = function (className,sourceCode,withoutLoad)
 {
-	return this.classes[className] != undefined && this.classes[className].loaded;
+	if (typeof className !== 'string'||typeof sourceCode !== 'string')
+		return false;
+
+	if (!this.classesCode[className])
+		this.classesCode[className]=sourceCode;
+	else
+	{
+		if (typeof this.classesCode[className]=='string')
+			this.classesCode[className]=[this.classesCode[className],sourceCode]
+		else
+			this.classesCode[className].push(sourceCode);
+	}
+
+	if (!withoutLoad)
+		this.load(className);
+};
+
+wnBuild.prototype.extend = function (build,newbuild,className)
+{
+	if (newbuild.constructor && newbuild.constructor.toString().indexOf('[native code]')==-1)
+	{ build.constructor = newbuild.constructor; }
+
+	for (b in build)
+		if (newbuild[b]!==undefined)
+			build[b]=Object.extend(true,build[b],newbuild[b]);
 };
 
 /**
- * Recompile a class from classesSource with new properties.
- * @param string $className class name
- * @param object $obj class extension object
- * @return object recompiled class object
+ * Loads all or a specific class's build object from the its sourceCode.
+ * @param string $className 
  */
-wnBuild.prototype.recompile = function (className,obj)
+wnBuild.prototype.load = function (className)
 {
-	this.classes[className] = this.classes[className] || {};
-	this.classes[className].loaded = false;
-
-	var _nc = Object.extend(true,this.classes[className].build,obj);
-	this.classesSource[className] = _nc;
-	var _c = this.buildClass(className);
-
-	if (_c.loaded == true)
+	var module = {};
+	if (className)
 	{
-		return _c;
+		var loadList = {};
+		loadList[className]=true;
 	} else
+		var loadList = this.classesCode;
+
+	for (c in loadList)
 	{
-		return this.classes[className];
+		module = { exports: {} };
+		source = this.classesCode[c];
+		this.classesBuild[c] = { extend: [], public: {}, private: {}, methods:{}, dependencies: {}};
+
+		// Eval class source or a list of sources.
+		if (typeof source == 'string')
+		{
+			eval(source);
+			this.extend(this.classesBuild[c],module.exports,c);
+		}
+		else if (source instanceof Array)
+			for (s in source)
+			{
+				eval(source[s]);
+				this.extend(this.classesBuild[c],module.exports,c);
+			}
+	}
+
+
+	for (c in loadList)
+	{
+		// Remove invalid dependencies.
+		this.classesBuild[c].extend = this.removeInvalidDependencies(this.classesBuild[c].extend);
 	}
 };
 
+
 /**
- * Build all classes already imported.
+ * Build all classes already loaded.
  * @return object object with the result of class compilation
  */
 wnBuild.prototype.build = function ()
 {
 	var _done = 0;
 
-	for (c in this.classesSource)
-		if (this.classesSource[c] != undefined && this.classesSource[c].loaded != true)
+	// Check if some classes are not already loaded and count them.
+	for (c in this.classesBuild)
+		if (this.classesBuild[c] != undefined && this.classesBuild[c].loaded != true)
 			_done++;
 
 	this.classes = {};
+
+	// While classes building is not done try to build.
 	while (_done > 0)
 	{
-		for (c in this.classesSource)
+		for (c in this.classesBuild)
 		{
 			if (this.classes[c] == undefined)
 			{
@@ -152,6 +165,9 @@ wnBuild.prototype.build = function ()
 		}
 	}
 
+	buildEnded=+new Date;
+	this.buildTime = buildEnded - buildStart;
+
 	return this.classes;
 };
 
@@ -162,75 +178,56 @@ wnBuild.prototype.build = function ()
  */
 wnBuild.prototype.buildClass = function (className)
 {
-	var targetClass = this.classesSource[className];
+	var targetClass = this.classesBuild[className];
 
-	if (!this.checkDependencies(targetClass.extend))
+	// Check if dependencies are already loaded.
+	if (!targetClass || !this.checkDependencies(targetClass.extend))
 		return false;
 
-	var build = Object.extend(true,{},targetClass),
-		__self = this,
-		_ext = [],
-		sourceCode = this.compileClass(className);
-
-	(function (extend) {
-		for (e in extend)
+	if (!WNS_DEV && !this.uglify)
+	{
+		var reset = function (obj)
 		{
-			var ext=_ext.reverse();
-				ext.push(extend[e]);
-				ext.reverse();
-				_ext=ext;
-			arguments.callee(__self.classes[extend[e]].build.extend);
-		}
-	})(build.extend);
-	build.extend = _ext;
+			if (typeof obj == 'object' && obj.constructor)
+			{	
+				try {
+					for (o in obj)
+					{
+						reset(obj[o]);
+					}
+				} catch (e) { return null; }
+			}
+			else
+				return null;
+		};
+		this.uglify = require('uglify-js');
+	}
 
-	var __builder = this,
-		__extend = build.extend;
-	eval("var classBuilder = function "+className+"() { return this.build.apply(undefined,arguments); }");
-	eval("var klass = function "+className+"() {}");
+	// Compile and compress the class source code and create a prototype.
+	this.compileClass(className);
 
-	// Class builder.
-	classBuilder.prototype.build = function () {
-		var compiled = '//@'+className+'\n';
-	
-		if (classBuilder.build.id)
-			compiled += '//#'+classBuilder.build.id+'\n';
-
-		compiled+='\n// Initialization\n';
-		compiled+='var '+className+' = new klass;\n';
-		compiled+='var self = '+className+';\n';
-
-		compiled+='\n// NPM Dependencies\n';
-		__builder.loadDependencies(targetClass.dependencies);
-		for (e in targetClass.dependencies)
-			compiled+='var '+targetClass.dependencies[e].replace(/\-/g,'_')+'=__builder.loadedModules["'+targetClass.dependencies[e]+'"];\n';
-
-		compiled+='\n// WNS Extensions\n';
-		for (e in build.extend)
-		{
-			var extendSource = __builder.classes[build.extend[e]].source.replace(/\[CLASSNAME\]/g,className);
-			compiled+=extendSource+'\n';
-		}
-
-		compiled+='\n// Class: '+className+' \n';
-		compiled+=sourceCode.replace(/\[CLASSNAME\]/g,className)+'\n';
-
-		compiled+='\n// Constructor call\n';
-		compiled+=className+'.constructor&&'+className+'.constructor.apply('+className+', arguments);\n\n';
-
-		eval(compiled);
-		return self;
-	};
+	// Create a function to create a new instance from the prototype when called.
+	var build = self.classesBuild[className];
+	var evalBuilder = "var classBuilder = function "+className+"() {\n";
+		evalBuilder += '	this.builder.loadDependencies(build.dependencies);\n';
+		evalBuilder += '	for (e in build.dependencies)\n';
+		evalBuilder += "		eval ('var '+build.dependencies[e].replace(\/\\\-\/g,\"_\")+'=this.builder.loadedModules[build.dependencies[e]];');\n";
+		evalBuilder += '	eval(this.builder.compiledSource[className]);\n';
+		evalBuilder += "	eval('var klass = new '+className+';');\n";
+		evalBuilder += '	klass.construct&&klass.construct.apply(klass,arguments);\n';
+		evalBuilder += '	return klass;\n};';
+	eval(evalBuilder);
+	classBuilder.prototype.builder = this;
 
 	Object.defineProperty(classBuilder, 'build', {
-		value: build,
+		value: this.classesBuild[className],
 		writable: false,
 		enumerable: false,
 		configurable: false
 	});
 
 	Object.defineProperty(classBuilder, 'source', {
-		value: sourceCode,
+		value: this.classesSource[className],
 		writable: false,
 		enumerable: false,
 		configurable: false
@@ -244,24 +241,92 @@ wnBuild.prototype.buildClass = function (className)
 	return classBuilder;
 };
 
+/**
+ * Minify the code.
+ * @param string $code
+ * @param string $className
+ * @return string
+ */
+wnBuild.prototype.minify = function (code,className) {
+	if (WNS_DEV)
+		return code;
+	try {
+		this.toplevel = this.uglify.parse(code,{
+			filename: "?"
+		});
+		this.toplevel.figure_out_scope();
+		var compressor = this.uglify.Compressor({ warnings: false });
+		var compressed = this.toplevel.transform(compressor);
+		code = compressed.print_to_string();
+	} catch (e)
+	{
+		console.log('Erron when trying to minify `'+className+'`: '+e.message); console.log(e.stack);
+		process.exit();
+	}
+	return code;
+};
+
+/**
+ * Get the target class's builder.
+ * Create a source code from it.
+ * Compile the source. (if not DEV mode minify it)
+ * Save the new prototype object.
+ * @param string $className
+ * @param array $extend class extension list
+ */
 wnBuild.prototype.compileClass = function (targetClass)
 {
-	var targetClass = targetClass+'',
-		sourceClass = '[CLASSNAME]';
-	if (!this.classesSource[targetClass] || this.classesSource[targetClass].source)
-		return 'k.constructor=function () { throw new Error("Error on compiling class `'+targetClass+'`"); }';
+	// Catch all errors
+	try {
 
-	var classSource = sourceClass+".className = '"+sourceClass+"';\n",
-		builder = this,
-		build = this.classesSource[targetClass];
-		
-	//classSource += "(function () {\n";
+		// Check if class is loaded.
+		if (!this.classesBuild[targetClass] || this.classesBuild[targetClass].source)
+			process.exit("Error on compiling class `"+targetClass+"`, it's not loaded.");
 
-		classSource += "var _=self,";
-		// Declare private vars
+		var build = this.classesBuild[targetClass];
+		var self = builder = this;
+		var fullExtend = [];
+
+		// Get all classes dependencies and put a single array.
+		(function (extend) {
+			for (e in extend)
+			{
+				var ext=fullExtend.reverse();
+					ext.push(extend[e]);
+					ext.reverse();
+					fullExtend=ext;
+				arguments.callee(self.classes[extend[e]].build.extend);
+			}
+		})(build.extend);
+
+		// Begin of the classLoader source code.
+		var classLoader = '';
+		classLoader+='//@'+targetClass+'\n\n';
+		classLoader+='var self={}, className="'+targetClass+'";\n';
+		classLoader+='function '+targetClass+'() { self = this; this.className = "'+targetClass+'"; }\n';
+		classLoader+='var klass = '+targetClass+',\n';
+		classLoader+=' classProto = '+targetClass+'.prototype,\n';
+		classLoader+=' __extend = '+util.inspect(fullExtend)+';\n';
+		classLoader+='classProto.construct = function () {};\n';
+
+		// Importing extensions source code.
+		classLoader+='\n// Importing WNS extensions\n\n';
+		for (e in fullExtend)
+		{
+			classLoader+='// - Extension: '+ fullExtend[e]+'\n';
+			var extendSource = builder.classesSource[fullExtend[e]];
+			classLoader+=extendSource;
+		}
+
+		// Start of the targetClass's source code.
+		classLoader +='\n// Begin of '+targetClass+' \n';
+
+		// Declare private properties
+		classSource = '\n// Declaring private properties \n';
+		classSource = 'var _=self,';
 		for (p in build.private)
 		{
-			if (p == '__builder')
+			if (p == 'classProto' || p == 'klass')
 				continue;
 			if (typeof build.private[p] != 'function')
 				classSource += p+" = "+util.inspect(build.private[p],false,null,false);
@@ -271,35 +336,77 @@ wnBuild.prototype.compileClass = function (targetClass)
 		}
 		classSource=classSource.substr(0,classSource.length-1)+";\n";
 
-		classSource += "var _className= '"+sourceClass+"';\n";
-	
-		// Redeclare privileged methods
-		for (m in build.methods)
+		// Declare public properties
+		classSource += '\n// Declaring public properties\n';
+		for (p in build.public)
 		{
-			classSource += sourceClass+"['"+m+"'] = "+build.methods[m].toString()+";\n";
+			if (p == 'classProto' || p == 'klass')
+				continue;
+			if (typeof build.public[p] != 'function')
+				classSource += "classProto['"+p+"'] = "+util.inspect(build.public[p],false,null,false)+";\n";
+			else
+				classSource += "classProto['"+p+"'] = "+build.public[m].toString()+";\n";
 		}
 
-	//classSource += "})();\n";
+		// Declare privileged methods
+		classSource += '\n// Declaring privileged methods\n';
+		for (m in build.methods)
+		{
+			classSource += "classProto['"+m+"'] = "+build.methods[m].toString()+";\n";
+		}
 
-	// Declare public vars
-	for (p in build.public)
+		// Declare the constructor.
+		classSource += '\n// Constructor\n';
+		if (build.hasOwnProperty('constructor') && build.constructor!==undefined)
+			classSource += 'classProto.construct='+build.constructor.toString()+";\n";
+
+		// Replace all unknown functions.
+		classSource = classSource.replace(/\[Function\]/gim, 'function () {}');
+
+		// Add to the classLoader source code the class's sourceCode.
+		classLoader += classSource;
+
+		// Try to minify the sourceCode.
+		classLoader=builder.minify(classLoader,targetClass);
+
+		// Store the compiled and not compiled source code.
+		this.classesSource[targetClass] = classSource;
+		this.compiledSource[targetClass] = classLoader;
+	} catch (e)
 	{
-		if (p == '__builder')
-			continue;
-		if (typeof build.public[p] != 'function')
-			classSource += sourceClass+"['"+p+"'] = "+util.inspect(build.public[p],false,null,false)+"; ";
-		else
-			classSource += sourceClass+"['"+p+"'] = "+build.public[m].toString()+"; ";
+		console.log('\nError on compiling `'+targetClass+'`: '+e.message);
+		process.exit();
 	}
-
-	if (build.hasOwnProperty('constructor'))
-		classSource += sourceClass+'.constructor='+build.constructor.toString()+";\n";
-
-	// Replace all unknown functions.
-	classSource = classSource.replace(/\[Function\]/gim, 'function () {}');
-
-	return classSource;
 }
+
+/**
+ * Recompile a class from classesSource with new properties.
+ * @param string $targetClass class name
+ * @param object $obj class extension object
+ * @return object
+ */
+wnBuild.prototype.recompile = function (className,obj)
+{
+	this.classes[className] = this.classes[className] || {};
+	this.classes[className].loaded = false;
+	var _nc = Object.extend(true,this.classesBuild[className],obj);
+	var _c = this.buildClass(className);
+
+	if (_c.loaded == true)
+		return _c;
+	else
+		return this.classes[className];
+};
+
+/**
+ * Check if the class is compiled.
+ * @param string $className class name
+ * @return boolean exists?
+ */
+wnBuild.prototype.exists = function (className)
+{
+	return this.classes[className] != undefined && this.classes[className].loaded;
+};
 
 /**
  * Check class source structure.
@@ -331,7 +438,7 @@ wnBuild.prototype.checkDependencies = function (extensions)
 };
 
 /**
- * Remove class invalid dependencies.
+ * Remove from the dependencies list classes that are not loaded.
  * @param array $extensions extension list
  * @return array list of valid extensions.
  */
@@ -341,7 +448,7 @@ wnBuild.prototype.removeInvalidDependencies = function (extensions)
 
 	for (e in extensions)
 	{
-		if (this.classesSource[extensions[e]] != undefined)
+		if (this.classesBuild[extensions[e]] !== undefined)
 			_ext.push(extensions[e]);
 	}
 
@@ -371,53 +478,115 @@ wnBuild.prototype.loadDependencies = function (dep)
 				this.loadedModules[dep[d]]=module;
 			} else
 			{
-				console.log("Error on loading NPM dependency: "+dep[d]);
+				console.log("\nCan't find the `"+dep[d]+"` module.\n");
 				process.exit();
 			}
 		}
 	}
-};
+};   
 
 /**
- * Create new memory instance to the object
- * @param mixed $property any kind of property
- * @result mixed new instance of the property
+ * Generate the unit test from the classSource
+ * @param string $classname name of the class
+ * @param wnClass $docSource class object source
  */
-wnBuild.prototype.newValue = function (property)
+wnBuild.prototype.makeTest = function (className)
 {
-	if (property == null || property == undefined)
-		return property;
 
-	var type = typeof property;
+	if (this.classes[className]==undefined)
+		return false;
 
-	if (type != 'object')
+	var sources;
+	if (this.classesCode[className] instanceof Array)
+		sources=this.classesCode[className];
+	else 
+		sources = [this.classesCode[className]];
+	for (s in sources)
 	{
-		if (property==undefined || property==null)
-			return property;
-		if (type === 'function')
-			return property;
-		if (type === 'boolean')
-			return property == true;
-		if (type == 'string')
-			return property + "";
-		var _i = new (global[type.substr(0,1).toUpperCase()+type.substr(1).toLowerCase()])(property);
+		var docSource = sources[s];
 
-		return (type == 'number') && _i.toValue ? _i.toValue() : _i;
-	}
-	else {
-		if (property.length != undefined)
+		var comments = docSource.match(/\/\*[\s\S]+?\*\//gim),
+			blackList = 'methods extend private public';
+			typeList = 'this boolean string function array object self';
+
+		for (c in comments)
+			if (c < 2)
+				docSource=docSource.replace(comments[c],'');
+
+		var findIt = new RegExp('','gim');
+		var matchDoc = new RegExp('','gim');
+		var matches = docSource.match(/\/\*[\s\S]+?\*\/\s+\w+\:/gim);
+		var props = this.classes[className].test || {}, type= 'undefined';
+
+		for (m in matches)
 		{
-			var obj = new Array;
-			for (p in property)
-				obj.push(property[p]);
-			return obj;
-		} else
-		{
-			var obj=new Object;
-			for (p in property)
-				obj[p]=property[p];
-			return obj;
+			var validTypes = [];		
+			var	def = matches[m],
+				getDoc = def.match(/[\/\*\*](\W|\w)+[\*\/]/gim)[0],
+				prop = def.replace(/[\/\*\*](\W|\w)+[\*\/]/gim,'').replace(/\W/gim,''),
+				params = def.match(/@param \$[\w]+ [\w]+ .+/g),
+				returns = def.match(/@return .+/g),
+				paramsList = [];
+
+			if (blackList.indexOf(prop)!=-1)
+			{
+				type = prop;
+				continue;
+			}
+
+			for (p in params)
+			{
+				var _param = {};
+				var data = params[p].split(' ')
+				_param.name = data[1];
+				_param.accept = data[2];
+				data=data.splice(3)
+				_param.desc = data.join(' ');
+				paramsList.push(_param);
+			}
+
+			if (returns !==null && returns.length>0)
+			{
+				returns=(returns[0]+'').toLowerCase();
+				var types = returns.split(' ')[1].split('|');
+				for (t in types)
+					if (typeList.indexOf(types[t])!==-1)
+						validTypes.push(types[t]);
+			}
+
+			if (validTypes.length>0)
+				props[prop] = function (klass) 
+				{
+					if (typeof klass[this.prop] !== 'function')
+						return false;
+
+					var exec, self = this;
+					try {
+						var d = domain.create();
+						d.on('error', function(er) {});
+						d.run(function() {
+						  exec = klass[self.prop].apply(klass,params);
+						});
+					} catch (e) {
+						return false;
+					}
+
+					var typof = typeof exec;
+
+					for (v in this.validTypes)
+						if (this.validTypes[0].indexOf(typof)===-1 && this.validTypes[v]!=='mixed' && this.validTypes[v]!=='any')
+							console.log(' ~> ['+this.prop+'] Expected `'+this.validTypes+'` but it was `'+typof+'`');
+
+				}.bind({ prop: prop, validTypes: validTypes });
 		}
+
+		Object.defineProperty(this.classes[className], 'test', {
+			value: props,
+			writable: true,
+			configurable: true,
+			enumerable: false
+		});
+
 	}
 };
 
@@ -426,58 +595,69 @@ wnBuild.prototype.newValue = function (property)
  * @param string $classname name of the class
  * @param wnClass $docSource class object source
  */
-wnBuild.prototype.makeDoc = function (className, docSource)
+wnBuild.prototype.makeDoc = function (className)
 {
-
 	if (this.classes[className]==undefined)
 		return false;
 
-	var comments = docSource.match(/\/\*[\s\S]+?\*\//gim),
-		blackList = 'methods extend private public';
+	var sources;
+	if (this.classesCode[className] instanceof Array)
+		sources=this.classesCode[className];
+	else 
+		sources = [this.classesCode[className]];
 
-	for (c in comments)
-		if (c < 2)
-			docSource=docSource.replace(comments[c],'');
-
-	var findIt = new RegExp('','gim'),
-		matchDoc = new RegExp('','gim'),
-		matches = docSource.match(/\/\*[\s\S]+?\*\/\s+\w+\:/gim);
-
-	var props = {}, type= 'undefined';
-	for (m in matches)
+	for (s in sources)
 	{
-		var	def = matches[m],
-			getDoc = def.match(/[\/\*\*](\W|\w)+[\*\/]/gim)[0],
-			prop = def.replace(/[\/\*\*](\W|\w)+[\*\/]/gim,'').replace(/\W/gim,''),
-			params = def.match(/@param \$[\w]+ [\w]+ .+/g),
-			paramsList = [];
-		if (blackList.indexOf(prop)!=-1)
-		{
-			type = prop;
-			continue;
-		}
-		for (p in params)
-		{
-			var _param = {};
-			var data = params[p].split(' ')
-			_param.name = data[1];
-			_param.accept = data[2];
-			data=data.splice(3)
-			_param.desc = data.join(' ');
-			paramsList.push(_param);
-		}
-		props[prop] = {
-			desc: getDoc,
-			type: type
-		};
-		if (type == 'methods')
-			props[prop].params = paramsList;
-	}
 
-	Object.defineProperty(this.classes[className], 'doc', {
-		value: props,
-		writable: true,
-		configurable: true,
-		enumerable: false
-	});
+		var docSource = sources[s];
+		var comments = docSource.match(/\/\*[\s\S]+?\*\//gim),
+			blackList = 'methods extend private public';
+
+		for (c in comments)
+			if (c < 2)
+				docSource=docSource.replace(comments[c],'');
+
+		var findIt = new RegExp('','gim'),
+			matchDoc = new RegExp('','gim'),
+			matches = docSource.match(/\/\*[\s\S]+?\*\/\s+\w+\:/gim);
+
+		var props = this.classes[className].doc || {}, type= 'undefined';
+		for (m in matches)
+		{
+			var	def = matches[m],
+				getDoc = def.match(/[\/\*\*](\W|\w)+[\*\/]/gim)[0],
+				prop = def.replace(/[\/\*\*](\W|\w)+[\*\/]/gim,'').replace(/\W/gim,''),
+				params = def.match(/@param \$[\w]+ [\w]+ .+/g),
+				paramsList = [];
+			if (blackList.indexOf(prop)!=-1)
+			{
+				type = prop;
+				continue;
+			}
+			for (p in params)
+			{
+				var _param = {};
+				var data = params[p].split(' ')
+				_param.name = data[1];
+				_param.accept = data[2];
+				data=data.splice(3)
+				_param.desc = data.join(' ');
+				paramsList.push(_param);
+			}
+			props[prop] = {
+				desc: getDoc,
+				type: type
+			};
+			if (type == 'methods')
+				props[prop].params = paramsList;
+		}
+
+		Object.defineProperty(this.classes[className], 'doc', {
+			value: props,
+			writable: true,
+			configurable: true,
+			enumerable: false
+		});
+
+	}
 };

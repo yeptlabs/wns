@@ -1,25 +1,17 @@
 /**
- * @WNS - A NodeJS MVC Framework and HTTP Server
+ * @WNS - The NodeJS Middleware and Framework
  * 
- * @author: Pedro Nasser
- * @link: http://wns.yept.net/
- * @license: http://yept.net/projects/wns/#license
- * @copyright: Copyright &copy; 2012 WNS
+ * @copyright: Copyright &copy; 2012- YEPT &reg;
+ * @page: http://wns.yept.net/
+ * @docs: http://wns.yept.net/docs/
+ * @license: http://wns.yept.net/license/
  */
 
 /**
- * Description coming soon.
+ * WNS`s main file. It initiates and load every thing.
  *
  * @author Pedro Nasser
- * @package system
- * @since 1.0.0
  */
-
-global.WNS_SHOW_LOAD = typeof WNS_SHOW_LOAD !== 'undefined' ? WNS_SHOW_LOAD : true;
-global.WNS_QUIET_MODE = typeof WNS_QUIET_MODE !== 'undefined' ? WNS_QUIET_MODE : false;
-
-var memory = process.memoryUsage().rss,
-	sl = WNS_SHOW_LOAD;
 
  console.log('\n  o       o o--o  o--o (TM)');
  console.log('  |   o   | |   | o__');
@@ -28,49 +20,73 @@ var memory = process.memoryUsage().rss,
  console.log('\n         powered by YEPT(R)');
  console.log();
 
-// Loading requirements..
+
+// DEFINING ZONE...
+
+global.WNS_SHOW_LOAD = (process.argv.indexOf('--silent') != -1 ? true : (typeof WNS_SHOW_LOAD !== 'undefined' ? WNS_SHOW_LOAD : true));
+global.WNS_QUIET_MODE = (process.argv.indexOf('--quiet') != -1 ? true : (typeof WNS_QUIET_MODE !== 'undefined' ? WNS_QUIET_MODE : false));
+global.WNS_TEST = (process.argv.indexOf('--test') != -1 || process.env.TEST ? true : false);
+global.WNS_DEV = (process.argv.indexOf('--dev') != -1 || process.env.DEV ? true : false);
+global._r = require;
+
+// // Checking for v8debug
+// if (process.execArgv.indexOf('--expose-debug-as=v8debug') !==-1)
+// 	var foundDebug = true;
+// else
+// 	global.v8debug=undefined;
+
+var memory = process.memoryUsage().rss,
+	sl = WNS_SHOW_LOAD,
+	builder;
+
+
+
+// LOADING ZONE...
 try
 {
 
+	// Defining base paths
 	global.sourcePath = 'src/';
 	global.cwd = __dirname.replace(/\\\\/g,"/").replace(/\\/g,"/")+'/../';
 	mainPath = process.mainModule.filename.replace(/\\\\/g,"/").replace(/\\/g,"/").split('/');
 	mainPath.pop();
 	global.mainPath = mainPath.join("\/");
-	global._r = require;
-
-	for (p in process.execArgv)
-	{
-		if (process.execArgv[p].indexOf('--expose-debug-as=v8debug') !==-1)
-			var foundDebug = true;
-	}
-	
-	if (!foundDebug)
-		global.v8debug=undefined;
 
 	sl&&console.log(' CWD: '+cwd);
 	sl&&console.log(' SOURCEPATH: '+cwd+sourcePath);
 	sl&&console.log(' MAINPATH: '+mainPath);
-	sl&&console.log();
+	sl&&process.stdout.write(' MODES: ');
+	for (g in global)
+		if (g.indexOf('WNS_')!=-1 && global[g]==true)
+			sl&&process.stdout.write(g.replace('WNS_','')+' ');
+	sl&&console.log("\n");
 
-	// WNS object.
-	// Will contain the classes to build and load.
+	if (!WNS_DEV)
+		sl&&console.log(" Running PRODUCTION MODE - Run with --dev to switch to development.\n");
+
+	// WNS's Global Object
 	process.wns = global.wns = {};
+	// Importing WNS package info
 	global.wns.info=_r(cwd+'package.json');
 
 	sl&&console.log(' Loading and compiling:');
 
+	// Importing some utils.
 	sl&&console.log(' - Required utilities..');
 	global._walk = _r(cwd+sourcePath+'util/recursiveReadDir');
 	Object.extend = _r(cwd+sourcePath+'util/extend');
-	Object.extend(true,Object,_r(cwd+sourcePath+'util/object'));
+	Object.extend(true,Object,_r(cwd+sourcePath+'util\/object'));
 
+	// Importing node's core modules and npm modules.
 	sl&&process.stdout.write(' - Required node modules..');
-	var nm = ['http','fs','path','url','zlib','crypto','stream','util','events','buffer'];
+	var nm = ['http','fs','path','url','zlib','crypto','stream','util','events','buffer','domain'];
 	for (d in wns.info.dependencies)
 		nm.push(d);
 	for (n in nm)
-		global[nm[n].replace(/\W|\_/gim,'')] = _r(nm[n]);
+		try {
+			global[nm[n].replace(/\W|\_/gim,'')] = _r(nm[n]);
+		}
+		catch (e) {}
 	if (fs.existsSync == undefined)
 		fs.existsSync = path.existsSync;
 	global.emitter = events.EventEmitter;
@@ -80,42 +96,30 @@ try
 	sl&&process.stdout.write(' ('+nm.length+' modules)\n');
 
 } catch (e) {
+	// Catch any error...
 	sl&&console.log(' Failed to load some dependencies...');
 	throw e;
 	process.exit();
 }
 
-// We need this class for building the rest of the required classes.
+
+
+// BUILDING ZONE...
+
+// Get THE BUILDER.
 wns.wnBuild = _r(cwd+sourcePath+'wnBuild.js');
 
 sl&&process.stdout.write(' - Required classes...');
-
 var _coreClasses={}, toBuild = {};
 // Recursivelly getting list of all classes in the core/
 _walk(cwd+sourcePath+'core', function (err, classes) {
 
-	// Load core class sources to the memory.
+	// // Load core class sources to the memory.
 	for (c in classes)
 	{
-
-		// Loading class source.
+		// Loading class source from file.
 		var _class = fs.readFileSync(classes[c]).toString(),
 			className = classes[c].split('/').pop().split('.')[0];
-
-		// Compiling the class.
-		var module = {};
-		eval(_class);
-
-		// Check structure.
-		if (wns.wnBuild.prototype.checkStructure(module.exports))
-		{
-			// Send it to the build list.
-			toBuild[className] = module.exports;
-		} else
-		{
-			// Send it to the WNS.
-			wns[className] = module.exports;
-		}
 
 		// Store class source.
 		_coreClasses[className] = _class; 
@@ -123,10 +127,15 @@ _walk(cwd+sourcePath+'core', function (err, classes) {
 
 
 	// We will compile the new classes to the WNS object.
-	var compiled = (new wns.wnBuild(toBuild,cwd).build()),
+	builder = new wns.wnBuild(_coreClasses,{
+		getClassName: function () { return 'WNS' },
+		getModulePath: function () { return cwd },
+		npmPath: [cwd+'node_modules/'],
+	});
+
+	var compiled = builder.build(),
 		loaded = 0;
-	for (c in toBuild)
-	{
+	for (c in compiled)
 		if (compiled[c].loaded)
 		{
 			// Store compiled classes as read-only.
@@ -136,25 +145,31 @@ _walk(cwd+sourcePath+'core', function (err, classes) {
 				configurable: false,
 				enumerable: true
 			});
+			wns[c]=compiled[c];
 			loaded++;
 		}
-	}
 
 	sl&&process.stdout.write(' ('+loaded+' classes)\n');
 
 });
 
-// Sending coreClasses to global, read-only.
+// Saving the core classes source in the global (read-only)
 Object.defineProperty(global, 'coreClasses', { value: _coreClasses, writable: false, configurable: false });
 
 // Clear require cache.
 memory = (new Number((process.memoryUsage().rss - memory) / 1024 / 1024)).toFixed(2);
 sl&&console.log(' - WNS version: '+wns.info.version);
 sl&&console.log(' - Core memory usage: '+memory+' mb');
+builder.buildTime&&
+sl&&console.log(' - Build time: '+builder.buildTime+' ms');
 
 sl&&console.log('');
 
-// Create a new console
-wns.console = new wns.wnConsole({ modulePath: cwd }, cwd, undefined, [cwd]);
+// FINISHED LOADING...
 
-//
+
+// START WNS CONSOLE
+wns.console = new wns.wnConsole({ modulePath: cwd }, {}, cwd, [cwd]);
+
+if (WNS_TEST)
+	process.exit(0);

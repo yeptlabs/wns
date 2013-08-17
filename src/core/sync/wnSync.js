@@ -1,18 +1,16 @@
 /**
- * Source of the wnSync class.
+ * @WNS - The NodeJS Middleware and Framework
  * 
- * @author: Pedro Nasser
- * @link: http://wns.yept.net/
- * @license: http://yept.net/projects/wns/#license
- * @copyright: Copyright &copy; 2012 WNS
+ * @copyright: Copyright &copy; 2012- YEPT &reg;
+ * @page: http://wns.yept.net/
+ * @docs: http://wns.yept.net/docs/
+ * @license: http://wns.yept.net/license/
  */
 
 /**
- * Description coming soon.
- * 
+ * No description yet.
+ *
  * @author Pedro Nasser
- * @package package.sync
- * @since 1.0.0
  */
 
 // Exports

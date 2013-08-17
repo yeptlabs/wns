@@ -1,10 +1,10 @@
 /**
- * Source of the wnComponent class.
+ * @WNS - The NodeJS Middleware and Framework
  * 
- * @author: Pedro Nasser
- * @link: http://wns.yept.net/
- * @license: http://yept.net/projects/wns/#license
- * @copyright: Copyright &copy; 2012 WNS
+ * @copyright: Copyright &copy; 2012- YEPT &reg;
+ * @page: http://wns.yept.net/
+ * @docs: http://wns.yept.net/docs/
+ * @license: http://wns.yept.net/license/
  */
 
 /**
@@ -24,8 +24,6 @@
  * Or just get the event object than use the {@link push} method.
  *
  * @author Pedro Nasser
- * @package packages.base
- * @since 1.0.0
  */
 
 // Exports
@@ -128,16 +126,16 @@ module.exports = {
 
 		/**
 		 * Get the class name of this component
-		 * @return string class name
+		 * @return string
 		 */
 		getClassName: function ()
 		{
-			return _className;
+			return className;
 		},
 
 		/**
 		 * Get list of extend of this component.
-		 * @return array list of extend
+		 * @return array
 		 */
 		getExtend: function ()
 		{
@@ -146,7 +144,7 @@ module.exports = {
 
 		/**
 		 * Check if this component is an instance of a specific class.
-		 * @return boolean if this component is instance of a class.
+		 * @return boolean
 		 */
 		instanceOf: function (name)
 		{
@@ -155,8 +153,9 @@ module.exports = {
 
 		/**
 		 * Extend this module configuration with new properties.
-		 * @param OBJECT $extend configuration extension
-		 * @param BOOLEAN $overwrite overwrite it?
+		 * @param object $extend configuration extension
+		 * @param true $overwrite overwrite it?
+		 * @return boolean
 		 */
 		setConfig: function (extend, overwrite)
 		{
@@ -167,7 +166,8 @@ module.exports = {
 
 		/**
 		 * Return the module's configuration
-		 * @return OBJECT module's configuration
+		 * @param string $attr configure attribute
+		 * @return object module's configuration
 		 */
 		getConfig: function (attr)
 		{
@@ -176,6 +176,8 @@ module.exports = {
 
 		/**
 		 * Export to JSON the components's config.
+		 * @param object $obj
+		 * @return object
 		 */
 		exportConfig: function (obj)
 		{
@@ -208,6 +210,7 @@ module.exports = {
 		 * @param string $filePath file's path
 		 * @param boolean $binary is it binary?
 		 * @param function $cb async callback function
+		 * @return boolean|string
 		 */
 		getFile: function (filePath)
 		{
@@ -240,6 +243,7 @@ module.exports = {
 		 * Get a file statistic.
 		 * The file's path is relative to the module's path.
 		 * @param string $filePath file's path
+		 * @param function $cb callback
 		 */
 		getFileStat: function (filePath,cb)
 		{
@@ -256,6 +260,7 @@ module.exports = {
 
 		/**
 		 * Preload all required events
+		 * @return this
 		 */
 		preloadEvents: function ()
 		{
@@ -273,18 +278,43 @@ module.exports = {
 
 		/**
 		 * Create an class from the classSources.
-		 * @var string $className name of the class
-		 * @var object $config class configuration
+		 * @param string $className name of the class
+		 * @param object $config class configuration
+		 * @param component $boolean is it component format?
+		 * @return boolean|object
 		 */
-		createClass: function (className,config)
+		createClass: function (className,config,path,npmPath)
 		{
+			//console.log(this.className+' -> '+className)
+			//!this.c&&console.log(this.c);
 			var source = this.c || process.wns;
-			source.name = '';
+			var instance;
+			var builder = this.getComponent&&this.getComponent('classBuilder');
+
+			if (!source || !source[className])
+			 { return false; }
+
 			if (config.id)
-			{
 				source[className].build.id = config.id;
+
+			if (source[className].build.extend.indexOf('wnModule')!==-1)
+			{
+				instance = new source[className](self,config,path,npmPath,builder.classesCode);
 			}
-			return new source[className](config,source);
+			else
+				instance = new source[className](config,source);
+
+			if (WNS_TEST && builder)
+			{
+				console.log('- Testing '+className)
+				var tests = builder.classes[className].test;
+				for (t in tests)
+				{
+					//console.log('Testing: '+t);
+					tests[t](instance);
+				}
+			}
+			return instance;
 		},
 		
 		/**
@@ -323,7 +353,8 @@ module.exports = {
 
 		/**
 		 * Set new properties to the respective events
-		 * @param OBJECT $events events configurations
+		 * @param object $events events configurations
+		 * @return this
 		 */
 		setEvents: function (events)
 		{
@@ -341,12 +372,14 @@ module.exports = {
 				}
 				_eventsConfig[e]=Object.extend(true,_eventsConfig[e] || {}, event[e]);
 			}
+			return this;
 		},
 
 		/**
 		 * Get an event and create an alias to the push function.
-		 * @param STRING $name eventName
-		 * @return wnEvent instance
+		 * @param string $name eventName
+		 * @param boolean $hidden ?
+		 * @return wnEvent
 		 */
 		getEvent: function (name,hidden)
 		{
@@ -362,22 +395,27 @@ module.exports = {
 				config.id = eventName;
 				config.autoInit = false;
 				var evt = this.createClass(_class,config);
-				evt.setParent(this);
-				evt.init();
-				if (hidden != false)
+				if (evt)
 				{
-					_events[eventName] = evt;
-					this.e[name]=function () { evt.push.apply(evt,arguments); };
-				} else
-				{
-					Object.defineProperty(_events[eventName],{ value: evt, enumerable: false });
+					evt.setParent(this);
+					evt.init();
+					if (hidden != false)
+					{
+						_events[eventName] = evt;
+						this.e[name]=function () { evt.push.apply(evt,arguments); };
+					} else
+					{
+						Object.defineProperty(_events[eventName],{ value: evt, enumerable: false });
+					}
+					return evt;
 				}
-				return evt;
+				return false;
 			}
 		},
 
 		/**
 		 * Get a list of all event loaded in this component
+		 * @return object
 		 */
 		getEvents: function ()
 		{
@@ -386,6 +424,7 @@ module.exports = {
 
 		/**
 		 * Get all defined configuration of events.
+		 * @return object
 		 */
 		getEventsConfig: function ()
 		{
@@ -394,6 +433,7 @@ module.exports = {
 
 		/**
 		 * Check if the event exists in this component.
+		 * @return object
 		 */
 		hasEvent: function (name)
 		{
@@ -404,6 +444,7 @@ module.exports = {
 		 * Add a new one-time-listener to the event, if it exists
 		 * @param string $eventName event name
 		 * @param function $handler event handler
+		 * @return this
 		 */
 		once: function (eventName,handler) {
 			var event;
@@ -420,6 +461,7 @@ module.exports = {
 		 * Add a new listener to the event, if it exists
 		 * @param string $eventName event name
 		 * @param function $handler event handler
+		 * @return this
 		 */
 		addListener: function (eventName,handler) {
 			var event;
@@ -436,6 +478,7 @@ module.exports = {
 		 * Prepend a new listener to the event, if it exists
 		 * @param string $eventName event name
 		 * @param function $handler event handler
+		 * @return this
 		 */
 		prependListener: function (eventName,handler) {
 			var event;
@@ -452,6 +495,7 @@ module.exports = {
 		 * Prepend a new one-time-listener to the event, if it exists
 		 * @param string $eventName event name
 		 * @param function $handler event handler
+		 * @return this
 		 */
 		prependOnce: function (eventName,handler) {
 			var event;
@@ -466,6 +510,7 @@ module.exports = {
 
 		/**
 		 * Return an object with all attributes and configuration of this component
+		 * @return object
 		 */
 		export: function ()
 		{
@@ -484,7 +529,7 @@ module.exports = {
 
 		/**
 		 * Returns the parent object.
-		 * @returen object the parent object.
+		 * @return object
 		 */
 		getParent: function ()
 		{
@@ -494,6 +539,7 @@ module.exports = {
 		/**
 		 * Set an object as components's parent
 		 * @param $newParent object new parent
+		 * @return this
 		 */
 		setParent: function (newParent)
 		{
@@ -506,7 +552,7 @@ module.exports = {
 
 		/**
 		 * Checks if this component bas been initialized.
-		 * @return boolean whether this component has been initialized (ie, {@link init()} is invoked).
+		 * @return boolean
 		 */
 		getIsInitialized: function ()
 		{
@@ -515,6 +561,7 @@ module.exports = {
 
 		/**
 		 * This methods is called after the real initialization of the component
+		 * @return this
 		 */
 		init: function ()
 		{
@@ -525,7 +572,7 @@ module.exports = {
 		 * Execute an expression in this component's context.
 		 * @param string $cmd expression
 		 * @param object $context forced context
-		 * @return mixed result of the eval
+		 * @return this
 		 */
 		exec: function (cmd,context)
 		{
