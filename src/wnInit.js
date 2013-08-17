@@ -29,11 +29,11 @@ global.WNS_TEST = (process.argv.indexOf('--test') != -1 || process.env.TEST ? tr
 global.WNS_DEV = (process.argv.indexOf('--dev') != -1 || process.env.DEV ? true : false);
 global._r = require;
 
-// Checking for v8debug
-if (process.execArgv.indexOf('--expose-debug-as=v8debug') !==-1)
-	var foundDebug = true;
-else
-	global.v8debug=undefined;
+// // Checking for v8debug
+// if (process.execArgv.indexOf('--expose-debug-as=v8debug') !==-1)
+// 	var foundDebug = true;
+// else
+// 	global.v8debug=undefined;
 
 var memory = process.memoryUsage().rss,
 	sl = WNS_SHOW_LOAD,
@@ -165,6 +165,8 @@ sl&&console.log('');
 // FINISHED LOADING...
 
 
-
 // START WNS CONSOLE
 wns.console = new wns.wnConsole({ modulePath: cwd }, {}, cwd, [cwd]);
+
+if (WNS_TEST)
+	process.exit(0);

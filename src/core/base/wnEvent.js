@@ -8,7 +8,7 @@
  */
 
 /**
- * Source of the wnEvent class
+ * No description yet.
  *
  * @author Pedro Nasser
  */

@@ -1,19 +1,16 @@
 /**
- * Source of the wnHtmlEncoder class.
+ * @WNS - The NodeJS Middleware and Framework
  * 
- * @author: Pedro Nasser
- * @link: http://pedroncs.com/projects/webnode/
- * @license: http://pedroncs.com/projects/webnode/#license
- * @copyright: Copyright &copy; 2012 WebNode Server
+ * @copyright: Copyright &copy; 2012- YEPT &reg;
+ * @page: http://wns.yept.net/
+ * @docs: http://wns.yept.net/docs/
+ * @license: http://wns.yept.net/license/
  */
 
 /**
- * {full_description}
+ * No description yet.
  *
  * @author Pedro Nasser
- * @version $Id$
- * @pagackge package.http.helpers
- * @since 1.0.0
  */
 
 // Exports
