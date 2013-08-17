@@ -74,7 +74,7 @@ module.exports = {
 
 		/**
 		 * Returns the list of wnUrlRule objects
-		 * @return array list of all wnUrlRules
+		 * @return object
 		 */
 		getRulesList: function ()
 		{

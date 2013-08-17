@@ -28,7 +28,7 @@ module.exports = {
 	 * @param object $parent parent object.
 	 * @param object $config configuration object.
 	 */	
-	constructor: function (parent,modulePath,config,npmPath,classes)
+	constructor: function (parent,config,modulePath,npmPath,classesSource)
 	{
 		this.e.log&&this.e.log('Constructing new `'+this.className+'`...','system');
 
@@ -48,14 +48,7 @@ module.exports = {
 		this.preinit.apply(this,arguments); 
 
 		this.npmPath = npmPath || [];
-		this.importClasses();
-		if (classes == undefined)
-		{
-			this.c = this.getComponent('classBuilder').classes;
-		} else
-		{
-			Object.defineProperty(this,'c',{ value: classes, enumerable:false, writable: false });
-		}
+		this.importClasses(classesSource);
 
 		var defaultConfig = cwd+sourcePath+'config/'+className.split('_')[0]+'Config.json';
 		if (fs.existsSync(defaultConfig))
@@ -67,22 +60,24 @@ module.exports = {
 
 		this.importFromConfig();
 
+		Object.defineProperty(this,'c',{ value: this.getComponent('classBuilder').classes, enumerable:false, writable: false });
+		this.c.module = self;
+
 		this.preloadComponents();
 		this.preloadEvents();
+
 
 		this.setEvents({ 'ready': {} });
 		var ready=this.getEvent('ready');
 		ready.once(function (e) {
 			e.stopPropagation=true;
-			var args = Array.prototype.slice.call(arguments);
-			args.shift();
 			
 			self.startComponents();
 			self.prepareModels();
 			self.prepareScripts();
 
-			self.init.apply(self,args);
-			self.run.apply(self,args);
+			self.init.apply(self,arguments);
+			self.run.apply(self,arguments);
 			_initialized=true;
 		});
 
@@ -153,40 +148,34 @@ module.exports = {
 	methods: {
 
 		/**
-		 * Compile and store all classes to this module.
+		 * Compile module's classes.
+		 * It gets classes source you give or from the core classes.
+		 * @param $classesSource (optional)
 		 * @return this
 		 */
-		importClasses: function ()
+		importClasses: function (classesSource)
 		{
 			this.e.log&&this.e.log('Importing core classes...','system');
-			var _c = {},
-				_cSource = {};
-			for (c in global.coreClasses)
-			{
-				var module = {},
-				 _class = global.coreClasses[c];
-				eval(_class);
-				_c[c] = module.exports;
-				_cSource[c]=_class;
-			}
-			var classBuilder = new process.wns.wnBuild(_c,this);
+
+			var classesSource = classesSource||global.coreClasses;
+			var classBuilder = new process.wns.wnBuild(classesSource,this);
 			this.setComponent('classBuilder',classBuilder);
 			classBuilder.build();
 
 			// Make documentation
-			for (c in global.coreClasses)
-				classBuilder.makeDoc(c,_cSource[c]);
+			for (c in classBuilder.classes)
+				classBuilder.makeDoc(c);
 
 			// Make test
 			if (WNS_TEST)
-				for (c in global.coreClasses)
-					classBuilder.makeTest(c,_cSource[c]);
+				for (c in classBuilder.classes)
+					classBuilder.makeTest(c);
 
 			return this;
 		},
 
 		/**
-		 * Import components from config
+		 * Import classes from the paths from configuration.
 		 */
 		importFromConfig: function ()
 		{
@@ -199,20 +188,17 @@ module.exports = {
 				
 				if (fs.existsSync(path))
 				{
-					var components = fs.readdirSync(path);
-					for (c in components)
+					var classes = fs.readdirSync(path);
+					for (c in classes)
 					{
-						if (components[c].split('.').pop() != 'js')
+						if (classes[c].split('.').pop() != 'js')
 							continue;
-						var module = {},
-							componentName = components[c].split('.')[0],
-							componentClassName = componentName,
-							componentSet = {},
-							 _component = fs.readFileSync(path+components[c],'utf-8').toString();
-						eval(_component);
+						var className = classes[c].split('.')[0];
+						var classSource = fs.readFileSync(path+classes[c],'utf-8').toString();
 						var cb = this.getComponent('classBuilder');
-						cb.classes[componentClassName]=cb.recompile(componentClassName,module.exports);
-						cb.makeDoc(componentClassName,_component);
+						cb.addSource(className,classSource);
+						cb.classes[c]=cb.buildClass(className);
+						cb.makeDoc(className);
 					}
 				}
 			}
@@ -396,7 +382,8 @@ module.exports = {
 		createComponent: function (className,config)
 		{
 			var component = this.createClass(className,config);
-			component.setParent(this);
+			if (component)
+				component.setParent(this);
 			return component;
 		},
 
@@ -512,15 +499,19 @@ module.exports = {
 							for (n in self.npmPath)
 								npmPath.push(self.npmPath[n]);
 						npmPath.unshift(this.modulePath+modulePath+'/node_modules/');
-						var module = this.createModule(className,modulePath,config,npmPath);
-						_modules[id] = module;
-						this.attachModuleEvents(id);
-						onLoad&&onLoad(module);
-						self.e.loadModule(id,module);
-						process.nextTick(function () {
-							module.e.ready(modulePath,config);
-						});
-						return _modules[id];
+						var module = this.createModule(className,config,modulePath,npmPath);
+						if (module)
+						{
+							_modules[id] = module;
+							this.attachModuleEvents(id);
+							onLoad&&onLoad(module);
+							self.e.loadModule(id,module);
+							process.nextTick(function () {
+								module.e.ready(modulePath,config);
+							});
+							return _modules[id];
+						}
+						return false;
 					} else
 						return false;
 				} catch (e)
@@ -544,14 +535,17 @@ module.exports = {
 		},
 
 		/**
-		 * Create a new instance of module
-		 * @param string $className component class (case-sensitive)
-		 * @param string $config application 
-		 * @return wnModule the module instance, false if the module is disabled or does not exist.
+		 * Create a new instance of a module.
+		 * @param string $className
+		 * @param string $modulePath
+		 * @param object $config
+		 * @param string $npmPath
+		 * @return object
 		 */
-		createModule: function (className,modulePath,config,npmPath)
+		createModule: function (className,config,modulePath,npmPath)
 		{
-			return new this.c[className](this,modulePath,config,npmPath);
+			var module = this.createClass(className,config,modulePath,npmPath);
+			return module;
 		},
 
 		/**

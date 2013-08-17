@@ -281,21 +281,29 @@ module.exports = {
 		 * @param string $className name of the class
 		 * @param object $config class configuration
 		 * @param component $boolean is it component format?
-		 * @return boolean
+		 * @return boolean|object
 		 */
-		createClass: function (className,config)
+		createClass: function (className,config,path,npmPath)
 		{
+			//console.log(this.className+' -> '+className)
+			//!this.c&&console.log(this.c);
 			var source = this.c || process.wns;
+			var instance;
 			var builder = this.getComponent&&this.getComponent('classBuilder');
-			source.name = '';
-			if (config.id)
-			{
-				source[className].build.id = config.id;
-			}
 
-			var instance = new source[className](config,source);
-			// if (className=='wnEvent')
-			// 	console.log(instance.getEventName());
+			if (!source || !source[className])
+			 { return false; }
+
+			if (config.id)
+				source[className].build.id = config.id;
+
+			if (source[className].build.extend.indexOf('wnModule')!==-1)
+			{
+				instance = new source[className](self,config,path,npmPath,builder.classesCode);
+			}
+			else
+				instance = new source[className](config,source);
+
 			if (WNS_TEST && builder)
 			{
 				console.log('- Testing '+className)
@@ -387,17 +395,21 @@ module.exports = {
 				config.id = eventName;
 				config.autoInit = false;
 				var evt = this.createClass(_class,config);
-				evt.setParent(this);
-				evt.init();
-				if (hidden != false)
+				if (evt)
 				{
-					_events[eventName] = evt;
-					this.e[name]=function () { evt.push.apply(evt,arguments); };
-				} else
-				{
-					Object.defineProperty(_events[eventName],{ value: evt, enumerable: false });
+					evt.setParent(this);
+					evt.init();
+					if (hidden != false)
+					{
+						_events[eventName] = evt;
+						this.e[name]=function () { evt.push.apply(evt,arguments); };
+					} else
+					{
+						Object.defineProperty(_events[eventName],{ value: evt, enumerable: false });
+					}
+					return evt;
 				}
-				return evt;
+				return false;
 			}
 		},
 

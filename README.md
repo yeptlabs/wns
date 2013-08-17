@@ -3,7 +3,7 @@
 ## Welcome to WNS Middleware (v0.0.62) [![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
 
 ##### What's the idea?
-To build your application/service, just installing, configuring, extending **COMPONENTS** and **PACKAGES**.
+To build your application/service, just installing, configuring and extending **COMPONENTS** and **PACKAGES**.
 You can easly integrate you application/service with any **Node.JS module**. Trust me.
 
 ## Main Features

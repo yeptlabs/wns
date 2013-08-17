@@ -195,16 +195,12 @@ module.exports = {
 			module.getEvent('readyRequest');
 			module.getEvent('closedRequest');
 			
-			var htmlClass = module.c.wnHtml;
-			module.html = new htmlClass;
+			module.html = module.createClass('wnHtml',{});
 			module.html.setParent(module);
+			module.html.encoder = module.createClass('wnHtmlEncoder',{});
 
-			var htmlEncoderClass = module.c.wnHtmlEncoder;
-			module.html.encoder = new htmlEncoderClass;
-
-			var engineName = this.getConfig('templateEngine') || 'Dust',
-				tplEngine = module.c['wn'+engineName+'Template'];
-			module.template= new tplEngine({},module.c);
+			var engineName = this.getConfig('templateEngine') || 'Dust';
+			module.template = module.createClass('wn'+engineName+'Template',{});
 			module.template.parent = function () { return module; };
 
 			_modules[moduleName]=module;

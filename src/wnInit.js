@@ -61,6 +61,9 @@ try
 			sl&&process.stdout.write(g.replace('WNS_','')+' ');
 	sl&&console.log("\n");
 
+	if (!WNS_DEV)
+		sl&&console.log(" Running PRODUCTION MODE - Run with --dev to switch to development.\n");
+
 	// WNS's Global Object
 	process.wns = global.wns = {};
 	// Importing WNS package info
@@ -108,25 +111,12 @@ var _coreClasses={}, toBuild = {};
 // Recursivelly getting list of all classes in the core/
 _walk(cwd+sourcePath+'core', function (err, classes) {
 
-	// Load core class sources to the memory.
+	// // Load core class sources to the memory.
 	for (c in classes)
 	{
-
-		// Loading class source.
+		// Loading class source from file.
 		var _class = fs.readFileSync(classes[c]).toString(),
 			className = classes[c].split('/').pop().split('.')[0];
-
-		// Compiling the class.
-		var module = {};
-		eval(_class);
-
-		// Check structure.
-		if (wns.wnBuild.prototype.checkStructure(module.exports))
-			// Send it to the build list.
-			toBuild[className] = module.exports;
-		else
-			// Send it to the WNS.
-			wns[className] = module.exports;
 
 		// Store class source.
 		_coreClasses[className] = _class; 
@@ -134,14 +124,15 @@ _walk(cwd+sourcePath+'core', function (err, classes) {
 
 
 	// We will compile the new classes to the WNS object.
-	builder = new wns.wnBuild(toBuild,{
+	builder = new wns.wnBuild(_coreClasses,{
 		getClassName: function () { return 'WNS' },
 		getModulePath: function () { return cwd },
 		npmPath: [cwd+'node_modules/'],
 	});
+
 	var compiled = builder.build(),
 		loaded = 0;
-	for (c in toBuild)
+	for (c in compiled)
 		if (compiled[c].loaded)
 		{
 			// Store compiled classes as read-only.
@@ -151,6 +142,7 @@ _walk(cwd+sourcePath+'core', function (err, classes) {
 				configurable: false,
 				enumerable: true
 			});
+			wns[c]=compiled[c];
 			loaded++;
 		}
 
@@ -158,7 +150,7 @@ _walk(cwd+sourcePath+'core', function (err, classes) {
 
 });
 
-// Sending coreClasses to global, read-only.
+// Saving the core classes source in the global (read-only)
 Object.defineProperty(global, 'coreClasses', { value: _coreClasses, writable: false, configurable: false });
 
 // Clear require cache.
@@ -175,4 +167,4 @@ sl&&console.log('');
 
 
 // START WNS CONSOLE
-wns.console = new wns.wnConsole({ modulePath: cwd }, cwd, undefined, [cwd]);
+wns.console = new wns.wnConsole({ modulePath: cwd }, {}, cwd, [cwd]);

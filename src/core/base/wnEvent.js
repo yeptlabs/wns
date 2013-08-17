@@ -25,7 +25,7 @@ module.exports = {
 	 */
 	private: {
 		_filters: [],
-		_listeners: undefined
+		_listeners: []
 	},
 
 	/**

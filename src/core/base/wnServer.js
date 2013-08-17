@@ -100,15 +100,17 @@ module.exports = {
 				if (fs.existsSync(realModulePath+appName+'.js'))
 				{
 					modules[a].class='wnApp_'+appName;
-					var module = {},
-						className = modules[a].class,
-					 _class = fs.readFileSync(realModulePath+appName+'.js','utf-8').toString();
-					eval(_class);
-					var cb = this.getComponent('classBuilder'),
-						appClass = cb.classesSource['wnApp'];
-					appClass = Object.extend(true,{},appClass,module.exports);
-					cb.classesSource[className] = appClass;
-					cb.classes[className]=cb.buildClass(className);
+					var className = modules[a].class;
+					var classSource = fs.readFileSync(realModulePath+appName+'.js','utf-8').toString();
+					var cb = this.getComponent('classBuilder');
+					var appClass = cb.classesCode['wnApp'];
+					if (typeof appClass == 'string')
+						cb.addSource(className,appClass,true);
+					else
+						for (a in appClass)
+							cb.addSource(className,appClass[a],true);
+					cb.addSource(className,classSource);
+					cb.classes[className]=self.c[className]=cb.buildClass(className);
 					cb.uglify=null;
 				}
 				modules[a].autoInit=false;

@@ -359,14 +359,10 @@ module.exports = {
 			var controllerName = 'wn'+(id.substr(0,1).toUpperCase()+id.substr(1))+'Controller';
 			if (!this.app.c[controllerName]) {
 				var builder = this.app.getComponent('classBuilder');
-					_classSource = this.app.getFile(this.getConfig('path').controllers+id+'.js'),
-					module = {};
-				if (!_classSource)
-					return false;
-				eval(_classSource);
-				builder.classesSource[controllerName] = module.exports;
+				var classSource = this.app.getFile(this.getConfig('path').controllers+id+'.js');
+				builder.addSource(controllerName,classSource);
 				builder.classes[controllerName]=builder.buildClass(controllerName);
-				builder.makeDoc(controllerName,_classSource);
+				builder.makeDoc(controllerName);
 				if (!builder.classes[controllerName])
 					this.app.e.exception(new Error('Could not build the controller class.'));
 				this.app.c[controllerName]=builder.classes[controllerName];
