@@ -83,7 +83,10 @@ try
 	for (d in wns.info.dependencies)
 		nm.push(d);
 	for (n in nm)
-		global[nm[n].replace(/\W|\_/gim,'')] = _r(nm[n]);
+		try {
+			global[nm[n].replace(/\W|\_/gim,'')] = _r(nm[n]);
+		}
+		catch (e) {}
 	if (fs.existsSync == undefined)
 		fs.existsSync = path.existsSync;
 	global.emitter = events.EventEmitter;
