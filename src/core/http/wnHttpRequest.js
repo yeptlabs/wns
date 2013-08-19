@@ -121,30 +121,14 @@ module.exports = {
 			if (this.info == undefined)
 				return false;
 		},
-
-		// formatQuery: function (obj,name) {
-		// 	for (p in obj)
-		// 	{
-		// 		if (p.match(/\w+\[\w+\]/g))
-		// 		{	
-		// 			var subpaths = p.split("["),
-		// 				name = name || subpaths[0],
-		// 				subname = subpaths[1].split(']')[0];
-					
-		// 			if (!obj[name])
-		// 				obj[name]={};
-
-		// 			obj[name][subname]=this.query.POST.fields[p];
-		// 			delete obj[p];
-		// 		}
-		// 	}
-		// },
-
-		formatQuery: function (obj) {
-
-			if (Object.isPlainObject(obj))
+		
+		/**
+		 * Format the query as object.
+		 */
+		formatQuery: function (obj)
+		{
+			if (Object.isObject(obj))
 			{
-
 				for (o in obj)
 				{
 					var path=o.replace(/\[\w+\]/gi,function (match) { return match.replace('[','.').replace(']','') });
@@ -161,7 +145,6 @@ module.exports = {
 						self.formatQuery(obj[name]);
 					}
 				}
-
 			}
 
 			return obj;
@@ -197,6 +180,7 @@ module.exports = {
 			// self.result=self.formatQuery(self.result);
 			// console.log(util.inspect(self.result,{ depth: 1000 }));
 
+			// console.log(this.query.POST.fields);
 			self.formatQuery(this.query.POST.fields);
 			self.formatQuery(this.query.POST.files);
 			self.formatQuery(this.query.GET);

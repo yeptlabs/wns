@@ -49,41 +49,15 @@ module.exports = {
 		return true;
 	},
 
-	isPlainObject: function( obj ) {
-		var key;
+	// Is a given value an array?
+	// Delegates to ECMA5's native Array.isArray
+	isArray: function(obj) {
+	  return toString.call(obj) == '[object Array]';
+	},
 
-		// Must be an Object.
-		// Because of IE, we also have to check the presence of the constructor property.
-		// Make sure that DOM nodes and window objects don't pass through, as well
-		if ( !obj || jQuery.type(obj) !== "object" || obj.nodeType || jQuery.isWindow( obj ) ) {
-			return false;
-		}
-
-		try {
-			// Not own constructor property must be Object
-			if ( obj.constructor &&
-				!core_hasOwn.call(obj, "constructor") &&
-				!core_hasOwn.call(obj.constructor.prototype, "isPrototypeOf") ) {
-				return false;
-			}
-		} catch ( e ) {
-			// IE8,9 Will throw exceptions on certain host objects #9897
-			return false;
-		}
-
-		// Support: IE<9
-		// Handle iteration over inherited properties before own properties.
-		if ( jQuery.support.ownLast ) {
-			for ( key in obj ) {
-				return core_hasOwn.call( obj, key );
-			}
-		}
-
-		// Own properties are enumerated firstly, so to speed up,
-		// if last one is own, then all properties are own.
-		for ( key in obj ) {}
-
-		return key === undefined || core_hasOwn.call( obj, key );
+	// Is a given variable an object?
+	isObject: function(obj) {
+	  return obj === Object(obj);
 	}
 
 };
