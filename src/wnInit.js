@@ -79,7 +79,7 @@ try
 
 	// Importing node's core modules and npm modules.
 	sl&&process.stdout.write(' - Required node modules..');
-	var nm = ['http','fs','path','url','zlib','crypto','stream','util','events','buffer','domain'];
+	var nm = ['http','fs','path','url','zlib','crypto','stream','util','events','buffer','domain','vm'];
 	for (d in wns.info.dependencies)
 		nm.push(d);
 	for (n in nm)
@@ -154,7 +154,7 @@ _walk(cwd+sourcePath+'core', function (err, classes) {
 });
 
 // Saving the core classes source in the global (read-only)
-Object.defineProperty(global, 'coreClasses', { value: _coreClasses, writable: false, configurable: false });
+Object.defineProperty(global.wns, 'coreClasses', { value: _coreClasses, writable: false, configurable: false });
 
 // Clear require cache.
 memory = (new Number((process.memoryUsage().rss - memory) / 1024 / 1024)).toFixed(2);
@@ -170,6 +170,8 @@ sl&&console.log('');
 
 // START WNS CONSOLE
 wns.console = new wns.wnConsole({ modulePath: cwd }, {}, cwd, [cwd]);
+
+
 
 if (WNS_TEST)
 	process.exit(0);

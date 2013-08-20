@@ -40,6 +40,8 @@ function wnBuild(sourceCode,parent)
 	this.classesSource = {};
 	// Object to store compiled class source
 	this.compiledSource = {};
+	// Object to store VM.Script from each class.
+	this.vmScript = {};
 
 	// Store parent information.
 	this.modulePath = parent.getModulePath() || '.';
@@ -184,36 +186,16 @@ wnBuild.prototype.buildClass = function (className)
 	if (!targetClass || !this.checkDependencies(targetClass.extend))
 		return false;
 
-	if (!WNS_DEV && !this.uglify)
-	{
-		var reset = function (obj)
-		{
-			if (typeof obj == 'object' && obj.constructor)
-			{	
-				try {
-					for (o in obj)
-					{
-						reset(obj[o]);
-					}
-				} catch (e) { return null; }
-			}
-			else
-				return null;
-		};
-		this.uglify = require('uglify-js');
-	}
-
 	// Compile and compress the class source code and create a prototype.
 	this.compileClass(className);
 
 	// Create a function to create a new instance from the prototype when called.
 	var build = self.classesBuild[className];
-	var evalBuilder = "var classBuilder = function "+className+"() {\n";
-		evalBuilder += '	this.builder.loadDependencies(build.dependencies);\n';
-		evalBuilder += '	for (e in build.dependencies)\n';
-		evalBuilder += "		eval ('var '+build.dependencies[e].replace(\/\\\-\/g,\"_\")+'=this.builder.loadedModules[build.dependencies[e]];');\n";
-		evalBuilder += '	eval(this.builder.compiledSource[className]);\n';
-		evalBuilder += "	eval('var klass = new '+className+';');\n";
+	// var ctx = vm.createContext(global);
+	// ctx.builder = this;
+	var evalBuilder = "var classBuilder = function () {\n";
+		evalBuilder += '	this.builder.vmScript[className].runInThisContext();\n';
+		evalBuilder += "	var klass = new classObject;\n";
 		evalBuilder += '	klass.construct&&klass.construct.apply(klass,arguments);\n';
 		evalBuilder += '	return klass;\n};';
 	eval(evalBuilder);
@@ -248,21 +230,6 @@ wnBuild.prototype.buildClass = function (className)
  * @return string
  */
 wnBuild.prototype.minify = function (code,className) {
-	if (WNS_DEV)
-		return code;
-	try {
-		this.toplevel = this.uglify.parse(code,{
-			filename: "?"
-		});
-		this.toplevel.figure_out_scope();
-		var compressor = this.uglify.Compressor({ warnings: false });
-		var compressed = this.toplevel.transform(compressor);
-		code = compressed.print_to_string();
-	} catch (e)
-	{
-		console.log('Erron when trying to minify `'+className+'`: '+e.message); console.log(e.stack);
-		process.exit();
-	}
 	return code;
 };
 
@@ -300,7 +267,7 @@ wnBuild.prototype.compileClass = function (targetClass)
 		})(build.extend);
 
 		// Begin of the classLoader source code.
-		var classLoader = '';
+		var classLoader = 'var classObject = (function () {\n';
 		classLoader+='//@'+targetClass+'\n\n';
 		classLoader+='var self={}, className="'+targetClass+'";\n';
 		classLoader+='function '+targetClass+'() { self = this; this.className = "'+targetClass+'"; }\n';
@@ -321,9 +288,15 @@ wnBuild.prototype.compileClass = function (targetClass)
 		// Start of the targetClass's source code.
 		classLoader +='\n// Begin of '+targetClass+' \n';
 
+		// Importing every NPM dependencies 
+		classSource = '\n// Declaring NPM dependencies \n';
+		classSource += '	var deps = '+util.inspect(build.dependencies)+'; builder.loadDependencies(deps);\n';
+		classSource += '	for (e in deps)\n';
+		classSource += "		eval ('var '+deps[e].replace(\/\\\-\/g,\"_\")+'=builder.loadedModules[deps[e]];');\n";
+
 		// Declare private properties
-		classSource = '\n// Declaring private properties \n';
-		classSource = 'var _=self,';
+		classSource += '\n// Declaring private properties \n';
+		classSource += 'var _=self,';
 		for (p in build.private)
 		{
 			if (p == 'classProto' || p == 'klass')
@@ -364,7 +337,7 @@ wnBuild.prototype.compileClass = function (targetClass)
 		classSource = classSource.replace(/\[Function\]/gim, 'function () {}');
 
 		// Add to the classLoader source code the class's sourceCode.
-		classLoader += classSource;
+		classLoader += classSource+'\n return klass; })();';
 
 		// Try to minify the sourceCode.
 		classLoader=builder.minify(classLoader,targetClass);
@@ -372,6 +345,9 @@ wnBuild.prototype.compileClass = function (targetClass)
 		// Store the compiled and not compiled source code.
 		this.classesSource[targetClass] = classSource;
 		this.compiledSource[targetClass] = classLoader;
+
+		// Create a VM.Script from the classLoader;
+		this.vmScript[targetClass] = vm.createScript(classLoader);
 	} catch (e)
 	{
 		console.log('\nError on compiling `'+targetClass+'`: '+e.message);
