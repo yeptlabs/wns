@@ -64,7 +64,6 @@ module.exports = {
 		this.preloadComponents();
 		this.preloadEvents();
 
-
 		this.setEvents({ 'ready': {} });
 		var ready=this.getEvent('ready');
 		ready.once(function (e) {
@@ -78,6 +77,7 @@ module.exports = {
 			self.run.apply(self,arguments);
 			_initialized=true;
 		});
+
 
 		if (this.getConfig('autoInit')!=false)
 			process.nextTick(function () {
@@ -155,7 +155,7 @@ module.exports = {
 		{
 			this.e.log&&this.e.log('Importing core classes...','system');
 
-			var classesSource = classesSource||global.coreClasses;
+			var classesSource = classesSource||global.wns.coreClasses;
 			var classBuilder = new process.wns.wnBuild(classesSource,this);
 			this.setComponent('classBuilder',classBuilder);
 			classBuilder.build();
