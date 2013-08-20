@@ -28,6 +28,7 @@ global.WNS_QUIET_MODE = (process.argv.indexOf('--quiet') != -1 ? true : (typeof 
 global.WNS_TEST = (process.argv.indexOf('--test') != -1 || process.env.TEST ? true : false);
 global.WNS_DEV = (process.argv.indexOf('--dev') != -1 || process.env.DEV ? true : false);
 global._r = require;
+global.require = require;
 
 // // Checking for v8debug
 // if (process.execArgv.indexOf('--expose-debug-as=v8debug') !==-1)
