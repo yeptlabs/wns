@@ -70,8 +70,16 @@ module.exports = {
 		 * @var string default events
 		 */
 		defaultEvents: {
-			"beforeAction": {}
+			"beforeAction": {},
+			"renderView": { handler: '_renderView' },
+			"renderLayout": { handler: '_renderLayout' },
+			"send": { handler: '_send' }
 		},
+
+		/**
+		 * @var object with every key that will be matched in the template
+		 */
+		templateObj: {},
 
 		/**
 		 * @var client's scripts
@@ -158,7 +166,7 @@ module.exports = {
 						this.once('beforeAction',function () {
 							self[action]&&self[action]();
 						});
-						this.e.beforeAction();
+						this.e.beforeAction(action);
 						return true;
 					}
 			}
@@ -195,27 +203,32 @@ module.exports = {
 		getView: function (view,cb)
 		{
 			var fileName = this.request.getConfig('path').views+this.getControllerName()+'/'+view+'.tpl',
-				lastModif = this.app.cache.get('template-'+self.getControllerName()+'/'+view);
+				lastModif = this.app.cache.get('template-'+self.uid);
 			if (lastModif)
 			{
-				if (self.app.getConfig('devMode'))
+				if (WNS_DEV)
 					fs.stat(this.app.modulePath+fileName,function (err,stats) {
 						if (err!==null)
 							cb&&cb(false);
 						else if (stats.mtime.getTime() > lastModif)
 						{
-							self.app.cache.set('template-'+self.getControllerName()+'/'+view,false);
+							self.app.cache.set('template-'+self.uid,+new Date);
 							self.app.getFile(fileName,cb);
 						}
 						else
+						{
 							cb&&cb('')
+						}
 					});
 				else
 				{
 					cb&&cb('');
 				}
 			} else
+			{
+				self.app.cache.set('template-'+self.uid,+new Date);
 				this.app.getFile(fileName,cb);
+			}
 		},
 
 		/**
@@ -231,23 +244,90 @@ module.exports = {
 				lastModif = this.app.cache.get('template-layout-'+layout);
 			if (lastModif)
 			{
-				if (self.app.getConfig('devMode'))
+				if (WNS_DEV)
 					fs.stat(this.app.modulePath+fileName,function (err,stats) {
 						self.request.stat=stats;
 						if (err!==null)
 							cb&&cb(false);
 						else if (stats.mtime.getTime() > lastModif)
 						{
-							self.app.cache.set('template-layout-'+view,false);
+							self.app.cache.set('template-layout-'+layout,+new Date);
 							self.app.getFile(fileName,cb);
 						}
 						else
+						{
 							cb&&cb('')
+						}
 					});
 				else
 					cb&&cb('');
 			} else
+			{
+				self.app.cache.set('template-layout'+layout,+new Date);
 				this.app.getFile(fileName,cb);
+			}
+		},
+
+		/**
+		 * Default handler for sending the rendered data.
+		 */
+		_send: function (e,data,stream)
+		{
+			var data = stream.data.toString('utf8');
+			if (data.match(self.embedScriptTag) && (self.clientScript.length>0 || self.embedScript.length>0))
+			{
+				var html = '';
+				for (c in self.embedScript)
+					html+='<script type="text/javascript" src="'+self.embedScript[c]+'"></script>';
+
+				for (c in self.clientScript)
+					html+='<script type="text/javascript">'+self.clientScript[c]+'</script>';
+
+				data=data.replace(self.embedScriptTag,html);
+			}
+
+			self.request.send(data);
+		},
+
+		/**
+		 * Default handler for rendering the layout.
+		 */
+		_renderLayout: function (e,layoutTpl)
+		{
+			self.templateObj.view = self.view.export();
+			self.layoutTpl = layoutTpl;
+
+			var stream=self.template.render({
+				name: 'layout-'+self.layout,
+				source: self.layoutTpl
+			}, self.templateObj, function (err,data) {
+				// GOTO: _render
+				self.e.send(data,stream);
+			});
+		},
+
+		/**
+		 * Default handler for rendering the view.
+		 */
+		_renderView: function (e,view)
+		{
+			self.view.language = self.app.getConfig('components').view.language;
+			if (self.view.title == null)
+				self.view.title = (new self.app.c.wnTemplate(self.app.getConfig('components').view.titleTemplate)).match(self.templateObj);
+			self.view.layout = self.viewTpl;
+			self.view.data = self.templateObj;
+			
+			self.view.render(function (viewTpl) {
+				self.viewTpl = viewTpl;
+				self.templateObj.content = function (chunk) {
+					return chunk.write(this.html);
+				}.bind({ html: viewTpl });
+
+				self.getLayout(self.layout,function (layoutTpl) {
+					// GOTO: _renderLayout
+					self.e.renderLayout(layoutTpl);
+				});
+			});
 		},
 	
 		/**
@@ -257,11 +337,18 @@ module.exports = {
 		 */
 		render: function (view,data)
 		{
+			self.viewTpl = '';
+			self.layoutTpl = '';
+			self.uid = self.controllerName+'-'+self.action+'-'+self.layout+'-'+view;
+			self.view.name = view;
+
 			var _controller=this.getControllerName();
 			var layout=this.layout;
 			var templateObj = {};
 			var renderLayout;
 			var data = Object.extend(true,{},data||{});
+
+			self.templateObj = templateObj;
 
 			Object.extend(true,templateObj,data,{
 				self: self.export(),
@@ -270,54 +357,13 @@ module.exports = {
 			});
 
 			process.nextTick(function () {
-				self.getView(view,function (viewTpl) {
-					if (viewTpl!==false)
+				self.getView(view,function (gotView) {
+					if (gotView!==false)
 					{
-						//console.log('got view')
-						self.view.name = view;
-						self.view.language = self.app.getConfig('components').view.language;
-						self.view.title = (new self.app.c.wnTemplate(self.app.getConfig('components').view.titleTemplate)).match(templateObj);
-						self.view.layout = viewTpl;
-						self.view.data = templateObj;
-						
-						self.view.render(function (viewTpl) {
-							//console.log('render view')
-							self.getLayout(layout,function (layoutTpl) {
-								//console.log('got layout')
+						self.viewTpl = gotView;
 
-								templateObj.view = self.view.export();
-								templateObj.content = function (chunk) {
-									return chunk.write(this.html);
-								}.bind({ html: viewTpl });
-
-								var stream=self.template.render({
-									name: 'layout-'+layout,
-									source: layoutTpl
-								}, templateObj, function (err,renderLayout) {
-
-									var data = stream.data.toString('utf8');
-									if (data.match(self.embedScriptTag) && (self.clientScript.length>0 || self.embedScript.length>0))
-									{
-
-										var html = '';
-										for (c in self.embedScript)
-											html+='<script type="text/javascript" src="'+self.embedScript[c]+'"></script>';
-
-										for (c in self.clientScript)
-											html+='<script type="text/javascript">'+self.clientScript[c]+'</script>';
-
-										data=data.replace(self.embedScriptTag,html);
-
-									}
-
-									self.request.send(data);
-								});
-								/*if (stream)
-									stream.on('data',function (chunk) {
-										self.request.write(chunk);
-									});*/
-							});
-						});
+						// GOTO: _renderView
+						self.e.renderView(gotView);
 					} else
 					{
 						self.app.e.log('View template not found: '+_controller+'/'+view,404);

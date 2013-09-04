@@ -301,11 +301,16 @@ module.exports = {
 		 * meaning all attributes that are loaded from DB will be saved.
 		 * @return boolean whether the saving succeeds
 		 */
-		save: function (attributes)
+		save: function ()
 		{
-			if (attibutes)
-				this.setAttributes(attributes);
-			return this.getIsNewRecord() ? this.insert(this.getAttributes()) : this.update(this.getAttributes());
+			var arguments = _.toArray(arguments);
+			var attributes = this.getAttributes() || {};
+			var cb;
+			if (typeof arguments[0] == 'object')
+				attributes = arguments.shift();
+			if (typeof arguments[0] == 'function')
+				cb = arguments.shift();
+			return this.getIsNewRecord() ? this.insert(this.getAttributes(),cb) : this.update(this.getAttributes(),cb);
 		},
 
 		/**

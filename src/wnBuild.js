@@ -52,6 +52,38 @@ function wnBuild(sourceCode,parent)
 	this.loadedModules = {};
 
 	this.load();
+
+	this.onDebug = function (event, exec_state, event_data, data) {
+	    try {
+	        if (event == Debug.DebugEvent.BeforeCompile) {
+	            if (Debug.ScriptCompilationType.Eval === event_data.script().compilationType()) {
+	                var source = event_data.script().source();
+	                if (source.match(/^\/\/\@\w+/gim)) {
+	                    var className = source.match(/^\/\/\@\w+/gim),
+                            id = source.match(/\/\/\#[\w|\-]+/gim) || '';
+	                    id = id ? id[0].split('#')[1] : '';
+	                    cName = className[0].split('@')[1];
+
+	                    if (className && !self.debugScripts[id + '/' + cName]) {
+	                        self.debugScripts[id + '/' + cName] = source;
+	                        var fileName = self.moduleClass + "/" + cName;
+	                        if (id !== '') {
+	                            fileName = self.moduleClass + "/" + cName + "/" + id;
+	                        }
+	                        event_data.script().setSource(event_data.script().source() +
+                                " //@ sourceURL=_" + fileName + ".js");
+	                    }
+	                }
+	            }
+	        }
+	    } catch (e) {
+	    }
+	}
+
+	if (v8debug) {
+	    var Debug = v8debug.Debug;
+	    Debug.setListener(this.onDebug);
+	}
 };
 
 /**
@@ -292,11 +324,11 @@ wnBuild.prototype.compileClass = function (targetClass)
 		classSource = '\n// Declaring NPM dependencies \n';
 		classSource += '	var deps = '+util.inspect(build.dependencies)+'; builder.loadDependencies(deps);\n';
 		classSource += '	for (e in deps)\n';
-		classSource += "		eval ('var '+deps[e].replace(\/\\\-\/g,\"_\")+'=builder.loadedModules[deps[e]];');\n";
+		classSource += "		eval ('var '+deps[e].replace(\/\\\-\|\\\.\/g,\"_\")+'=builder.loadedModules[deps[e]];');\n";
 
 		// Declare private properties
 		classSource += '\n// Declaring private properties \n';
-		classSource += 'var _=self,';
+		classSource += 'var _=underscore,$$=self,';
 		for (p in build.private)
 		{
 			if (p == 'classProto' || p == 'klass')

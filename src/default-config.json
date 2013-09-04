@@ -6,11 +6,11 @@
 
 	// Application load system configuration
 	"app": {
-		// Example of app load configuration
-		"default": {
-			"appPath": "default/",
-			"domain": "*"
-		}
+		// Example of app load configuration (uncomment to create the default app)
+		// "default": {
+		// 	"appPath": "default/",
+		// 	"domain": "*"
+		// }
 	},
 
 	// Components

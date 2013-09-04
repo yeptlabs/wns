@@ -10,21 +10,30 @@ prog
 	.parse(process.argv);
 
 // If is selected create new server...
-if (prog.new!==undefined && prog.new!==true)
+if (prog.new!==undefined && prog.new===true)
 {
-	var name = prog.new,
-		newPath = path.resolve(process.cwd()+'/'+prog.new).replace(/\\/g,'/')+'/';
-	if (!fs.existsSync(newPath))
-		fs.mkdir(name);
+	var name = prog.new;
+
+	if (name!==true)
+	{
+		var newPath = path.resolve(process.cwd()+'/'+prog.new).replace(/\\/g,'/')+'/';
+		if (!fs.existsSync(newPath))
+			fs.mkdir(name);
+	}
+	else
+		var newPath = path.resolve(process.cwd()+'/').replace(/\\/g,'/')+'/';
+
 	var success=wns.console.buildServer(newPath);
 	if (!success)
-		console.log('Could not build new server...');
+		console.log('  Could not build new server...');
+	else
+		console.log();console.log('  A new server configuration was written on the current directory.');
 } else if (prog.exec) {
 	var cmd = prog.exec+' '+prog.args.join(' ');
 	if (prog.isServer) {
 		var server = wns.console.addServer(path.relative(prog.wnsPath,prog._modulePath))
 		server.exec(cmd);
-	} else if (!isApp)
+	} else if (!prog.isApp)
 		wns.console.exec(cmd);
 } else if (prog.isValidModule)
 {

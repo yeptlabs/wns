@@ -61,6 +61,11 @@ module.exports = {
 		header: {},
 
 		/**
+		 * @var object request cookies
+		 */
+		cookies: {},
+
+		/**
 		 * @var integer request lifetime
 		 */
 		lifeTime: 30000,
@@ -162,7 +167,6 @@ module.exports = {
 			this.parsedUrl=url.parse(this.info.url,true);
 			this.route = this.app.getComponent('urlManager').parseRequest(this) || { translation: this.info.url, params: {}, template: '' };
 			this.template = this.route ? this.route.template : false;
-			this.user = {};
 
 			this.query.GET = {};
 			this.query.POST = { fields: {}, files: {} };
@@ -176,11 +180,6 @@ module.exports = {
 				this.query.GET[g]=this.query.GET[g].replace(/\+/gi,' ')
 			}
 
-			// self.result=Object.extend(true,{},{ 'User[email]': 'pedronasser@gmail.com', 'User[password]': '123', 'User[0][1][2][3]': 1 });
-			// self.result=self.formatQuery(self.result);
-			// console.log(util.inspect(self.result,{ depth: 1000 }));
-
-			// console.log(this.query.POST.fields);
 			self.formatQuery(this.query.POST.fields);
 			self.formatQuery(this.query.POST.files);
 			self.formatQuery(this.query.GET);
@@ -214,25 +213,6 @@ module.exports = {
 				self.e.end(self);
 				self.info.connection.destroy();
 			});
-
-			// _data = new Buffer(0);
-			// if (this.response)
-			// {
-			// 	this.response.__write = this.response.write;
-			// 	this.response.write = function (chunk, encoding)
-			// 	{
-			// 		if (chunk)
-			// 			_data = Buffer.concat([_data,new Buffer(chunk,encoding)]);
-			// 		self.response.__write.call(self.response,chunk,encoding);
-			// 	};
-			// 	this.response.__end = this.response.end;
-			// 	this.response.end = function(chunk, encoding) {
-			// 		if (chunk)
-			// 			_data = Buffer.concat([_data,new Buffer(chunk,encoding)]);
-			// 		self.response.__end.call(self.response,chunk,encoding);
-			// 		self.e.end(self);
-			//     };
-			// }
 
 			this.addListener('error',function (e,code,msg,fatal) {
 				this.err=true;
@@ -290,7 +270,7 @@ module.exports = {
 		 */
 		controllerHandler: function ()
 		{
-			this.header['Content-Type']=mime.lookup('.html');
+			this.header['Content-Type']='text/html';
 
 			var _p=(this.route.translation).split('/'),
 				_plen = _p.length,
@@ -339,20 +319,26 @@ module.exports = {
 		{
 			id = id.toLowerCase();
 			var controllerName = 'wn'+(id.substr(0,1).toUpperCase()+id.substr(1))+'Controller';
-			if (!this.app.c[controllerName]) {
+			var classProto = this.app.c[controllerName];
+			if (_(classProto).isUndefined()) {
+				var controllerFile = this.getConfig('path').controllers+id+'.js';
 				var builder = this.app.getComponent('classBuilder');
-				var classSource = this.app.getFile(this.getConfig('path').controllers+id+'.js');
-				builder.addSource(controllerName,classSource);
-				builder.classes[controllerName]=builder.buildClass(controllerName);
-				builder.makeDoc(controllerName);
-				if (!builder.classes[controllerName])
-					this.app.e.exception(new Error('Could not build the controller class.'));
-				this.app.c[controllerName]=builder.classes[controllerName];
-				_controllers[id]=this.app.c[controllerName];
+				if (fs.existsSync(this.app.modulePath+controllerFile))
+				{
+					var classSource = this.app.getFile(controllerFile);
+					builder.addSource(controllerName,classSource);
+					builder.classes[controllerName]=builder.buildClass(controllerName);
+					builder.makeDoc(controllerName);
+					if (!builder.classes[controllerName])
+						this.app.e.exception(new Error('Could not build the controller class.'));
+					this.app.c[controllerName]=builder.classes[controllerName];
+					_controllers[id]=this.app.c[controllerName];
+					classProto = this.app.c[controllerName];
+				} else
+					return false;
 			}
-			var config = { controllerName: id },
-				controllerClass = this.app.c[controllerName],
-				controller = new controllerClass(config,this.app.c,this.app,this);
+			var config = { controllerName: id };
+				controller = new classProto(config,this.app.c,this.app,this);
 			return controller;
 		},
 
@@ -377,7 +363,7 @@ module.exports = {
 				var s = fs.createReadStream(self.app.modulePath+self.fileName);
 				s.on('error', function () {
 					self.e.error(404,'File not found',true);
-				})
+				});
 				s.on('open',function () {
 					self.code=200;
 					self.send(s);
@@ -399,7 +385,10 @@ module.exports = {
 
 			if (this.getConfig('errorPage')!=undefined && !fatal)
 			{
-				return this.redirect('/'+this.getConfig('errorPage'), true);
+				this.route.translation = '/'+this.getConfig('errorPage');
+				this.controllerHandler();
+				return;
+				// return this.redirect('/'+this.getConfig('errorPage'), true);
 			}
 
 			this.send();

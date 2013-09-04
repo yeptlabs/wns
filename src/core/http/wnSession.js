@@ -44,6 +44,10 @@ module.exports = {
 		init: function ()
 		{
 			this.getParent().prependListener('readyRequest',function (e,req) {
+
+				if (!req.user)
+					req.user = { logged: false };
+
 				req.prependOnce('run',function () {
 					if (req.info.headers.cookie)
 					{
@@ -59,15 +63,13 @@ module.exports = {
 				});
 				req.prependOnce('send',function () {
 					var reqId = self.getId(req);
-					if (req.user && req.user.logout)
+
+					if (!req.cookies['wns-session-id'])
 					{
-						req.header['Set-Cookie']='wns-session-id=deleted; path=/;';
-						self.getParent().cache.set('wns-session-'+reqId,false);
-					} else if (req.user && req.user.auth)
-					{
-						req.header['Set-Cookie']='wns-session-id='+reqId+'; path=/;';
-						self.getParent().cache.set('wns-session-'+reqId,req.user);
+						req.header['Set-Cookie']=['wns-session-id='+reqId,'path=/'];
 					}
+
+					self.getParent().cache.set('wns-session-'+reqId,req.user);
 				})
 			});
 		},

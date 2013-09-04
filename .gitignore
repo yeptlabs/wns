@@ -5,3 +5,4 @@
 /config.json
 *.log
 /test/tmp
+/wns.*
