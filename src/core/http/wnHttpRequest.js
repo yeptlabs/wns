@@ -408,7 +408,7 @@ module.exports = {
 				terminate = new Boolean(arguments[2]).valueOf() || false;
 			} else {
 				url=arguments[0]+'' || '/';
-				statusCode = 307;
+				statusCode = 303;
 				terminate = new Boolean(arguments[1]).valueOf() || false;
 			}
 		

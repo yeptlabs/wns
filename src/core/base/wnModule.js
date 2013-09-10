@@ -56,6 +56,8 @@ module.exports = {
 		if (config)
 			this.setConfig(config);
 
+		_debug = this.getConfig('debug')===true;
+
 		this.importFromConfig();
 
 		Object.defineProperty(this,'c',{ value: this.getComponent('classBuilder').classes, enumerable:false, writable: false });

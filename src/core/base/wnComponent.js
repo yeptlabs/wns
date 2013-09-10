@@ -41,6 +41,7 @@ module.exports = {
 	{
 		Object.defineProperty(this,'c',{ value: (classes || {}), enumerable:false, writable: false });
 		this.setConfig(config);
+		_debug = this.getConfig('debug')===true;
 		this.preloadEvents();
 		this.getConfig('autoInit')!=false&&this.init.apply(this,arguments); 
 		_initialized=true;
@@ -59,6 +60,11 @@ module.exports = {
 		},
 
 		/**
+		 * @var run in debug mode?
+		 */
+		_debug: false,
+
+		/**
 		 * @var private boolean its the component loaded?
 		 */
 		_initialized: false,
@@ -66,7 +72,9 @@ module.exports = {
 		/**
 		 * @var private object component's configuration object
 		 */
-		_config: {},
+		_config: {
+			debug: false
+		},
 
 		/**
 		 * @var private object component's events object
@@ -534,6 +542,33 @@ module.exports = {
 		getParent: function ()
 		{
 			return _parent;
+		},
+
+		/**
+		 * Component's debug function
+		 * @return self
+		 */
+		debug: function ()
+		{
+			var target;
+
+			if (!_debug)
+				return false;
+
+			if (self.instanceOf('wnModule'))
+				target = self;
+			else if (self.getParent())
+				target = self.getParent();
+			else
+				return false;
+
+			if (_(arguments[0]).isString())
+				arguments[0]="*"+self.getClassName()+"* "+arguments[0];
+
+			target&&
+				target.e.log.apply(target,arguments);
+
+			return self;
 		},
 
 		/**

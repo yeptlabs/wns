@@ -25,13 +25,21 @@ module.exports = {
 	 * PRIVATE
 	 */
 	private: {
-		_preCookie: 'path=/; '
+		_config: {
+			pathCookie: 'path=/;',
+			cookieName: 'wns-session-id',
+			ttlSession: 1000*60*5
+		}
 	},
 
 	/**
 	 * Public Variables
 	 */
-	public: {},
+	public: {
+		_pathCookie: '',
+		_cookieName: '',
+		_ttlSession: 1000
+	},
 
 	/**
 	 * Methods
@@ -43,44 +51,168 @@ module.exports = {
 		 */	
 		init: function ()
 		{
+			_debug = true;
+			_pathCookie = _config.pathCookie;
+			_cookieName = _config.cookieName;
+			_ttlSession = _config.ttlSession;
+
 			this.getParent().prependListener('readyRequest',function (e,req) {
 
-				if (!req.user)
-					req.user = { logged: false };
+				if (req.template == '<file>')
+					return false;
 
 				req.prependOnce('run',function () {
 					if (req.info.headers.cookie)
 					{
 						cookies = req.cookies;
-						var reqId=cookies['wns-session-id'];
+						var reqId=cookies[_cookieName];
+						self.debug('LOOK for session: '+reqId)
+
 						if (reqId)
 						{
+							self.debug('GOT session!')
 							var sessionData = self.getParent().cache.get('wns-session-'+reqId);
 							if (sessionData)
+							{
+								if (+new Date - +new Date(sessionData._created) >= _ttlSession)
+								{
+									self.debug('RENEW session!');
+									self.createSession(req,sessionData,function () {
+										self.renewToken(req);
+										self.debug('COOKING session')
+										req.response.setHeader('Set-Cookie',_cookieName+'='+req.user._sid+'; '+_pathCookie);
+									});
+								}
+
 								req.user=sessionData;
+							}
+							else
+								self.debug('KILLED session.')
 						}
 					}
-				});
-				req.prependOnce('send',function () {
-					var reqId = self.getId(req);
 
-					if (!req.cookies['wns-session-id'])
+					if (!req.user)
 					{
-						req.header['Set-Cookie']=['wns-session-id='+reqId,'path=/'];
+						self.createSession(req,{},function () {
+							self.renewToken(req);
+							self.debug('COOKING session')
+							req.response.setHeader('Set-Cookie',_cookieName+'='+req.user._sid+'; '+_pathCookie);
+						});
+					} else {
+						self.renewToken(req);
 					}
+				});
 
-					self.getParent().cache.set('wns-session-'+reqId,req.user);
+				req.prependOnce('send',function () {
+					if (req.user && req.user._sid && self.getParent().cache.get('wns-session-'+req.user._sid))
+					{
+						self.debug('UPDATE session');
+						var sessionData = self.getParent().cache.get('wns-session-'+req.user._sid);							
+
+						for (p in req.user)
+						{
+							sessionData[p]=req.user[p];
+						}
+
+						self.getParent().cache.set('wns-session-'+req.user._sid,sessionData);
+					}
 				})
 			});
 		},
 
 		/**
-		 * Get request's session-id.
+		 * Create a new session to the user.
+		 * @param object $req request
+		 * @param object $data session data
+		 * @param function $cb callback
+		 * @return self
 		 */
-		getId: function (req)
+		createSession: function (req,data,cb)
 		{
-			var reqUser = req.user && req.user.id ? req.user.id : 'none';
-			return crypto.createHash('md5').update(req.remoteAddress+''+reqUser).digest("hex");
+			if (!_(req).isObject())
+				return cb&&cb(false);
+
+			self.getId(req,function (id) {
+
+				var logged = false;
+				var token = '';
+
+				self.debug('CREATING session');
+				req.user = data || { data: { time: +new Date } };
+
+				if (!req.user.data)
+					req.user.data = {};
+
+				if (data._sid)
+				{
+					token = data._token;
+					logged = data._logged;
+					self.getParent().cache.set('wns-session-'+data._sid,undefined)
+				}
+
+				Object.defineProperty(req.user,'_sid', { value: id, enumerable: false, writable: false, configurable: true });
+				Object.defineProperty(req.user,'_token', { value: '', enumerable: false, writable: true, configurable: true });
+
+				function validateToken(tok) {
+					if (!_(tok).isString())
+						return false;
+
+					return tok == req.user._token;
+				}
+				Object.defineProperty(req.user,'_validate', { value: validateToken, enumerable: false, writable: false, configurable: true });
+				Object.defineProperty(req.user,'_created', { value: +new Date, enumerable: false, writable: false, configurable: true });
+				Object.defineProperty(req.user,'_logged', {
+					get: function () {
+						return logged
+					},
+					set: function (val) {
+						if (Boolean(val) == true)
+						{
+							logged=true;
+						}
+						else {
+							self.debug('KILLING session')
+							self.getParent().cache.set('wns-session-'+id,undefined)
+							logged=false;
+						}
+					},
+					enumerable: false, configurable: true
+				});
+
+				self.getParent().cache.set('wns-session-'+id,req.user)
+				cb&&cb();
+			});
+
+			return self;
+		},
+
+		/**
+		 * Renew the token of the session;
+		 * @param object $req request
+		 */
+		renewToken: function (req)
+		{
+			self.debug('TOKEN session');
+			var reqUser = req.user && req.user.id ? req.user.id : '';
+			var uid = req.remoteAddress+''+reqUser+''+Math.floor(100000000+Math.random()*100000000)+''+new Date;
+			var token = crypto.createHash('md5').update(uid).digest("hex");
+			req.user._token = token;
+		},
+
+		/**
+		 * Get request's new session id. (NEED TO CHANGE HASH CREATION)
+		 * @param object $req request
+		 * @param function $cb callback [optional]
+		 * @return string
+		 */
+		getId: function (req,cb)
+		{
+			var reqUser = req.user && req.user.id ? req.user.id : '';
+			var uid = req.remoteAddress+''+reqUser+''+Math.floor(100000000+Math.random()*100000000)+''+new Date;
+			if (cb)
+				return cb&&cb(crypto.createHash('md5').update(uid).digest("hex"));
+			else
+				return crypto.createHash('md5').update(uid).digest("hex");
 		}
 		
 	}
