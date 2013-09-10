@@ -51,7 +51,6 @@ module.exports = {
 		 */	
 		init: function ()
 		{
-			_debug = true;
 			_pathCookie = _config.pathCookie;
 			_cookieName = _config.cookieName;
 			_ttlSession = _config.ttlSession;
