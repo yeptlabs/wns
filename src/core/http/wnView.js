@@ -34,7 +34,7 @@ module.exports = {
 		/**
 		 * @var string Page's title
 		 */
-		title: '',
+		title: null,
 
 		/**
 		 * @var string Page's language
@@ -74,21 +74,12 @@ module.exports = {
 		init: function () {
 			this.controller = this.getConfig('controller');
 		},
-
-		/**
-		 * Some code to execute every time before rendering.
-		 */
-		beforeRender: function () 
-		{
-
-		},
-
+		
 		/**
 		 * Renders the layout of the view with all the page's information.
 		 */
 		render: function (cb) {	
 			var exprt = {};
-			this.beforeRender();
 			Object.extend(true,exprt,self.data);
 			exprt.view = this.export();
 			var viewResult='';

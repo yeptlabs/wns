@@ -41,6 +41,17 @@ module.exports = {
 	{
 		Object.defineProperty(this,'c',{ value: (classes || {}), enumerable:false, writable: false });
 		this.setConfig(config);
+		_debug = this.getConfig('debug')===true;
+		_verbosity = this.getConfig('verbosity') || 0;
+		_logName = this.getConfig('logName') || className || '';
+		this.e.log = function () {
+			if (self.getParent() && self.getParent().e.log)
+			{
+				if (arguments[0])
+					arguments[0]=_logName+' * '+arguments[0];
+				self.getParent().e.log.apply(self.getParent(),arguments);
+			}
+		};
 		this.preloadEvents();
 		this.getConfig('autoInit')!=false&&this.init.apply(this,arguments); 
 		_initialized=true;
@@ -59,6 +70,21 @@ module.exports = {
 		},
 
 		/**
+		 * @var run in debug mode?
+		 */
+		_debug: false,
+
+		/**
+		 * @var verbosity level
+		 */
+		_verbosity: 0,
+
+		/**
+		 * @var name to be shown on logs.
+		 */
+		_logName: '',		
+
+		/**
 		 * @var private boolean its the component loaded?
 		 */
 		_initialized: false,
@@ -66,7 +92,9 @@ module.exports = {
 		/**
 		 * @var private object component's configuration object
 		 */
-		_config: {},
+		_config: {
+			debug: false
+		},
 
 		/**
 		 * @var private object component's events object
@@ -285,8 +313,6 @@ module.exports = {
 		 */
 		createClass: function (className,config,path,npmPath)
 		{
-			//console.log(this.className+' -> '+className)
-			//!this.c&&console.log(this.c);
 			var source = this.c || process.wns;
 			var instance;
 			var builder = this.getComponent&&this.getComponent('classBuilder');
@@ -534,6 +560,54 @@ module.exports = {
 		getParent: function ()
 		{
 			return _parent;
+		},
+
+		/**
+		 * Component's debug log function
+		 * @return self
+		 */
+		debug: function (msg,verbosity)
+		{
+			if (!_debug || verbosity>_verbosity)
+				return false;
+			this.e.log.apply(this,[msg||'','debug',verbosity||0]);
+			return self;
+		},
+
+		/**
+		 * Component's info log function
+		 * @return self
+		 */
+		info: function ()
+		{
+			arguments[arguments.length+'']='info';
+			arguments.length++;
+			this.e.log.apply(this,arguments);
+			return this;
+		},
+
+		/**
+		 * Component's warn log function
+		 * @return self
+		 */
+		warn: function ()
+		{
+			arguments[arguments.length+'']='warn';
+			arguments.length++;
+			this.e.log.apply(this,arguments);
+			return this;
+		},
+
+		/**
+		 * Component's sys log function
+		 * @return self
+		 */
+		syslog: function ()
+		{
+			arguments[arguments.length+'']='system';
+			arguments.length++;
+			this.e.log.apply(this,arguments);
+			return this;
 		},
 
 		/**

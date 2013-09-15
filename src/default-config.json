@@ -6,11 +6,11 @@
 
 	// Application load system configuration
 	"app": {
-		// Example of app load configuration
-		"default": {
-			"appPath": "default/",
-			"domain": "*"
-		}
+		// Example of app load configuration (uncomment to create the default app)
+		// "default": {
+		// 	"appPath": "default/",
+		// 	"domain": "*"
+		// }
 	},
 
 	// Components
@@ -19,8 +19,8 @@
 		"http": {
 			// Component class.
 			"class": "wnHttp",
-			// Listen on port and IP...
-			"listen":[8000]
+			// Uncomment and edit to change the PORT.
+			// "listen":[8000]
 		}
 	}
 

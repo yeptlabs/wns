@@ -56,13 +56,15 @@ module.exports = {
 		if (config)
 			this.setConfig(config);
 
+		_debug = this.getConfig('debug')===true;
+
 		this.importFromConfig();
 
 		Object.defineProperty(this,'c',{ value: this.getComponent('classBuilder').classes, enumerable:false, writable: false });
 		this.c.module = self;
 
-		this.preloadComponents();
 		this.preloadEvents();
+		this.preloadComponents();
 
 		this.setEvents({ 'ready': {} });
 		var ready=this.getEvent('ready');
@@ -337,10 +339,10 @@ module.exports = {
 				if (this.getComponent('classBuilder').exists(className))
 				{
 					config.id = id;
-					config.autoInit = (config.autoInit == true);
+					config.autoInit = false;
 					var component = this.createComponent(className,config);
 					if (config.setParent)
-						component.setParent(this);
+						component.setParent(self);
 					self.e.loadComponent(e,id,component);
 					(!config.autoInit)&&component.init(config);
 					_components[id] = component;
