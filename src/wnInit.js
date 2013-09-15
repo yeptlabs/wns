@@ -41,7 +41,6 @@ var memory = process.memoryUsage().rss,
 	builder;
 
 
-
 // LOADING ZONE...
 try
 {
@@ -52,6 +51,12 @@ try
 	mainPath = process.mainModule.filename.replace(/\\\\/g,"/").replace(/\\/g,"/").split('/');
 	mainPath.pop();
 	global.mainPath = mainPath.join("\/");
+
+	if (process.execArgv.indexOf('--expose-debug-as=v8debug') !== -1)
+	    var foundDebug = true;
+
+	if (!foundDebug)
+	    global.v8debug = undefined;
 
 	sl&&console.log(' CWD: '+cwd);
 	sl&&console.log(' SOURCEPATH: '+cwd+sourcePath);

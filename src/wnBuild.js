@@ -52,6 +52,38 @@ function wnBuild(sourceCode,parent)
 	this.loadedModules = {};
 
 	this.load();
+
+	this.onDebug = function (event, exec_state, event_data, data) {
+	    try {
+	        if (event == Debug.DebugEvent.BeforeCompile) {
+	            if (Debug.ScriptCompilationType.Eval === event_data.script().compilationType()) {
+	                var source = event_data.script().source();
+	                if (source.match(/^\/\/\@\w+/gim)) {
+	                    var className = source.match(/^\/\/\@\w+/gim),
+                            id = source.match(/\/\/\#[\w|\-]+/gim) || '';
+	                    id = id ? id[0].split('#')[1] : '';
+	                    cName = className[0].split('@')[1];
+
+	                    if (className && !self.debugScripts[id + '/' + cName]) {
+	                        self.debugScripts[id + '/' + cName] = source;
+	                        var fileName = self.moduleClass + "/" + cName;
+	                        if (id !== '') {
+	                            fileName = self.moduleClass + "/" + cName + "/" + id;
+	                        }
+	                        event_data.script().setSource(event_data.script().source() +
+                                " //@ sourceURL=_" + fileName + ".js");
+	                    }
+	                }
+	            }
+	        }
+	    } catch (e) {
+	    }
+	}
+
+	if (v8debug) {
+	    var Debug = v8debug.Debug;
+	    Debug.setListener(this.onDebug);
+	}
 };
 
 /**
@@ -272,9 +304,9 @@ wnBuild.prototype.compileClass = function (targetClass)
 		classLoader+='var self={}, className="'+targetClass+'";\n';
 		classLoader+='function '+targetClass+'() { self = this; this.className = "'+targetClass+'"; }\n';
 		classLoader+='var klass = '+targetClass+',\n';
-		classLoader+=' classProto = '+targetClass+'.prototype,\n';
+		classLoader+=' proto = '+targetClass+'.prototype,\n';
 		classLoader+=' __extend = '+util.inspect(fullExtend)+';\n';
-		classLoader+='classProto.construct = function () {};\n';
+		classLoader+='proto.construct = function () {};\n';
 
 		// Importing extensions source code.
 		classLoader+='\n// Importing WNS extensions\n\n';
@@ -292,14 +324,14 @@ wnBuild.prototype.compileClass = function (targetClass)
 		classSource = '\n// Declaring NPM dependencies \n';
 		classSource += '	var deps = '+util.inspect(build.dependencies)+'; builder.loadDependencies(deps);\n';
 		classSource += '	for (e in deps)\n';
-		classSource += "		eval ('var '+deps[e].replace(\/\\\-\/g,\"_\")+'=builder.loadedModules[deps[e]];');\n";
+		classSource += "		eval ('var '+deps[e].replace(\/\\\-\|\\\.\/g,\"_\")+'=builder.loadedModules[deps[e]];');\n";
 
 		// Declare private properties
 		classSource += '\n// Declaring private properties \n';
-		classSource += 'var _=self,';
+		classSource += 'var _=underscore,$$=self,';
 		for (p in build.private)
 		{
-			if (p == 'classProto' || p == 'klass')
+			if (p == 'proto' || p == 'klass')
 				continue;
 			if (typeof build.private[p] != 'function')
 				classSource += p+" = "+util.inspect(build.private[p],false,null,false);
@@ -313,25 +345,25 @@ wnBuild.prototype.compileClass = function (targetClass)
 		classSource += '\n// Declaring public properties\n';
 		for (p in build.public)
 		{
-			if (p == 'classProto' || p == 'klass')
+			if (p == 'proto' || p == 'klass')
 				continue;
 			if (typeof build.public[p] != 'function')
-				classSource += "classProto['"+p+"'] = "+util.inspect(build.public[p],false,null,false)+";\n";
+				classSource += "proto['"+p+"'] = "+util.inspect(build.public[p],false,null,false)+";\n";
 			else
-				classSource += "classProto['"+p+"'] = "+build.public[m].toString()+";\n";
+				classSource += "proto['"+p+"'] = "+build.public[m].toString()+";\n";
 		}
 
 		// Declare privileged methods
 		classSource += '\n// Declaring privileged methods\n';
 		for (m in build.methods)
 		{
-			classSource += "classProto['"+m+"'] = "+build.methods[m].toString()+";\n";
+			classSource += "proto['"+m+"'] = "+build.methods[m].toString()+";\n";
 		}
 
 		// Declare the constructor.
 		classSource += '\n// Constructor\n';
 		if (build.hasOwnProperty('constructor') && build.constructor!==undefined)
-			classSource += 'classProto.construct='+build.constructor.toString()+";\n";
+			classSource += 'proto.construct='+build.constructor.toString()+";\n";
 
 		// Replace all unknown functions.
 		classSource = classSource.replace(/\[Function\]/gim, 'function () {}');

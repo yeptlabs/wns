@@ -10,6 +10,9 @@
 	// Components
 	"components": {},
 
+	// Server alias (vhost)
+	"serveralias": "*",
+
 	// Events
 	"events": {
 

@@ -24,7 +24,7 @@ module.exports = {
 	/**
 	 * NPM Requires
 	 */
-	dependencies: ['winston','winston-mongodb'],
+	dependencies: ['winston'],
 
 	/**
 	 * PRIVATE
@@ -56,11 +56,9 @@ module.exports = {
 
 		init: function ()
 		{
-			winston.transports.MongoDB = winston_mongodb.MongoDB;
-			
 			var app = self.getParent();
 			var transps = self.getTransports();
-			app.e.log(' - Starting the LOG SYSTEM (winston)...');
+			self.debug(' - Starting the LOG SYSTEM (winston)...');
 
 			self.logger = new winston.Logger({
 				transports: transps
