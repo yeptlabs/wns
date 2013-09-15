@@ -1,6 +1,6 @@
 [![WNS](http://dl.dropbox.com/u/21773527/WNS-Logo.png)](http://wns.yept.net)
 
-## Welcome to WNS Middleware (v0.0.74) [![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
+## Welcome to WNS Middleware (v0.0.75) [![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
 
 ##### What's the idea?
 To build your application/service, just installing, configuring and extending **COMPONENTS** and **PACKAGES**.

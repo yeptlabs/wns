@@ -25,9 +25,14 @@ module.exports = {
 	 * PRIVATE
 	 */
 	private: {
-		_controllers: {},
 		_data: null,
-		_piped: []
+		_piped: [],
+		_config: {
+			header: {
+				"Connection": "close"
+			},
+			serveralias: "*"
+		}
 	},
 
 	/**
@@ -103,10 +108,19 @@ module.exports = {
 		 */	
 		init: function (req,resp)
 		{
+			if (!req||!resp)
+				return false;
+			
+			_logName = req.url+'';
+			self.debug(req.method+' from '+req.connection.remoteAddress,1);
 			this.initialTime = +(new Date);
 
 			this.header = this.getConfig('header') || this.header;
-			this.info = req;
+			this.conn = req;
+			Object.defineProperty(this,'info',{
+				value: req,
+				enumerable: false
+			})
 			this.response = resp;
 
 			this.app = this.getParent();
@@ -160,10 +174,10 @@ module.exports = {
 		 */
 		prepare: function ()
 		{
+			self.debug('PREPARING request',3);
 			this.info.originalUrl = this.info.url;
-			if (this.info.url == '/')
-				this.info.url = '/'+this.getConfig('defaultController')+'/';
 			
+			self.debug('PARSING url',3);
 			this.parsedUrl=url.parse(this.info.url,true);
 			this.route = this.app.getComponent('urlManager').parseRequest(this) || { translation: this.info.url, params: {}, template: '' };
 			this.template = this.route ? this.route.template : false;
@@ -172,6 +186,7 @@ module.exports = {
 			this.query.POST = { fields: {}, files: {} };
 			this.query.REQUEST = {};
 
+			self.debug('Preparing QUERY data',3);
 			Object.extend(true,this.query.POST, this.info.body);
 			Object.extend(true,this.query.GET, this.parsedUrl.query);
 			Object.extend(true,this.query.GET, this.route.params);
@@ -185,41 +200,64 @@ module.exports = {
 			self.formatQuery(this.query.GET);
 			Object.extend(true,this.query.REQUEST, this.query.GET, this.query.POST);
 
-			this.info.once('close',function () {
-				self.dead=true;
-				self.e.end(self);
-				if (_piped.length>0)
-					self.releasePiped();
-			});
-			this.info.once('end',function () {
-				self.dead=true;
+			self.debug('Data RECEIVED:',4);
+			self.debug(util.inspect(this.query.REQUEST),4);
+
+			self.prepareEvents();
+
+			return this;
+		},
+
+		/**
+		 * Prepare all request's required events..
+		 */
+		prepareEvents: function ()
+		{
+			self.debug('Preparing ending EVENTS',5);
+
+			var onFail = function () {
 				self.prependOnce('destroy',function () 
 				{
 					if (!self.dataSent&&_piped.length>0)
 						self.releasePiped();
 				});
 				self.e.end(self);
+			}
+
+			this.conn.once('error',function () {
+				self.debug('The connection closed by ERROR.',3);
+				onFail();
 			});
 
-			
-			this.info.connection.setTimeout(this.lifeTime,function () {
-				self.dead=true;
-				self.info.connection.end();
-				self.prependOnce('destroy',function () 
-				{
-					if (!self.dataSent&&_piped.length>0)
-						self.releasePiped();
-				});
-				self.e.end(self);
-				self.info.connection.destroy();
+			this.conn.once('close',function () {
+				self.debug('The connection has been CLOSED.',3);
+				onFail();
 			});
+
+			this.conn.once('end',function () {
+				self.debug('The connection has been ENDED.',3);
+				onFail();
+			});
+
+			this.conn.connection.setTimeout(this.lifeTime,function () { self.response.end(); });
+			this.response.setTimeout(this.lifeTime,function () { self.response.end(); });
 
 			this.addListener('error',function (e,code,msg,fatal) {
 				this.err=true;
 				self.errorHandler(code,msg,fatal);
-			})
+			});
 
-			return this;
+			this.addListener('end',function () {
+				self.debug('END signal has been emitted',5);
+				self.closed=true;
+				self.conn.closed=true;
+				self.response.closed=true;
+				self.app.once('closedRequest', function () {
+					self.debug('DESTROYING request',5);
+					self.e.destroy(self);
+				});
+				self.app.e.closedRequest(self);
+			});
 		},
 
 		/**
@@ -228,11 +266,7 @@ module.exports = {
 		run: function ()
 		{
 			this.once('run', function () {
-				if (self.template == '<file>')
-					self.publicHandler();
-				else
-					self.controllerHandler();
-				return self;
+				self.e.error(404,'No handler found',true);
 			});
 			this.e.run(this);
 			return this;
@@ -264,114 +298,6 @@ module.exports = {
 		},
 
 		/**
-		 * Controller Access Handler
-		 * Check if the controller is valid, then creates.
-		 * If not valid send it to the errorHandler.
-		 */
-		controllerHandler: function ()
-		{
-			this.header['Content-Type']='text/html';
-
-			var _p=(this.route.translation).split('/'),
-				_plen = _p.length,
-				_controller=_plen>0&&_p[1]!=''?_p[1]:this.getConfig('defaultController'),
-				_action=_plen>1&&_p[2]!=''?_p[2]:undefined,
-				controllerPath = this.app.modulePath+this.getConfig('path').controllers+_controller+'.js';
-		
-			this.controller=this.getController(_controller,this);
-
-			if (!this.controller)
-			{
-				console.log("Controller não encontrado");
-				this.e.error(404,'Controller not found');
-				return;
-			}
-
-			_action=this.action=(!_action?this.controller.defaultAction:_action);
-			if (this.controller.resolveAction(_action)==false)
-				this.e.error(404,'Action not found');
-		},
-
-		/**
-		 * Flush all loaded application's controllers cache
-		 */
-		flushControllers: function () {
-			for (c in _controllers)
-				this.c['wn'+(c.substr(0,1).toUpperCase()+c.substr(1))+'Controller']=undefined;
-			this.app.e.log('All controllers has been flushed.','system');
-		},
-
-		/**
-		 * Flush an application's controller cache
-		 * @param string $c controller's name
-		 */
-		flushController: function (c) {
-			this.c['wn'+(c.substr(0,1).toUpperCase()+c.substr(1))+'Controller']=undefined;
-			this.app.e.log('Controller ´'+c+'´ has been flushed.','system');
-		},
-
-		/**
-		 * Get a new or cached instance from a controller.
-		 * @param $id string controller's id
-		 * @return wnController
-		 */
-		getController: function (id)
-		{
-			id = id.toLowerCase();
-			var controllerName = 'wn'+(id.substr(0,1).toUpperCase()+id.substr(1))+'Controller';
-			var classProto = this.app.c[controllerName];
-			if (_(classProto).isUndefined()) {
-				var controllerFile = this.getConfig('path').controllers+id+'.js';
-				var builder = this.app.getComponent('classBuilder');
-				if (fs.existsSync(this.app.modulePath+controllerFile))
-				{
-					var classSource = this.app.getFile(controllerFile);
-					builder.addSource(controllerName,classSource);
-					builder.classes[controllerName]=builder.buildClass(controllerName);
-					builder.makeDoc(controllerName);
-					if (!builder.classes[controllerName])
-						this.app.e.exception(new Error('Could not build the controller class.'));
-					this.app.c[controllerName]=builder.classes[controllerName];
-					_controllers[id]=this.app.c[controllerName];
-					classProto = this.app.c[controllerName];
-				} else
-					return false;
-			}
-			var config = { controllerName: id };
-				controller = new classProto(config,this.app.c,this.app,this);
-			return controller;
-		},
-
-		/**
-		 * Public File Access Handler
-		 * Try to load the file if exists.
-		 * If not, send it to the errorHandler
-		 */
-		publicHandler: function ()
-		{
-			var _filename = this.route.translation.replace(/^\//,''),
-				file;
-
-			var mimetype = this.header['Content-Type']=mime.lookup(this.parsedUrl.pathname);
-			this.fileName = this.getConfig('path').public+_filename;
-
-			fs.stat(this.app.modulePath+this.fileName,function (err,stat) {
-				if (err)
-					return self.e.error(404,'File not found',true);
-				self.stat=stat;
-
-				var s = fs.createReadStream(self.app.modulePath+self.fileName);
-				s.on('error', function () {
-					self.e.error(404,'File not found',true);
-				});
-				s.on('open',function () {
-					self.code=200;
-					self.send(s);
-				});
-			});
-		},
-
-		/**
 		 * Error Access Handler
 		 * @param integer $code http status code
 		 * @param string $msg http status msg
@@ -379,17 +305,10 @@ module.exports = {
 		 */
 		errorHandler: function (code,msg,fatal)
 		{
+			self.warn('ERROR on request: '+code+' - '+msg);
 			this.code=code || 500;
 			this.error=code;
 			delete this.header['Content-type'];
-
-			if (this.getConfig('errorPage')!=undefined && !fatal)
-			{
-				this.route.translation = '/'+this.getConfig('errorPage');
-				this.controllerHandler();
-				return;
-				// return this.redirect('/'+this.getConfig('errorPage'), true);
-			}
 
 			this.send();
 		},
@@ -398,6 +317,10 @@ module.exports = {
 		 * Redirect
 		 */
 		redirect: function () {
+			if (self.sent||self.closed)
+				return false;
+			
+			self.debug('REDIRECTING request to: '+_.toArray(arguments).join(', '),1);
 			var url;
 			var terminate;
 			var statusCode;
@@ -424,6 +347,10 @@ module.exports = {
 		 */
 		pipe: function (req)
 		{
+			if (self.sent||self.closed)
+				return false;
+
+			self.debug('PIPING other request',2);
 			if (!req || typeof req !== 'object' || !req.getClassName()=='wnHttpRequest' || _piped.length>=10)
 				return false;
 			
@@ -432,36 +359,31 @@ module.exports = {
 		},
 
 		/**
-		 * Release all piped requests.
-		 */
-		releasePiped: function ()
-		{
-		/*	var http = self.http;
-			for (p in _piped)
-			{
-				process.nextTick(function () {
-					// http.createRequest(this.piped.app,this.piped.info,this.piped.response);
-					// this.piped.e.destroy();
-				}.bind({ piped: _piped[p] }));
-			}*/
-		},
-
-		/**
 		 * Send a chunk to the response.
 		 * @param string/buffer $data response data (optional)
 		 */
 		write: function (data,sending)
 		{
+			if (self.sent||self.closed)
+				return false;
+
 			var res = this.response;
 			if (data)
 			{					
 				if (!data.pipe)
 				{
 					if (Buffer.isBuffer(self.data) || typeof self.data == 'string')
+					{
+						self.debug('WRITING buffer to client: ',2);
+						self.debug('BUFFER data: '+util.inspect(data),3);
 						self.data = Buffer.concat([new Buffer(self.data,'utf8'),new Buffer(data||0)]);
+					} else
+						self.debug('WRITING string to client',2);
+						self.debug('STRING data: '+util.inspect(data),3);
 				}
 				else
 				{
+					self.debug('PIPING stream to client',2);
 					self.response.piped=true;
 					self.data=data;
 				}
@@ -478,13 +400,17 @@ module.exports = {
 		 */
 		prepareSend: function ()
 		{
+			self.debug('PREPARE to SEND response',3);
 			var res = this.response;
 
-			if (self.sent)
+			if (self.sent||self.closed)
 				return false;
 			self.sent=true;
 
 			this.once('send', function (e,cb) {
+				self.debug('SEND signal has been emitted',5);
+
+				self.debug('HEADERS sent: '+util.inspect(self.header),2);
 				for (h in self.header)
 					res.setHeader(h,self.header[h]);
 				res.statusCode = self.code;
@@ -496,16 +422,10 @@ module.exports = {
 
 				self.dataSent = true;
 
-				self.once('end',function () {
-					self.app.once('closedRequest', function () {
-						self.e.destroy(self);
-					});
-					self.app.e.closedRequest(self);
-				});
-
 				if (_piped.length>0)
 				{
 					process.nextTick(function () {
+						self.debug('PIPE detected.',5);
 						var data = this.data;
 						for (p in this.piped)
 						{
@@ -527,6 +447,10 @@ module.exports = {
 		 */
 		send: function (data)
 		{
+			if (self.sent||self.closed)
+				return false;
+
+			self.debug('SENDING response.',3);
 			this.write(data,true);
 			this.e.send(function () {
 				if (!self.response.piped)

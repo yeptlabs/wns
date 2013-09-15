@@ -33,16 +33,16 @@ module.exports = {
 		_banned: {},
 		_banTimes: {},
 		_config: {
+			listen:[80],
 			envPort: true,
 			keepAlive: false,
-			floodProtection: true,
+			floodProtection: false,
 			fpBanTime: 2*60*60*1000,
 			fpCheckInterval: 1000,
 			fpMaxRequests: 3,
 			fpJustSameUrl: true,
 			whitelist: []
-		},
-		count:0
+		}
 	},
 
 	/**
@@ -94,7 +94,7 @@ module.exports = {
 			{
 				this.getParent().e.log('Change HTTP listening port to '+process.env.PORT+'...');
 				var httpConfig=self.getConfig();
-				httpConfig.listen[0]= process.env.PORT;
+				httpConfig.listen[0]=process.env.PORT;
 				self.setConfig(httpConfig);
 			};
 
@@ -109,7 +109,6 @@ module.exports = {
 				self.handler(req,resp);
 			});
 			this.addListener('redirect', function (e,app,req,resp) {
-				//console.log('['+req.connid+'] redirecting request');
 				if (!app)
 					resp.end('Invalid hostname access.');
 				else
@@ -142,12 +141,6 @@ module.exports = {
 					if (_banTimes[remoteAddress]>1 || +new Date - _banned[remoteAddress] <= self.getConfig('fpBanTime')+Math.floor(self.getConfig('fpBanTime')*0.1+Math.random()*0.5*self.getConfig('fpBanTime')))
 					{
 						req.socket.destroy();
-						// resp.writeHead(400);
-						// resp.on('end',function () {
-						// 	req.socket.destroy();
-						// 	resp.socket.destroy();
-						// });
-						//resp.end();
 						return true;
 					} else
 						delete _banned[remoteAddress];
@@ -161,12 +154,6 @@ module.exports = {
 
 				if (_requests[cacheName]>=self.getConfig('fpMaxRequests'))
 				{
-					// resp.writeHead(400 || self.getConfig(''));
-					// resp.on('end',function () {
-					// 	req.socket.destroy();
-					// 	resp.socket.destroy();
-					// });
-					// resp.end();
 					req.socket.destroy();
 					_banned[remoteAddress]=+new Date;
 					_banTimes[remoteAddress]++;
@@ -184,13 +171,18 @@ module.exports = {
 		 */
 		attachModule: function (moduleName,module)
 		{
+			if (!module.getConfig('components').http)
+				return false;
+
 			module.setEvents({
 				'newRequest': {},
 				'readyRequest': {},
+				'runRequest': {},
 				'closedRequest': {}
 			});
 			module.getEvent('newRequest');
 			module.getEvent('readyRequest');
+			module.getEvent('runRequest');
 			module.getEvent('closedRequest');
 			
 			module.html = module.createClass('wnHtml',{});
@@ -248,16 +240,21 @@ module.exports = {
 
 					httpRequest.init(req,resp);
 					httpRequest.e.open();
-					//console.log('['+req.connid+'] preparing request');
 					httpRequest.prepare();
+
+					httpRequest.once('destroy',function () {
+						resp.end();
+						httpRequest.debug('The socket has been DESTROYED.',3);
+						_concurrency--;
+						reqConf = null;
+						httpRequest = null;
+					});
+
 					app.once('readyRequest',function (e,req) {
-						req.once('destroy',function () {
-							//console.log('['+_req.connid+'] destroyed request');
-							_concurrency--;
-							reqConf = null;
-							req = null;
+						app.once('runRequest',function (e,req) {
+							req.run();
 						});
-						req.run();
+						app.e.runRequest(req);
 					});
 					app.e.readyRequest(httpRequest);
 
@@ -315,7 +312,7 @@ module.exports = {
 				var appConfig = app.getConfig();
 				var domain = serverConfig[a].domain;
 				var domainMatch = new RegExp((domain||'').replace(/\*/g,'(.*)'),'gi');
-				var serverAlias = appConfig.components.http.serveralias+'';
+				var serverAlias = appConfig.serveralias+'';
 				var aliasMatch = new RegExp(serverAlias.replace(/\,/g,'|').replace(/\*/g,'(.*)'),'gi');
 
 				if (!app || !appConfig.components.http)

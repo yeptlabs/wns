@@ -19,8 +19,8 @@
 		"http": {
 			// Component class.
 			"class": "wnHttp",
-			// Listen on port and IP...
-			"listen":[8000]
+			// Uncomment and edit to change the PORT.
+			// "listen":[8000]
 		}
 	}
 

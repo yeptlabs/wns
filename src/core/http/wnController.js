@@ -108,11 +108,16 @@ module.exports = {
 		 */	
 		init: function (config,c,app,request)
 		{
+			if (!request)
+				return false;
+
 			this.request=request;
 			this.app=app;
 			this.controllerName = this.getControllerName();
 			this.setParent(app);
 			this.prepareData();
+
+			_logName = 'ctrl::'+this.getControllerName().toLowerCase();
 
 			if (this.app)
 			{
@@ -128,6 +133,7 @@ module.exports = {
 		 */
 		prepareData: function ()
 		{
+			self.debug('Storing QUERY to controller.',3);
 			if (this.request)
 			{
 				this.query.GET = this.request.query.GET;
@@ -154,15 +160,17 @@ module.exports = {
 		 * @return mixed action's name or false.
 		 */
 		resolveAction: function (action)
-		{	
+		{
 			action = action+'';
 			var actions = this.getActions();
 			for (a in actions)
 			{
 				if (actions[a].toLowerCase() == 'action'+action.toLowerCase())
 					{
+						_logName = this.getControllerName().toLowerCase()+'/'+action;
 						this.resolvedAction = this.action = action;
 						action=actions[a];
+						self.debug('Resolved ACTION method: '+action,1);
 						this.once('beforeAction',function () {
 							self[action]&&self[action]();
 						});
@@ -170,6 +178,7 @@ module.exports = {
 						return true;
 					}
 			}
+			self.warn('ACTION method NOT FOUND! ');
 			return false;
 		},
 
@@ -202,11 +211,14 @@ module.exports = {
 		 */
 		getView: function (view,cb)
 		{
-			var fileName = this.request.getConfig('path').views+this.getControllerName()+'/'+view+'.tpl',
+			self.debug('Loading VIEW content:'+ view,3);
+			var fileName = this.getConfig('path').views+this.getControllerName()+'/'+view+'.tpl',
 				lastModif = this.app.cache.get('template-'+self.uid);
 			if (lastModif)
 			{
 				if (WNS_DEV)
+				{
+					self.debug('DEV-MODE :: Ignoring VIEW CACHED edition',3);
 					fs.stat(this.app.modulePath+fileName,function (err,stats) {
 						if (err!==null)
 							cb&&cb(false);
@@ -217,16 +229,19 @@ module.exports = {
 						}
 						else
 						{
+							self.debug('Using CACHED version',3);
 							cb&&cb('')
 						}
 					});
-				else
-				{
+				}
+				else {
+					self.debug('Using CACHED version',3);
 					cb&&cb('');
 				}
 			} else
 			{
 				self.app.cache.set('template-'+self.uid,+new Date);
+				self.debug("Caching view's last modification",3);
 				this.app.getFile(fileName,cb);
 			}
 		},
@@ -240,11 +255,14 @@ module.exports = {
 			if (layout==null)
 				return cb&&cb('');
 
-			var fileName = this.request.getConfig('path').views+'layouts/'+layout+'.tpl',
+			self.debug('Loading LAYOUT content: '+layout,3);
+			var fileName = this.getConfig('path').views+'layouts/'+layout+'.tpl',
 				lastModif = this.app.cache.get('template-layout-'+layout);
 			if (lastModif)
 			{
 				if (WNS_DEV)
+				{
+					self.debug('DEV-MODE :: Ignoring LAYOUT CACHED version',3);
 					fs.stat(this.app.modulePath+fileName,function (err,stats) {
 						self.request.stat=stats;
 						if (err!==null)
@@ -256,14 +274,20 @@ module.exports = {
 						}
 						else
 						{
+							self.debug('Using CACHED version',3);
 							cb&&cb('')
 						}
 					});
+				}
 				else
+				{
+					self.debug('Using CACHED version',3);
 					cb&&cb('');
+				}
 			} else
 			{
 				self.app.cache.set('template-layout'+layout,+new Date);
+				self.debug("Saving VIEW's last modification",3);
 				this.app.getFile(fileName,cb);
 			}
 		},
@@ -276,6 +300,7 @@ module.exports = {
 			var data = stream.data.toString('utf8');
 			if (data.match(self.embedScriptTag) && (self.clientScript.length>0 || self.embedScript.length>0))
 			{
+				self.debug('EMBEDING scripts before send.',3);
 				var html = '';
 				for (c in self.embedScript)
 					html+='<script type="text/javascript" src="'+self.embedScript[c]+'"></script>';
@@ -286,6 +311,7 @@ module.exports = {
 				data=data.replace(self.embedScriptTag,html);
 			}
 
+			self.debug('SENDING rendered result to request',3);
 			self.request.send(data);
 		},
 
@@ -294,6 +320,7 @@ module.exports = {
 		 */
 		_renderLayout: function (e,layoutTpl)
 		{
+			self.debug('Rendering LAYOUT',1);
 			self.templateObj.view = self.view.export();
 			self.layoutTpl = layoutTpl;
 
@@ -311,6 +338,7 @@ module.exports = {
 		 */
 		_renderView: function (e,view)
 		{
+			self.debug('Rendering VIEW',1);
 			self.view.language = self.app.getConfig('components').view.language;
 			if (self.view.title == null)
 				self.view.title = (new self.app.c.wnTemplate(self.app.getConfig('components').view.titleTemplate)).match(self.templateObj);
@@ -337,6 +365,10 @@ module.exports = {
 		 */
 		render: function (view,data)
 		{
+			if (self.request.sent||self.request.closed)
+				return false;
+
+			self.debug('Start the RENDER',3);
 			self.viewTpl = '';
 			self.layoutTpl = '';
 			self.uid = self.controllerName+'-'+self.action+'-'+self.layout+'-'+view;

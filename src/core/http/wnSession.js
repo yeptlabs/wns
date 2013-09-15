@@ -55,57 +55,61 @@ module.exports = {
 			_cookieName = _config.cookieName;
 			_ttlSession = _config.ttlSession;
 
+			this.getParent().prependListener('runRequest',function (e,req) {
+
+				if (req.template == '<file>')
+					return false;
+
+				if (req.info.headers.cookie)
+				{
+					cookies = req.cookies;
+					var reqId=cookies[_cookieName];
+					self.debug('LOOK for session: '+reqId,1)
+
+					if (reqId)
+					{
+						self.debug('GOT session!',1)
+						var sessionData = self.getParent().cache.get('wns-session-'+reqId);
+						if (sessionData)
+						{
+							if (+new Date - +new Date(sessionData._created) >= _ttlSession)
+							{
+								self.debug('RENEW session!',1);
+								self.createSession(req,sessionData,function () {
+									self.renewToken(req);
+									self.debug('COOKING session',1)
+									req.response.setHeader('Set-Cookie',_cookieName+'='+req.user._sid+'; '+_pathCookie);
+								});
+							}
+
+							req.user=sessionData;
+						}
+						else
+							self.debug('KILLED session.',1)
+					}
+				}
+
+				if (!req.user)
+				{
+					self.createSession(req,{},function () {
+						self.renewToken(req);
+						self.debug('COOKING session',1)
+						req.response.setHeader('Set-Cookie',_cookieName+'='+req.user._sid+'; '+_pathCookie);
+					});
+				} else {
+					self.renewToken(req);
+				}
+			});
+
 			this.getParent().prependListener('readyRequest',function (e,req) {
 
 				if (req.template == '<file>')
 					return false;
 
-				req.prependOnce('run',function () {
-					if (req.info.headers.cookie)
-					{
-						cookies = req.cookies;
-						var reqId=cookies[_cookieName];
-						self.debug('LOOK for session: '+reqId)
-
-						if (reqId)
-						{
-							self.debug('GOT session!')
-							var sessionData = self.getParent().cache.get('wns-session-'+reqId);
-							if (sessionData)
-							{
-								if (+new Date - +new Date(sessionData._created) >= _ttlSession)
-								{
-									self.debug('RENEW session!');
-									self.createSession(req,sessionData,function () {
-										self.renewToken(req);
-										self.debug('COOKING session')
-										req.response.setHeader('Set-Cookie',_cookieName+'='+req.user._sid+'; '+_pathCookie);
-									});
-								}
-
-								req.user=sessionData;
-							}
-							else
-								self.debug('KILLED session.')
-						}
-					}
-
-					if (!req.user)
-					{
-						self.createSession(req,{},function () {
-							self.renewToken(req);
-							self.debug('COOKING session')
-							req.response.setHeader('Set-Cookie',_cookieName+'='+req.user._sid+'; '+_pathCookie);
-						});
-					} else {
-						self.renewToken(req);
-					}
-				});
-
 				req.prependOnce('send',function () {
 					if (req.user && req.user._sid && self.getParent().cache.get('wns-session-'+req.user._sid))
 					{
-						self.debug('UPDATE session');
+						self.debug('UPDATE session',1);
 						var sessionData = self.getParent().cache.get('wns-session-'+req.user._sid);							
 
 						for (p in req.user)
@@ -136,7 +140,7 @@ module.exports = {
 				var logged = false;
 				var token = '';
 
-				self.debug('CREATING session');
+				self.debug('CREATING session',1);
 				req.user = data || { data: { time: +new Date } };
 
 				if (!req.user.data)
@@ -170,7 +174,7 @@ module.exports = {
 							logged=true;
 						}
 						else {
-							self.debug('KILLING session')
+							self.debug('KILLING session',1)
 							self.getParent().cache.set('wns-session-'+id,undefined)
 							logged=false;
 						}
@@ -191,7 +195,7 @@ module.exports = {
 		 */
 		renewToken: function (req)
 		{
-			self.debug('TOKEN session');
+			self.debug('TOKEN session',1);
 			var reqUser = req.user && req.user.id ? req.user.id : '';
 			var uid = req.remoteAddress+''+reqUser+''+Math.floor(100000000+Math.random()*100000000)+''+new Date;
 			var token = crypto.createHash('md5').update(uid).digest("hex");

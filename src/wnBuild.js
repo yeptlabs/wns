@@ -304,9 +304,9 @@ wnBuild.prototype.compileClass = function (targetClass)
 		classLoader+='var self={}, className="'+targetClass+'";\n';
 		classLoader+='function '+targetClass+'() { self = this; this.className = "'+targetClass+'"; }\n';
 		classLoader+='var klass = '+targetClass+',\n';
-		classLoader+=' classProto = '+targetClass+'.prototype,\n';
+		classLoader+=' proto = '+targetClass+'.prototype,\n';
 		classLoader+=' __extend = '+util.inspect(fullExtend)+';\n';
-		classLoader+='classProto.construct = function () {};\n';
+		classLoader+='proto.construct = function () {};\n';
 
 		// Importing extensions source code.
 		classLoader+='\n// Importing WNS extensions\n\n';
@@ -331,7 +331,7 @@ wnBuild.prototype.compileClass = function (targetClass)
 		classSource += 'var _=underscore,$$=self,';
 		for (p in build.private)
 		{
-			if (p == 'classProto' || p == 'klass')
+			if (p == 'proto' || p == 'klass')
 				continue;
 			if (typeof build.private[p] != 'function')
 				classSource += p+" = "+util.inspect(build.private[p],false,null,false);
@@ -345,25 +345,25 @@ wnBuild.prototype.compileClass = function (targetClass)
 		classSource += '\n// Declaring public properties\n';
 		for (p in build.public)
 		{
-			if (p == 'classProto' || p == 'klass')
+			if (p == 'proto' || p == 'klass')
 				continue;
 			if (typeof build.public[p] != 'function')
-				classSource += "classProto['"+p+"'] = "+util.inspect(build.public[p],false,null,false)+";\n";
+				classSource += "proto['"+p+"'] = "+util.inspect(build.public[p],false,null,false)+";\n";
 			else
-				classSource += "classProto['"+p+"'] = "+build.public[m].toString()+";\n";
+				classSource += "proto['"+p+"'] = "+build.public[m].toString()+";\n";
 		}
 
 		// Declare privileged methods
 		classSource += '\n// Declaring privileged methods\n';
 		for (m in build.methods)
 		{
-			classSource += "classProto['"+m+"'] = "+build.methods[m].toString()+";\n";
+			classSource += "proto['"+m+"'] = "+build.methods[m].toString()+";\n";
 		}
 
 		// Declare the constructor.
 		classSource += '\n// Constructor\n';
 		if (build.hasOwnProperty('constructor') && build.constructor!==undefined)
-			classSource += 'classProto.construct='+build.constructor.toString()+";\n";
+			classSource += 'proto.construct='+build.constructor.toString()+";\n";
 
 		// Replace all unknown functions.
 		classSource = classSource.replace(/\[Function\]/gim, 'function () {}');
