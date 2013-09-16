@@ -89,7 +89,6 @@ module.exports = {
 		 */
 		processRequest: function (req)
 		{
-			this.debug('Processing with Controller handler',1);
 			req.header['Content-Type']='text/html';
 
 			var _p=(req.route.translation).split('/');
@@ -153,7 +152,7 @@ module.exports = {
 			var controllerName = 'wn'+(id.substr(0,1).toUpperCase()+id.substr(1))+'Controller';
 			var classProto = this.app.c[controllerName];
 			if (_(classProto).isUndefined()) {
-				self.debug('New CONTROLLER: '+id,1);
+				self.debug('Loading CONTROLLER from system: '+id,1);
 				var controllerFile = this.getConfig('path').controllers+id+'.js';
 				var builder = this.app.getComponent('classBuilder');
 				if (fs.existsSync(this.app.modulePath+controllerFile))
@@ -169,7 +168,6 @@ module.exports = {
 					classProto = this.app.c[controllerName];
 				} else
 				{
-					self.debug('Loading cached CONTROLLER',2);
 					return false;
 				}
 			}

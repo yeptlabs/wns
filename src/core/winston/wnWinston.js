@@ -36,10 +36,10 @@ module.exports = {
 		 */
 		_config: {
 			catchErrors: true,
-			transports: [
-				{ name: 'Console', colorize: true },
-				{ name: 'File', filename: 'app.log', maxsize: 1024*1024*10, maxFiles: 3, json: false }
-			]
+			transports: {
+				"Console": { colorize: true },
+				"File": { filename: 'app.log', maxsize: 1024*1024*10, maxFiles: 3, json: false }
+			}
 		}
 
 	},
@@ -58,7 +58,7 @@ module.exports = {
 		{
 			var app = self.getParent();
 			var transps = self.getTransports();
-			self.debug(' - Starting the LOG SYSTEM (winston)...',1);
+			self.debug('Starting WINSTON...',1);
 
 			self.logger = new winston.Logger({
 				transports: transps
@@ -68,7 +68,9 @@ module.exports = {
 
 			if (self.getConfig('catchErrors'))
 			{
+				self.debug('Catching ERRORS mode ON',1);
 				wns.console.prependListener('exception',function (e,err) {
+					self.debug('Error LOGGED.',5);
 					e.stopPropagation=true;
 					self.logger.log.call(self.logger,'error',err.stack);
 				});
@@ -90,15 +92,14 @@ module.exports = {
 			var trs = self.getConfig('transports');
 			for (t in trs)
 			{
-				if (!trs[t].name)
-					continue;
 				if (trs[t].filename)
 				{
 					trs[t].filename = self.getParent().modulePath+trs[t].filename;
 					if (fs.existsSync(trs[t].filename))
 					fs.unlinkSync(trs[t].filename);
 				}
-				transp.push(new (winston.transports[trs[t].name])( trs[t] ));
+				self.debug('Adding new transport: '+t,3);
+				transp.push(new (winston.transports[t])( trs[t] ));
 			}
 			return transp;
 		}
