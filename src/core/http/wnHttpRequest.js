@@ -240,7 +240,7 @@ module.exports = {
 			});
 
 			this.conn.connection.setTimeout(this.lifeTime,function () { self.response.end(); });
-			this.response.setTimeout(this.lifeTime,function () { self.response.end(); });
+			//this.response.setTimeout(this.lifeTime,function () { self.response.end(); });
 
 			this.addListener('error',function (e,code,msg,fatal) {
 				this.err=true;
