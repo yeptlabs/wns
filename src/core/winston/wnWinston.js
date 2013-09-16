@@ -58,7 +58,7 @@ module.exports = {
 		{
 			var app = self.getParent();
 			var transps = self.getTransports();
-			self.debug(' - Starting the LOG SYSTEM (winston)...');
+			self.debug(' - Starting the LOG SYSTEM (winston)...',1);
 
 			self.logger = new winston.Logger({
 				transports: transps
