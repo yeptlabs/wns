@@ -178,7 +178,7 @@ module.exports = {
 						return true;
 					}
 			}
-			self.warn('ACTION method NOT FOUND! ');
+			self.warn('ACTION method NOT FOUND!');
 			return false;
 		},
 
@@ -320,7 +320,7 @@ module.exports = {
 		 */
 		_renderLayout: function (e,layoutTpl)
 		{
-			self.debug('Rendering LAYOUT',1);
+			self.debug('Rendering LAYOUT',2);
 			self.templateObj.view = self.view.export();
 			self.layoutTpl = layoutTpl;
 
@@ -338,7 +338,7 @@ module.exports = {
 		 */
 		_renderView: function (e,view)
 		{
-			self.debug('Rendering VIEW',1);
+			self.debug('Rendering VIEW',2);
 			self.view.language = self.app.getConfig('components').view.language;
 			if (self.view.title == null)
 				self.view.title = (new self.app.c.wnTemplate(self.app.getConfig('components').view.titleTemplate)).match(self.templateObj);
@@ -368,7 +368,7 @@ module.exports = {
 			if (self.request.sent||self.request.closed)
 				return false;
 
-			self.debug('Start the RENDER',3);
+			self.debug('Start the RENDER',2);
 			self.viewTpl = '';
 			self.layoutTpl = '';
 			self.uid = self.controllerName+'-'+self.action+'-'+self.layout+'-'+view;
