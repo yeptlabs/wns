@@ -90,7 +90,7 @@ try
 		nm.push(d);
 	for (n in nm)
 		try {
-			global[nm[n].replace(/\W|\_/gim,'')] = _r(nm[n]);
+			global[nm[n].replace(/node\-/gim,'').replace(/\W|\_/gim,'_')] = _r(nm[n]);
 		}
 		catch (e) {}
 	if (fs.existsSync == undefined)

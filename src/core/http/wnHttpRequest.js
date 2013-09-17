@@ -239,7 +239,10 @@ module.exports = {
 				onFail();
 			});
 
-			this.conn.connection.setTimeout(this.lifeTime,function () { self.response.end(); });
+			this.conn.connection.setTimeout(self.lifeTime,function () {
+				self.debug('The connection got TIMEOUT.',3);
+				self.response.end();
+			});
 			//this.response.setTimeout(this.lifeTime,function () { self.response.end(); });
 
 			this.addListener('error',function (e,code,msg,fatal) {
@@ -408,7 +411,7 @@ module.exports = {
 			self.sent=true;
 
 			this.once('send', function (e,cb) {
-				self.debug('SEND signal has been emitted',5);
+				self.debug('SEND signal has been emitted',3);
 
 				self.debug('HEADERS sent: '+util.inspect(self.header),2);
 				for (h in self.header)

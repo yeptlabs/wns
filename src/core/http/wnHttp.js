@@ -92,7 +92,7 @@ module.exports = {
 
 			if (self.getConfig().envPort && process.env.PORT)
 			{
-				this.getParent().e.log('Change HTTP listening port to '+process.env.PORT+'...');
+				self.e.log('Change HTTP listening port to '+process.env.PORT+'...');
 				var httpConfig=self.getConfig();
 				httpConfig.listen[0]=process.env.PORT;
 				self.setConfig(httpConfig);
@@ -110,7 +110,10 @@ module.exports = {
 			});
 			this.addListener('redirect', function (e,app,req,resp) {
 				if (!app)
+				{
+					self.warn('Invalid hostname ('+req.headers['Host']+') access from '+req.connection.remoteAddress)
 					resp.end('Invalid hostname access.');
+				}
 				else
 					self.createRequest.apply(self,[app,req,resp]);
 			});
@@ -212,6 +215,21 @@ module.exports = {
 		},
 
 		/**
+		 * Define a unique id for the request.
+		 * @param object $req
+		 * @param function $cb
+		 */
+		getUUID: function (req,cb)
+		{
+			var buff = new Buffer(16);
+			process.nextTick(function () {
+				uuid.v4({},buff);
+				req._id = buff.toString('hex');
+				cb&&cb();
+			});
+		},
+
+		/**
 		 * Handles a new httpRequest and build a new wnRequest.
 		 * @param $req HttpRequest's object
 		 * @param $res HttpResponse's object
@@ -219,7 +237,7 @@ module.exports = {
 		 */
 		createRequest: function (app,req,resp)
 		{
-			var httpRequest, reqConf, _req=req, url = req.url+'', self = app;
+			var httpRequest, reqConf, _req=req, url = req.url+'', httpServer = this, self = app;
 			try
 			{
 				self.once('newRequest',function (e,req,resp) {
@@ -232,6 +250,7 @@ module.exports = {
 					httpRequest = new self.c.wnHttpRequest(reqConf, self.c);
 
 					httpRequest.setParent(self);
+
 					httpRequest.created = +new Date;
 					httpRequest.html = app.html;
 					httpRequest.html.encoder = app.html.encoder;
@@ -239,24 +258,26 @@ module.exports = {
 					httpRequest.http = self;
 
 					httpRequest.init(req,resp);
-					httpRequest.e.open();
-					httpRequest.prepare();
+					httpServer.getUUID(httpRequest,function () {
+						httpRequest.e.open();
+						httpRequest.prepare();
 
-					httpRequest.once('destroy',function () {
-						resp.end();
-						httpRequest.debug('The socket has been DESTROYED.',3);
-						_concurrency--;
-						reqConf = null;
-						httpRequest = null;
-					});
-
-					app.once('readyRequest',function (e,req) {
-						app.once('runRequest',function (e,req) {
-							req.run();
+						httpRequest.once('destroy',function () {
+							resp.end();
+							httpRequest.debug('The socket has been DESTROYED.',3);
+							_concurrency--;
+							reqConf = null;
+							httpRequest = null;
 						});
-						app.e.runRequest(req);
+
+						app.once('readyRequest',function (e,req) {
+							app.once('runRequest',function (e,req) {
+								req.run();
+							});
+							app.e.runRequest(req);
+						});
+						app.e.readyRequest(httpRequest);
 					});
-					app.e.readyRequest(httpRequest);
 
 				});
 
@@ -297,7 +318,7 @@ module.exports = {
 			var shortcut = self.urlShortcut[serverName];
 
 			request.datetime = +new Date;
-			request.connid = _connections++;
+			_connections++;
 			_concurrency++;
 
 			if (shortcut!==undefined)
