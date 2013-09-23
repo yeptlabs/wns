@@ -1,7 +1,7 @@
 {
   "name": "wnserver",
   "description": "A high-performance, scalable and component-based middleware",
-  "version": "0.0.76",
+  "version": "0.0.8",
   "author": "Pedro Nasser <pedro@yept.net>",
   "devDependencies": {
     "chai": "*",
@@ -15,7 +15,8 @@
     "request": "~2.22.0",
     "querystring": "~0.2.0",
     "underscore": "~1.5.1",
-    "node-uuid": "~1.4.1"
+    "node-uuid": "~1.4.1",
+    "npm": "~1.3.11"
   },
   "keywords": [
     "web",

@@ -58,6 +58,7 @@ module.exports = {
 
 		_debug = this.getConfig('debug')===true;
 
+		this.importPackages();
 		this.importFromConfig();
 
 		Object.defineProperty(this,'c',{ value: this.getComponent('classBuilder').classes, enumerable:false, writable: false });
@@ -69,8 +70,6 @@ module.exports = {
 		this.setEvents({ 'ready': {} });
 		var ready=this.getEvent('ready');
 		ready.once(function (e) {
-			e.stopPropagation=true;
-			
 			self.startComponents();
 			self.prepareModels();
 			self.prepareScripts();
@@ -81,10 +80,10 @@ module.exports = {
 		});
 
 
-		if (this.getConfig('autoInit')!=false)
-			process.nextTick(function () {
-				self.e.ready.apply(this,arguments);
-			});
+		// if (this.getConfig('autoInit')!=false)
+		// 	process.nextTick(function () {
+		// 		self.e.ready.apply(this,arguments);
+		// 	});
 	},
 
 	/**
@@ -175,19 +174,148 @@ module.exports = {
 		},
 
 		/**
+		 * Import package classes from node_modules directory
+		 */
+		importPackages: function ()
+		{
+			var nmPath = this.modulePath + 'node_modules/';
+			var pkgJson;
+			var pkgName;
+			var pkgInfo;
+			var packageList = {};
+			var classNameReg = new RegExp(/^wn\w+\.js$/);
+			if (fs.existsSync(nmPath))
+			{
+				this.e.log&&this.e.log('Importing packages...','system');
+				var packages = fs.readdirSync(nmPath);
+				for (p in packages)
+				{
+					try {
+						if (packages[p].indexOf('wns')!==-1 &&
+							(packages[p].indexOf('pkg') !== -1 || packages[p].indexOf('package') !== -1))
+						{
+							pkgName = packages[p];
+							pkgDir = nmPath + pkgName;
+							pkgJson = pkgDir + '/package.json';
+							if (fs.existsSync(pkgJson))
+							{
+								pkgInfo = JSON.parse(fs.readFileSync(pkgJson));
+								pkgInfo.require = pkgInfo.require||{};
+								Object.defineProperty(pkgInfo,'classes',{ value: {}, enumerable: false })
+								var files = fs.readdirSync(pkgDir);
+								for (f in files)
+								{
+									var fileName = files[f].split('/').pop();
+									if (classNameReg.test(fileName))
+									{
+										var className = fileName.split('.');
+										className.splice(-1);
+										pkgInfo.classes[className] = ''+fs.readFileSync(pkgDir+'/'+fileName,'utf8');
+									}
+								}
+								packageList[pkgInfo.name]=pkgInfo;
+							}
+						}
+					} catch (e)
+					{
+						console.error('Error on loading package `'+pkgName+"`.")
+						throw e;
+					}
+				}
+			}
+
+			this.removeInvalidPackages(packageList);
+			this.loadPackages(packageList);
+		},
+
+		/**
+		 * Remove invalid packages from the packageList.
+		 * @param object $packageList
+		 */
+		removeInvalidPackages: function (packageList)
+		{
+			var pkgList = _.keys(packageList);
+			var pkgRequire;
+			var pkgName;
+			var pkgInfo;
+			var depName;
+			var depVersion;
+			var i=0;
+			var valid;
+			var error;
+			while (pkgList.length > 0)
+			{
+				valid=true;
+				error=[];
+				pkgName=pkgList[i];
+				pkgInfo=packageList[pkgName];
+				pkgRequire=pkgInfo.require;
+
+				for (p in pkgRequire)
+				{
+					depName = p;
+					depVersion = pkgRequire[p];
+					if (packageList[depName]==undefined)
+					{ error.push(depName+'@'+depVersion+' is not installed.'); continue; }
+					if (depVersion!=="*" && packageList[depName].version!=depVersion)
+					{ error.push(depName+' needs to be '+depVersion); }
+				}
+
+				if (valid||error.length>0)
+				{
+					if (error.length>0)
+					{
+						packageList[pkgName]=undefined;
+						for (e in error)
+							self.e.log('Error on loading `'+pkgName+'`: '+error[e],'error');
+					}
+				
+					pkgList.splice(i,1);
+				}
+
+				i++;
+				if (i>=pkgList.length)
+					i=0;
+			}
+		},
+
+		/**
+		 * Load all packages on the classes of the packageList.
+		 * @param object $packageList
+		 */
+		loadPackages: function (packageList) {
+			var classes;
+			var className;
+			var classSource;
+			var classBuilder = this.getComponent('classBuilder');
+			for (p in packageList)
+			{
+				classes = packageList[p].classes;
+				for (c in classes)
+				{
+					className = c;
+					classSource = classes[c];
+					
+					classBuilder.addSource(className,classSource);
+					classBuilder.classes[className]=classBuilder.buildClass(className);
+					classBuilder.makeDoc(className);
+				}
+			}
+		},
+
+		/**
 		 * Import classes from the paths from configuration.
 		 */
 		importFromConfig: function ()
 		{
-			this.e.log&&this.e.log('Importing...','system');
+			this.e.log&&this.e.log('Importing from config...','system');
 			var importConfig = this.getConfig('import');
 			for (i in importConfig)
 			{
 				var path = this.modulePath+importConfig[i];
-				this.e.log&&this.e.log('Importing '+path+'...','system');
-				
 				if (fs.existsSync(path))
 				{
+					this.e.log&&this.e.log('Importing '+path+'...','system');
 					var classes = fs.readdirSync(path);
 					for (c in classes)
 					{
