@@ -12,17 +12,17 @@ You can easly integrate you application/service with any **Node.JS module**.
 
 ## Quick Start
 
-### Building your first SERVER
+#### Building your first SERVER
 
     $ mkdir myServer | cd myServer
     $ wns --new
 
-### Building your first SERVER's APP (using default template)
+#### Building your first server's APP (using default template)
 
     $ wns --config set appDirectory apps/
     $ wns --app myApp
 
-### Running your application
+#### Running your application
     
 	Let just install the HTTP server
 
@@ -33,7 +33,7 @@ And run it
 
     $ node index
 
-### Installing packages to your SERVER/APP
+#### Installing packages to your SERVER/APP
 
 Just go to the SERVER or APP folder and type:
 
