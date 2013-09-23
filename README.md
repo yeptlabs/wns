@@ -29,7 +29,19 @@ You can easly integrate you application/service with any **Node.JS module**.
     $ wnspm install http
     $ cd apps/myApp | npm install
 
-And run it
+    Then edit the server's `config.json` file.
+    And uncomment the lines below to activate the component.
+
+```js
+
+ // "http": {
+ //  "class": "wnHttp",
+ //  "listen":[80]
+ // }
+
+```
+
+And run it!
 
     $ node index
 
@@ -39,7 +51,7 @@ Just go to the SERVER or APP folder and type:
 
     $ wnspm install *[packageName]*
 
-Examples: http, mongo, winston
+Examples: `http`, `mongo`, `winston`, `template`
 
 ## Oficial Packages
 
