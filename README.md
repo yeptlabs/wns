@@ -29,15 +29,18 @@ You can easly integrate you application/service with any **Node.JS module**.
     $ wnspm install http
     $ cd apps/myApp | npm install
 
+
     And run it
 
-    # node index
+
+    $ node index
 
 ### Installing packages to your SERVER/APP
 
 Just go to the SERVER or APP folder and type:
 
     $ wnspm install *[packageName]*
+
 
     Examples: http, mongo, winston
 
