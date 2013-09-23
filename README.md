@@ -24,7 +24,7 @@ You can easly integrate you application/service with any **Node.JS module**.
 
 #### Running your application
     
-	Let just install the HTTP server
+Let's just install the HTTP server
 
     $ wnspm install http
     $ cd apps/myApp | npm install
