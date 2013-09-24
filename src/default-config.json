@@ -8,11 +8,10 @@
 
 		// HTTP server configuration
 		// Requires `wns-http-package`, install it typing `wnspm install http`
-		// And uncomment lines below to activate.
-		// "http": {
-			// "class": "wnHttp",
-			// "listen":[80]
-		// }
+		"http": {
+			"class": "wnHttp",
+			"listen":[80]
+		}
 
 	}
 }

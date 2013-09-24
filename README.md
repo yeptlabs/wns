@@ -29,16 +29,6 @@ Let's just install the HTTP server
     $ wnspm install http
     $ cd apps/myApp | npm install
 
-Then edit the server's `config.json` file.
-And uncomment the lines below to activate the component.
-
-```js
- // "http": {
- //  "class": "wnHttp",
- //  "listen":[80]
- // }
-```
-
 And run it.
 
     $ node index

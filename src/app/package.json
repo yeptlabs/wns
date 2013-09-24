@@ -6,7 +6,8 @@
 	"dependencies": {
 		"dustjs-linkedin": "*",
 		"dustjs-helpers": "*",
-		"wns-mvc-package": "0.0.1",
-		"wns-template-package": "0.0.1"
+		"node-static": "~0.7.1",
+		"wns-mvc-package": "*",
+		"wns-template-package": "*"
 	}
 }

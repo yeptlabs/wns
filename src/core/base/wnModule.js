@@ -265,7 +265,7 @@ module.exports = {
 				{
 					if (error.length>0)
 					{
-						packageList[pkgName]=undefined;
+						delete packageList[pkgName];
 						for (e in error)
 							self.e.log('Error on loading `'+pkgName+'`: '+error[e],'error');
 					}
@@ -283,7 +283,8 @@ module.exports = {
 		 * Load all packages on the classes of the packageList.
 		 * @param object $packageList
 		 */
-		loadPackages: function (packageList) {
+		loadPackages: function (packageList)
+		{
 			var classes;
 			var className;
 			var classSource;

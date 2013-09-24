@@ -42,7 +42,8 @@
   "repository": "git://github.com/yeptlabs/wns",
   "main": "index",
   "bin": {
-    "wns": "./bin/wns"
+    "wns": "./bin/wns",
+    "wnspm": "./bin/wnspm"
   },
   "scripts": {
     "test": "node index --test"
