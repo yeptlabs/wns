@@ -114,10 +114,12 @@ if (prog.new!==undefined)
 			}
 		};
 		var action = 'get';
-
-		if (actions[prog.args[0]])
-			action = prog.args.splice(0,1)[0];
-
+    
+		if (actions[prog.config])
+			action = prog.config;
+    else
+      prog.args.unshift(prog.config);
+    
 		actions[action].apply(undefined,prog.args);
 
 	} else if (prog.package && prog.package != true)
