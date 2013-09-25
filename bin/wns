@@ -2,17 +2,23 @@
 var prog = require('./client.js');
 
 console.log('  Welcome to WNS Manager.')
+console.log('');
 
 // Default commands.
-prog
-	.option('-n, --new [name]','setup a new server')
-	.option('-e, --exec [cmd]','execute command on module')
-	.parse(process.argv);
+prog.option('-e, --exec [cmd]','execute command on module')
+
+if (!prog.isValidModule)
+	prog
+		.option('-n, --new [name]','setup a new server')
+
+prog.parse(process.argv);
 
 // If is selected create new server...
-if (prog.new!==undefined && prog.new===true)
+if (prog.new!==undefined)
 {
 	var name = prog.new;
+	console.log('')
+	console.log('  Creating new WNS server...');
 
 	if (name!==true)
 	{
@@ -27,7 +33,20 @@ if (prog.new!==undefined && prog.new===true)
 	if (!success)
 		console.log('  Could not build new server...');
 	else
-		console.log();console.log('  A new server configuration was written on the current directory.');
+	{
+		console.log('  Installing NPM dependencies...');
+		var npm = require('npm');
+		npm.load(function (er,npm) {
+		  npm.localPrefix = newPath;
+		  npm.commands.install([], function (er, data) {
+		  	console.log('')
+		  	console.log('  A new server was created on the target directory.');
+		  	console.log('')
+		  	process.exit();
+		  });
+		});
+		prog.keepAlive=true;
+	}
 } else if (prog.exec) {
 	var cmd = prog.exec+' '+prog.args.join(' ');
 	if (prog.isServer) {
@@ -37,11 +56,14 @@ if (prog.new!==undefined && prog.new===true)
 		wns.console.exec(cmd);
 } else if (prog.isValidModule)
 {
+
+	if (prog.isServer)
+		prog
+			.option('-a, --app [application name]','create a new application')
+
 	prog
-		.option('-c, --config','redefine module config')
 		.option('-p, --package [install/remove] [packageName]','server package control')
-		.option('-g, --generate [what?]','server package control')
-		.option('-s, --sync [pass]','get an instanceKey for sync');
+		.option('-c, --config [set/get] [property] [value] [type]','redefine module config')
 
 	if (prog.isServer)
 		prog
@@ -53,28 +75,80 @@ if (prog.new!==undefined && prog.new===true)
 	{
 		wns.console.addServer(path.relative(prog.wnsPath,prog._modulePath));
 		prog.keepAlive=true;
+	}  else if (prog.app!==undefined)
+	{
+		var name = prog.app;
+		prog.keepAlive=true;
+		wns.console.once('loadModule',function (e,moduleName,server) {
+
+			while (name===true || fs.existsSync(server.modulePath+server.getConfig('appDirectory')+name+"/"))
+			{
+				var buff = new Buffer(16);
+				uuid.v4({},buff);
+				name = buff.toString('hex').substr(0,10);
+			}
+
+			server.once('ready',function () {
+				
+				var success = server.buildApplication(name);
+				if (!success)
+				{
+					console.log('  Failed to create new application...');
+					process.exit();
+				} else {
+					console.log('  Installing NPM dependencies...');
+					var npm = require('npm');
+					npm.load(function (er,npm) {
+					  npm.localPrefix = prog._modulePath+server.getConfig('appDirectory')+name+"/";
+					  npm.commands.install([], function (er, data) {
+					  	console.log('')
+					  	console.log('  done.');
+					  	process.exit();
+					  });
+					});
+				}
+			});
+		});
+		wns.console.addServer(path.relative(prog.wnsPath,prog._modulePath));
+
 	} else if (prog.config) 
 	{
+		var configPath = prog._modulePath+'config.json';
+		var configFile = (fs.readFileSync(configPath,'utf8').toString())
+					.replace(/\\/g,function () { return "\\"+arguments[0]; })
+					.replace(/\/\/.+?(?=\n|\r|$)|\/\*[\s\S]+?\*\//g,'');
+		var config = JSON.parse(configFile);
 
-	} else if (prog.sync) 
-	{
-		console.log('');
-		console.log('  Starting syncServer...');
-		var sync=wns.console.syncServer();
-		console.log('  Your instanceKey is: '+sync.getKey());
-		console.log('')
-		console.log('  - Go to http://wnspm.yept.net/')
-		console.log('  - Create/login your account')
-		console.log('  - Attach your instance')
-		prog.keepAlive=true;
-	} else if (prog.generate && prog.package != true) 
-	{
-		var args = prog.args;
-			args.unshift(prog.generate);
-		var fork = require('child_process').fork,
-			wpm = fork(__dirname + '/wnsg', args);
-		wpm.on('close', function () { process.exit(); })
-		prog.keepAlive=true;
+		var actions = {
+			get: function (property) {
+				if (!property)
+					console.log('  GET: Missing `property` in arguments.')
+				else
+					console.log('  GET: Property `'+property+'` is defined as '+util.inspect(config[property+'']))
+			},
+			set: function (property,value,type) {
+				if (!property || !value)
+					console.log('  SET: Missing `property` or `value` in arguments.')
+				else
+				{
+					var val = value;
+					if (type && global[type])
+						val = new global[type](val).valueOf();
+					config[property+'']=val;
+					fs.writeFileSync(configPath,JSON.stringify(config, null, "\t"),'utf8');
+					console.log('  SET: Property `'+property+'` is now defined as '+util.inspect(val))
+				}
+			}
+		};
+		var action = 'get';
+    
+		if (actions[prog.config])
+			action = prog.config;
+    else
+      prog.args.unshift(prog.config);
+    
+		actions[action].apply(undefined,prog.args);
+
 	} else if (prog.package && prog.package != true)
 	{
 		var args = prog.args;

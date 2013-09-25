@@ -2,19 +2,19 @@
 {
 
 	// Application Name
-	"title": "WNS App",
+	"title": "My Application",
 
 	// Auto import
 	"import": [
 		"classes/",
 		"scripts/",
-		"components/",
 		"models/"
 	],
 
 	// Default menu
 	"menu": [
-		{ "name": "Home", "link": "/" }
+		{ "name": "Home", "link": "/" },
+		{ "name": "Signup", "link": "/site/signup" }
 	],
 
 	// Server alias (vhost)
@@ -42,7 +42,7 @@
 			// "debug": true,
 			// "verbosity":1,
 			"class": "wnControllerServer",
-			"errorPage": "site/erro"
+			"errorPage": "site/error"
 		},
 
 		// wnCache configuration (remove/comment to disable)
@@ -81,7 +81,8 @@
 
 		// wnUrlManager configuration (remove/comment to disable)
 		"urlManager": {
-			"class": "wnUrlManager"
+			"class": "wnUrlManager",
+			"rules": {}
 		}
 
 	},

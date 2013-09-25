@@ -1,42 +1,64 @@
 [![WNS](http://dl.dropbox.com/u/21773527/WNS-Logo.png)](http://wns.yept.net)
 
-## Welcome to WNS Middleware (v0.0.76) [![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
+## Welcome to WNS Middleware (v0.0.8) [![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
 
 ##### What's the idea?
-To build your application/service, just installing, configuring and extending **COMPONENTS** and **PACKAGES**.
-You can easly integrate you application/service with any **Node.JS module**. Trust me.
+To build your application/service, just installing packages, configuring as you like and extending **COMPONENTS** and **PACKAGES** (if you want).
+You can easly integrate you application/service with any **Node.JS module**.
+
+## Installation
+
+    $ npm install -g wnserver
+
+## Quick Start
+
+#### Building your first SERVER
+
+    $ wns --new myServer
+    $ cd myServer
+
+#### Building your first server's APP (using default template)
+
+    $ wns --config set appDirectory apps/
+    $ wns --app myApp
+
+#### Running your application
+    
+Let's just install the HTTP server
+
+    $ wnspm install http
+
+And run it.
+
+    $ node index
+
+#### Installing packages to your SERVER/APP
+
+Just go to the SERVER or APP folder and type:
+
+    $ wnspm install [package]
+
+Examples of packages: `http`, `mongo`, `winston`, `template`
+
+## Oficial Packages
+
+- **[HTTP](https://github.com/pedronasser/wns-http-package)**: Full http package
+- **[MVC](https://github.com/pedronasser/wns-mvc-package)**: Classes for MVC application.
+- **[DB](https://github.com/pedronasser/wns-db-package)**: Base classes for database integration
+- **[MONGO](https://github.com/pedronasser/wns-mongo-package)**: Classes for MongoDB integration
+- **[MYSQL](https://github.com/pedronasser/wns-mysql-package)**: Classes for MySQL integration
+- **[TEMPLATE](https://github.com/pedronasser/wns-template-package)**: Classes for template system. (DustJS integration)
+- **[WINSTON](https://github.com/pedronasser/wns-wiston-package)**: Classes for using Winston as log service.
+
+For more packages, [search them here](https://npmjs.org/search?q=wns+package).
 
 ## Main Features
 
- - PACKAGE system
+ - Component-based development
+ - Class-based development
+ - Full PACKAGE system
  - Full EVENT system
- - Component-based source code
- - Class-based source code
- - File modification MONITOR
  - Easy UNIT TESTING
-
-## Core Packages
-
-***Soon this packages will be removed from core package.
-Will be available in the Package Management system.***
-
-- **BASE**: Core classes.
-- **HTTP**: Full http package
- - Session system
- - Compression system
- - MVC
- - Cache control
- - Url management
- - Routes
- - HTTP Helpers
-- **DB**: Base classes for database integration
-- **MONGO**: Classes for MongoDB integration
-- **MYSQL**: Classes for MySQL integration
-- **SYNC**: Classes for the sync system, used on package management.
-- **TEMPLATE**: Classes for template system.
- - DustJS template integration
-- **VALIDATOR**: Classes for model validation.
-- **CACHE**: Classes for cache system.
 
 ## Philosophy
 
@@ -46,11 +68,7 @@ Will be available in the Package Management system.***
 - Professional
 - Security
 - Modules and components
-- As you like
-
-## First steps?
-
-- How to? [LOOK HERE](http://wns.yept.net/site/guide)
+- Build as your like
 
 ## More information:
 
@@ -63,7 +81,7 @@ Will be available in the Package Management system.***
 
 ## License MIT
 
-Copyright (c) 2012 Pedro Nasser <pedronasser@yept.net>
+Copyright (c) 2012- Pedro Nasser <pedronasser@yept.net>
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),

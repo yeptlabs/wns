@@ -51,12 +51,6 @@ module.exports = {
 		 */	
 		init: function ()
 		{
-			if (this.getConfig('appDirectory')!=undefined && !fs.existsSync(this.modulePath+this.getConfig('appDirectory')))
-			{
-				this.e.log("Creating server's applications directory.");
-				fs.mkdirSync(this.modulePath+this.getConfig('appDirectory'));
-			}
-
 			this.loadApplications();
 		},
 
@@ -84,16 +78,22 @@ module.exports = {
 		setApplications: function (applications)
 		{
 			var modules = {};
+			var appDir = this.getConfig('appDirectory');
+
+			if (!appDir)
+				return false;
+
 			for (a in applications)
 			{
-				var ref=applications[a],
-					appName = a,
-					a = 'app-'+a;
+				var ref=applications[a];
+				var appName = a;
+				var a = 'app-'+a;
+
 				modules[a]=ref;
-				modules[a].modulePath=this.getConfig('appDirectory')+appName+'/';
+				modules[a].modulePath=appDir+appName+'/';
+
 				modules[a].appName=appName;
 				modules[a].class='wnApp';
-				this.buildApplication(appName,modules[a].modulePath);
 				var realModulePath = this.modulePath+modules[a].modulePath;
 				if (fs.existsSync(realModulePath+appName+'.js'))
 				{
@@ -118,25 +118,68 @@ module.exports = {
 		},
 
 		/**
+		 * Create applications directory
+		 */
+		createAppDirectory: function ()
+		{
+			var appDir = this.getConfig('appDirectory');
+
+			if (!appDir)
+				return false;
+
+			if (!fs.existsSync(this.modulePath+appDir))
+			{
+				this.e.log("Created a directory for applications: "+appDir);
+				this.e.log("To create a new application, go inside `"+appDir+"`, then type:");
+				this.e.log("$ wns --newapp [application name]");
+				fs.mkdirSync(this.modulePath+appDir);
+			}
+		},
+
+		/**
 		 * Build an application directory
 		 */
-		buildApplication: function (appName, appPath)
+		buildApplication: function (appName)
 		{
-			if (!fs.existsSync(this.modulePath+appPath))
-			{
-				this.e.log('- Creating new application: '+appName+' on `'+appPath+'`');
-				wrench.copyDirSyncRecursive(cwd+sourcePath+'app/',this.modulePath+appPath);
-				fs.renameSync(this.modulePath+appPath+'app.js', this.modulePath+appPath+appName+'.js');
-	
-				var defaultPackage = fs.readFileSync(cwd+sourcePath+'default-package.json').toString('utf8');
-				defaultPackage = defaultPackage.replace(/\{moduleName\}/g,appName);
-				fs.writeFileSync(this.modulePath+appPath+'package.json',defaultPackage);
+			var appDir = this.getConfig('appDirectory');
 
-				var config = this.getFile(appPath+'config.json');
-				config = config;
-				fs.writeFileSync(this.modulePath+appPath+'config.json',config,'utf8');
+			if (!appDir)
+			{
+				console.log('  To create applications, you need do define an `appDirectory` on `config.json`');
+				return false; 
 			}
-			return this;
+
+			this.createAppDirectory();
+
+			try {
+				var appPath = appDir+appName+'/';
+
+				if (!fs.existsSync(this.modulePath+appPath))
+				{
+					console.log('  Creating new application `'+appName+'` in `'+appDir+'`');
+					wrench.copyDirSyncRecursive(cwd+sourcePath+'app/',this.modulePath+appPath);
+					fs.renameSync(this.modulePath+appPath+'app.js', this.modulePath+appPath+appName+'.js');
+		
+					var defaultPackage = fs.readFileSync(cwd+sourcePath+'app/package.json').toString('utf8');
+					defaultPackage = defaultPackage.replace(/\{moduleName\}/g,appName);
+					fs.writeFileSync(this.modulePath+appPath+'package.json',defaultPackage);
+
+					var config = this.getFile(appPath+'config.json');
+					config = config;
+					fs.writeFileSync(this.modulePath+appPath+'config.json',config,'utf8');
+
+					console.log('');
+					console.log('  Application `'+appName+'` has been created');
+					console.log('  Before run it, type `npm install` inside folder `'+appPath+'`');
+					self.buildedApps++;
+					return true;
+				}
+			} catch (e) {
+				throw e;
+				return false;				
+			}
+
+			return false;
 		},
 
 		/**
@@ -207,17 +250,32 @@ module.exports = {
 		 */
 		loadApplications: function ()
 		{
-			var preload = this.getConfig().app,
-				parent = this.getParent();
-			if (preload != undefined)
+			var parent = this.getParent();
+			var appDir = this.getConfig('appDirectory');
+
+			if (!appDir)
+				return false;
+
+			this.createAppDirectory();
+
+			if (!fs.existsSync(this.modulePath+appDir))
+				return false;
+
+			var appDirList = fs.readdirSync(this.modulePath+appDir);
+			var apps = {};
+
+			for (a in appDirList)
 			{
-				this.setApplications(preload);
+				var appPath = appDirList[a]+'/';
+				apps[appDirList[a]]={ appPath: appPath }
 			}
 
-			for (p in preload)
+			this.setApplications(apps);
+
+			for (a in apps)
 			{
-				this.e.log('Loading application: ' + p);
-				a=this.getApplication(p);
+				this.e.log('Loading application: ' + a);
+				this.getApplication(a);
 			}
 
 			return this;

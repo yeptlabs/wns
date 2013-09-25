@@ -1,28 +1,195 @@
 #!/usr/bin/env node
 var prog = require('./client.js');
+var npm = require('npm');
+var _ = require('underscore');
+
+function addDependency (modulePath,name,version)
+{
+	var jsonFile = modulePath+'package.json';
+	if (fs.existsSync(jsonFile))
+	{
+		try {
+			var jsonObj = JSON.parse(fs.readFileSync(jsonFile));
+			jsonObj.dependencies = jsonObj.dependencies || {};
+			jsonObj.dependencies[name]=version||'*';
+			var jsonData = JSON.stringify(jsonObj, null, "\t");
+			fs.writeFileSync(jsonFile,jsonData);
+		} catch (e) {}
+	}
+}
+
+function install (npm,installPackages,cb)
+{
+	var installedPackages=[];
+	var installPackages = _.toArray(installPackages);
+	var nPkgs=installPackages.length;
+	var p=0;
+
+	(function () {
+		var recursive = arguments.callee;
+
+		if (p>=nPkgs)
+		{
+			cb&&cb();
+		} else 
+		{
+			var name = installPackages[p];
+			npm.commands.install([name], function (er, data) {
+				if (er)
+				{
+					throw er;
+					process.exit();
+				}
+
+				function next () {
+					console.log('')
+					addDependency(npm.localPrefix,name.split('@')[0],name.split('@')[1]);
+			  		console.log('  `'+installPackages[p]+'` installed successfully!');
+			  		console.log('')
+
+				  	p++;
+				  	recursive();
+				}
+
+			  	var pjson=prog._modulePath+'node_modules/'+name.split('@')[0]+'/package.json';
+			  	if (fs.existsSync(pjson))
+			  	{
+					var deps = JSON.parse(fs.readFileSync(pjson)).npmRequire;
+					if (deps)
+					{
+						for (d in deps)
+							addDependency(npm.localPrefix,d,deps[d]);
+						deps = _.keys(deps);
+						npm.commands.install(deps, function (er, data) {
+							next();
+						});
+					} else
+						next();
+				} else
+					next();
+			});
+		}
+	})();
+}
+
+
+prog.running = false;
 
 console.log('  Welcome to WNS Package Manager.')
 console.log('')
 
 prog
-	.version(version)
 	.usage('[action] [packageName]')
 prog
-	.command('install [packageName]')
-	.description('install wns package')
-	.action(function (package) {
-		var module = wns.console.addServer(path.relative(prog.wnsPath,path.resolve('.')));
-		console.log('  Installing `%s` package...',package);
-		module.installPackage(package,function (s) {
-			if (s) 
-				console.log('  Package installed.');
-			else
-				console.log('  Error installing new package.');
-			process.exit();
+	.command('install [package]')
+	.description('install wns package(s)')
+	.action(function (pkg) {
+
+		var pkgSplit = pkg.split('@');
+		var pkgName = pkgSplit[0];
+		var pkgVersion = pkgSplit[1] || "*";
+		var fullPackageName = pkgName;
+		var installPackages = {};
+
+		if (pkgName.indexOf('wns-')===-1)
+			fullPackageName = "wns-"+pkgName+"-package";
+		if (pkgVersion !== "*" && pkgVersion.split(".").length==3)
+			fullPackageName += "@"+pkgVersion;
+
+		installPackages[fullPackageName]=pkgVersion;
+
+		npm.load(function (er,npm) {
+		  if (er)
+		  {
+		  	throw er;
+		  	process.exit();
+		  }
+
+		  npm.localPrefix = prog._modulePath;
+
+		  console.log('  Installing WNS package: '+pkgName+'@'+pkgVersion);
+		  console.log('');
+
+		  install(npm,[fullPackageName],function () {
+		  	var pjson=prog._modulePath+'node_modules/'+fullPackageName+'/package.json';
+		  	if (fs.existsSync(pjson))
+		  	{
+			  	try {
+			  		var deps = JSON.parse(fs.readFileSync(pjson)).require || false;
+			  		if (deps)
+			  		{
+			  			var packages=[];
+						console.log('  Installing dependencies for '+pkgName+'@'+pkgVersion+'...');
+						console.log('');
+						for (d in deps)
+						{
+							packages.push(d+'@'+deps[d]);
+						}
+						install(npm,packages,function () {
+							console.log('  done.');
+							process.exit();
+						})
+			  		} else
+			  		{
+			  			console.log('  done.');
+			  			process.exit();
+			  		}
+			  	} catch (e) {
+			  		throw e;
+			  		process.exit();
+			  	}
+		  	}
+		  	else
+		  	{
+		  		console.log('  done.');
+		  		process.exit();
+		  	}
+		  });
+
 		});
+		prog.keepAlive=true;
+		prog.running=true;
 	})
 prog
-	.command('remove [packageName]')
+	.command('remove [package]')
 	.description('remove wns package')
+	.action(function (pkg) {
+
+		var pkgSplit = pkg.split('@');
+		var pkgName = pkgSplit[0];
+		var fullPackageName = pkgName;
+		if (pkgName.indexOf('wns-')===-1)
+			fullPackageName = "wns-"+pkgName+"-package";
+
+		npm.load(function (er,npm) {
+		  if (er)
+		  {
+		  	throw er;
+		  	process.exit();
+		  }
+
+		  npm.localPrefix = prog._modulePath;
+
+		  console.log('  Removing WNS package: '+pkgName);
+		  console.log('');
+		  npm.commands.remove([fullPackageName], function (er, data) {
+		  	if (er)
+		  	{
+		  		throw er;
+		  		process.exit();
+		  	}
+		  	console.log('');
+		    console.log('  `'+pkg+'` removed successfully!');
+		    process.exit();
+		  })
+		});
+		prog.keepAlive=true;
+		prog.running=true;
+	});
 prog
-	.parse(process.argv);
+	.parse(process.argv)
+
+if (!prog.running)
+	prog.outputHelp();
+
+(!prog.keepAlive)&&process.exit()
