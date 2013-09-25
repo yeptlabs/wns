@@ -17,6 +17,8 @@ prog.parse(process.argv);
 if (prog.new!==undefined)
 {
 	var name = prog.new;
+	console.log('')
+	console.log('  Creating new WNS server...');
 
 	if (name!==true)
 	{
@@ -31,7 +33,20 @@ if (prog.new!==undefined)
 	if (!success)
 		console.log('  Could not build new server...');
 	else
-		console.log();console.log('  A new server configuration was written on the current directory.');
+	{
+		console.log('  Installing NPM dependencies...');
+		var npm = require('npm');
+		npm.load(function (er,npm) {
+		  npm.localPrefix = newPath;
+		  npm.commands.install([], function (er, data) {
+		  	console.log('')
+		  	console.log('  A new server was created on the target directory.');
+		  	console.log('')
+		  	process.exit();
+		  });
+		});
+		prog.keepAlive=true;
+	}
 } else if (prog.exec) {
 	var cmd = prog.exec+' '+prog.args.join(' ');
 	if (prog.isServer) {
@@ -77,9 +92,21 @@ if (prog.new!==undefined)
 				
 				var success = server.buildApplication(name);
 				if (!success)
+				{
 					console.log('  Failed to create new application...');
-				
-				process.exit();
+					process.exit();
+				} else {
+					console.log('  Installing NPM dependencies...');
+					var npm = require('npm');
+					npm.load(function (er,npm) {
+					  npm.localPrefix = prog._modulePath+server.getConfig('appDirectory')+name+"/";
+					  npm.commands.install([], function (er, data) {
+					  	console.log('')
+					  	console.log('  done.');
+					  	process.exit();
+					  });
+					});
+				}
 			});
 		});
 		wns.console.addServer(path.relative(prog.wnsPath,prog._modulePath));

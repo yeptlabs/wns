@@ -12,7 +12,6 @@ function addDependency (modulePath,name,version)
 			var jsonObj = JSON.parse(fs.readFileSync(jsonFile));
 			jsonObj.dependencies = jsonObj.dependencies || {};
 			jsonObj.dependencies[name]=version||'*';
-			console.log(jsonObj)
 			var jsonData = JSON.stringify(jsonObj, null, "\t");
 			fs.writeFileSync(jsonFile,jsonData);
 		} catch (e) {}
@@ -41,17 +40,38 @@ function install (npm,installPackages,cb)
 					throw er;
 					process.exit();
 				}
-				console.log('')
-				addDependency(npm.localPrefix,name.split('@')[0],name.split('@')[1]);
-		  		console.log('  `'+installPackages[p]+'` installed successfully!');
-		  		console.log('')
 
-			  	p++;
-			  	recursive();
+				function next () {
+					console.log('')
+					addDependency(npm.localPrefix,name.split('@')[0],name.split('@')[1]);
+			  		console.log('  `'+installPackages[p]+'` installed successfully!');
+			  		console.log('')
+
+				  	p++;
+				  	recursive();
+				}
+
+			  	var pjson=prog._modulePath+'node_modules/'+name.split('@')[0]+'/package.json';
+			  	if (fs.existsSync(pjson))
+			  	{
+					var deps = JSON.parse(fs.readFileSync(pjson)).npmRequire;
+					if (deps)
+					{
+						for (d in deps)
+							addDependency(npm.localPrefix,d,deps[d]);
+						deps = _.keys(deps);
+						npm.commands.install(deps, function (er, data) {
+							next();
+						});
+					} else
+						next();
+				} else
+					next();
 			});
 		}
 	})();
 }
+
 
 prog.running = false;
 

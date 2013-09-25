@@ -14,8 +14,8 @@ You can easly integrate you application/service with any **Node.JS module**.
 
 #### Building your first SERVER
 
-    $ mkdir myServer | cd myServer
-    $ wns --new
+    $ wns --new myServer
+    $ cd myServer
 
 #### Building your first server's APP (using default template)
 
@@ -27,7 +27,6 @@ You can easly integrate you application/service with any **Node.JS module**.
 Let's just install the HTTP server
 
     $ wnspm install http
-    $ cd apps/myApp | npm install
 
 And run it.
 
