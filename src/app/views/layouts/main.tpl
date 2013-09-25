@@ -1,65 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
     <title>{view.title}</title>
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{self.desc}">
-    <meta name="author" content="{app.author}">
+    <link href="/css/bootstrap.css" rel="stylesheet">
+    <link href="/css/app.css" rel="stylesheet">
 
-    <!-- Le styles -->
-    <link href="/css/bootstrap.min.css" rel="stylesheet">
-    <style type="text/css">
-      body {
-        padding-top: 60px;
-        padding-bottom: 40px;
-      }
-    </style>
-    <link href="/css/bootstrap-responsive.min.css" rel="stylesheet">
-
-    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
       <script src="/js/html5shiv.js"></script>
+      <script src="/js/respond.min.js"></script>
     <![endif]-->
-
   </head>
-
   <body>
 
-    <div class="navbar navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="brand" href="/">{app.title}</a>
-          <div class="nav-collapse collapse">
-            <ul class="nav">
-            	{#app.menu}{#.}
-            		<li><a href="{link}">{name}</a></li>
-            	{/.}{/app.menu}
-            </ul>
-            <form class="navbar-form pull-right">
-              <input class="span2" type="text" placeholder="Email">{~s}
-              <input class="span2" type="password" placeholder="Password">{~s}
-              <button type="submit" class="btn">Sign in</button>
-            </form>
-          </div>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">{app.title}</a>
         </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+          {#app.menu}{#.}
+            <li><a href="{link}">{name}</a></li>
+          {/.}{/app.menu}
+          </ul>
+          <form class="navbar-form navbar-right" action='/site/signin'>
+            <div class="form-group">
+              <input type="text" placeholder="Email" class="form-control">
+            </div>
+            <div class="form-group">
+              <input type="password" placeholder="Password" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-success">Sign in</button>
+          </form>
+        </div><!--/.navbar-collapse -->
       </div>
     </div>
 
+    {content}
+
+    <hr>
+
     <div class="container">
-
-{content}
-
-      <hr>
-
       <footer>
-        <p style='text-align:right'>© {app.title} - Powered by <a href='http://wns.yept.net/'>WNS Middleware</p></p>
+        <p style='text-align:right'>&copy; {app.title} - Powered by <b><a href='http://wns.yept.net/'>WNS Middleware</a></b></p>
       </footer>
-
     </div>
 
-    <script src="/js/jquery.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
+    <!-- Place where WNS will embed required scripts -->
+    <[SCRIPT]>
 
   </body>
 </html>

@@ -1,0 +1,13 @@
+body {
+	padding-top: 50px;
+	padding-bottom: 20px;
+}
+
+.navbar-form .form-group {
+	padding-right: 5px;
+}
+
+.centered {
+	float: none;
+	margin: 0 auto;
+}

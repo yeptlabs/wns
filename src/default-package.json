@@ -1,7 +1,8 @@
 {
-	"name": "wns-{moduleName}",
+	"name": "wns-{moduleName}-server",
 	"version": "0.0.1",
 	"private": true,
+	"moduleClass": "wnServer",
 	"dependencies": {
 		"wnserver": "*"
 	}
