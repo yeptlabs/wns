@@ -48,7 +48,7 @@ if (prog.new!==undefined)
 
 	prog
 		.option('-p, --package [install/remove] [packageName]','server package control')
-		.option('-c, --config','redefine module config')
+		.option('-c, --config [set/get] [property] [value] [type]','redefine module config')
 
 	if (prog.isServer)
 		prog
@@ -86,6 +86,39 @@ if (prog.new!==undefined)
 
 	} else if (prog.config) 
 	{
+		var configPath = prog._modulePath+'config.json';
+		var configFile = (fs.readFileSync(configPath,'utf8').toString())
+					.replace(/\\/g,function () { return "\\"+arguments[0]; })
+					.replace(/\/\/.+?(?=\n|\r|$)|\/\*[\s\S]+?\*\//g,'');
+		var config = JSON.parse(configFile);
+
+		var actions = {
+			get: function (property) {
+				if (!property)
+					console.log('  GET: Missing `property` in arguments.')
+				else
+					console.log('  GET: Property `'+property+'` is defined as '+util.inspect(config[property+'']))
+			},
+			set: function (property,value,type) {
+				if (!property || !value)
+					console.log('  SET: Missing `property` or `value` in arguments.')
+				else
+				{
+					var val = value;
+					if (type && global[type])
+						val = new global[type](val).valueOf();
+					config[property+'']=val;
+					fs.writeFileSync(configPath,JSON.stringify(config, null, "\t"),'utf8');
+					console.log('  SET: Property `'+property+'` is now defined as '+util.inspect(val))
+				}
+			}
+		};
+		var action = 'get';
+
+		if (actions[prog.args[0]])
+			action = prog.args.splice(0,1)[0];
+
+		actions[action].apply(undefined,prog.args);
 
 	} else if (prog.package && prog.package != true)
 	{

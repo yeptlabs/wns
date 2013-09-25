@@ -37,9 +37,9 @@ And run it.
 
 Just go to the SERVER or APP folder and type:
 
-    $ wnspm install *[packageName]*
+    $ wnspm install [package]
 
-Examples: `http`, `mongo`, `winston`, `template`
+Examples of packages: `http`, `mongo`, `winston`, `template`
 
 ## Oficial Packages
 
