@@ -1,6 +1,13 @@
 {
-	"name": "wns-app",
+	"name": "wns-{moduleName}-app",
 	"version": "0.0.1",
 	"private": true,
-	"dependencies": {}
+	"moduleClass": "wnApp",
+	"dependencies": {
+		"dustjs-linkedin": "*",
+		"dustjs-helpers": "*",
+		"node-static": "~0.7.1",
+		"wns-mvc-package": "*",
+		"wns-template-package": "*"
+	}
 }

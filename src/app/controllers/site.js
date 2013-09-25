@@ -31,16 +31,40 @@ module.exports = {
 		 * Action: Index
 		 */
 		actionIndex: function () {
-			this.title='Index';
+			this.title='Home';
 			this.render('index');
+		},
+
+		/**
+		 * Action: Signup
+		 */
+		actionSignup: function () {
+			this.title='Sign up';
+			this.render('signup');
+		},
+
+		/**
+		 * Action: Signin
+		 */
+		actionSignin: function () {
+			this.title='Sign in';
+			this.render('signin');
 		},
 
 		/**
 		 * Action: Error
 		 */
 		actionError: function () {
-			this.title='ERROR';
-			this.render('error');
+			if (this.request.code == 404)
+			{
+				this.title='Not found';
+				this.render('notfound');
+			}
+			else
+			{
+				this.title='ERROR';
+				this.render('error');
+			}
 		}
 
 	}
