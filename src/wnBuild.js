@@ -136,21 +136,32 @@ wnBuild.prototype.load = function (className)
 
 	for (c in loadList)
 	{
-		module = { exports: {} };
 		source = this.classesCode[c];
 		this.classesBuild[c] = { extend: [], public: {}, private: {}, methods:{}, dependencies: {}};
 
 		// Eval class source or a list of sources.
 		if (typeof source == 'string')
 		{
-			eval(source);
-			this.extend(this.classesBuild[c],module.exports,c);
+			var ctx = { module: { exports: {} } };
+			try {
+				vm.runInNewContext(source,ctx,c+'.js');
+			} catch (e)
+			{
+				throw new Error(e.message+' - building `'+c+'` class');
+			}
+			this.extend(this.classesBuild[c],ctx.module.exports,c);
 		}
 		else if (source instanceof Array)
 			for (s in source)
 			{
-				eval(source[s]);
-				this.extend(this.classesBuild[c],module.exports,c);
+				var ctx = { module: { exports: {} } };
+				try {
+					vm.runInNewContext(source[s],ctx,c+'.js');
+				} catch (e)
+				{
+					throw new Error(e.message+' - building `'+c+'` class');
+				}
+				this.extend(this.classesBuild[c],ctx.module.exports,c);
 			}
 	}
 
@@ -223,7 +234,6 @@ wnBuild.prototype.buildClass = function (className)
 
 	// Create a function to create a new instance from the prototype when called.
 	var build = self.classesBuild[className];
-	// var ctx = vm.createContext(global);
 	// ctx.builder = this;
 	var evalBuilder = "var classBuilder = function () {\n";
 		evalBuilder += '	this.builder.vmScript[className].runInThisContext();\n';
@@ -354,10 +364,17 @@ wnBuild.prototype.compileClass = function (targetClass)
 		}
 
 		// Declare privileged methods
+		var promiseRegExp = new RegExp('^\\\$');
 		classSource += '\n// Declaring privileged methods\n';
 		for (m in build.methods)
 		{
-			classSource += "proto['"+m+"'] = "+build.methods[m].toString()+";\n";
+			var methodName=m;
+			var fn = build.methods[m].toString();
+			if (promiseRegExp.test(m))
+			{
+				classSource += "proto['"+methodName+"'] = function () { var done=q.defer(); var self = this; return ("+fn+").apply(self,arguments); };\n";
+			} else
+				classSource += "proto['"+methodName+"'] = "+fn+";\n";
 		}
 
 		// Declare the constructor.
@@ -379,7 +396,7 @@ wnBuild.prototype.compileClass = function (targetClass)
 		this.compiledSource[targetClass] = classLoader;
 
 		// Create a VM.Script from the classLoader;
-		this.vmScript[targetClass] = vm.createScript(classLoader);
+		this.vmScript[targetClass] = vm.createScript(classLoader,targetClass+'.js');
 	} catch (e)
 	{
 		console.log('\nError on compiling `'+targetClass+'`: '+e.message);
