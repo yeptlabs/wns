@@ -268,6 +268,32 @@ module.exports = {
 		},
 
 		/**
+		 * Promise: Get a file.
+		 * The file's path is relative to the module's path.
+		 * @param string $filePath file's path
+		 * @param boolean $buffer return as buffer?
+		 * @return promise
+		 */
+		$getFile: function (filePath,buffer)
+		{
+			var realPath = done.promise.filePath = this.instanceOf('wnModule')?this.modulePath+filePath:filePath;
+			done.promise.returnAsBuffer=buffer=buffer || true;
+
+			fs.readFile(realPath,function (err,text) {
+				if (err)
+					done.reject(err);
+				else
+				{
+					if (!buffer)
+						text=text.toString('utf8');
+					done.resolve(text);
+				}
+			});
+
+			return done.promise;
+		},
+
+		/**
 		 * Get a file statistic.
 		 * The file's path is relative to the module's path.
 		 * @param string $filePath file's path
