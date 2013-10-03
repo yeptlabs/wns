@@ -36,12 +36,24 @@ function wnBuild(sourceCode,parent)
 	this.classesBuild = {};
 	// Store classes.
 	this.classes = {};
+
+	// Literal Object
+
 	// Object to store not compiled class source
-	this.classesSource = {};
+	this.classesObjectSource = {};
 	// Object to store compiled class source
-	this.compiledSource = {};
+	this.compiledObjectSource = {};
 	// Object to store VM.Script from each class.
-	this.vmScript = {};
+	this.vmObjectScript = {};
+
+	// Prototype
+
+	// Object to store not compiled class source
+	this.classesProtoSource = {};
+	// Object to store compiled class source
+	this.compiledProtoSource = {};
+	// Object to store VM.Script from each class.
+	this.vmProtoScript = {};
 
 	// Store parent information.
 	this.modulePath = parent.getModulePath() || '.';
@@ -229,15 +241,25 @@ wnBuild.prototype.buildClass = function (className)
 	if (!targetClass || !this.checkDependencies(targetClass.extend))
 		return false;
 
-	// Compile and compress the class source code and create a prototype.
-	this.compileClass(className);
+	// Compile and compress the class source code and create a prototype source.
+	this.compileClassPrototype(className);
+	// Compile and compress the class source code and create an literal object source
+	this.compileClassObject(className);
 
 	// Create a function to create a new instance from the prototype when called.
 	var build = self.classesBuild[className];
+	var builder = this;
+	var sourceTypes = {
+		'prototype': 'Proto',
+		'object': 'Object'
+	};
 	// ctx.builder = this;
 	var evalBuilder = "var classBuilder = function () {\n";
-		evalBuilder += '	this.builder.vmScript[className].runInThisContext();\n';
-		evalBuilder += "	var klass = new classObject;\n";
+		evalBuilder += '	this.type = (this.type?this.type.toLowerCase():"prototype");\n';
+		evalBuilder += '	this.type = sourceTypes[this.type] || "Proto";\n';
+		evalBuilder += '	builder["vm"+this.type+"Script"][className].runInThisContext();\n';
+		evalBuilder += "	if (this.type=='Proto') var klass = new classObject;\n";
+		evalBuilder += "	else var klass = classObject;\n";
 		evalBuilder += '	klass.construct&&klass.construct.apply(klass,arguments);\n';
 		evalBuilder += '	return klass;\n};';
 	eval(evalBuilder);
@@ -250,8 +272,15 @@ wnBuild.prototype.buildClass = function (className)
 		configurable: false
 	});
 
-	Object.defineProperty(classBuilder, 'source', {
-		value: this.classesSource[className],
+	Object.defineProperty(classBuilder, 'protoSource', {
+		value: this.classesProtoSource[className],
+		writable: false,
+		enumerable: false,
+		configurable: false
+	});
+
+	Object.defineProperty(classBuilder, 'objectSource', {
+		value: this.classesObjectSource[className],
 		writable: false,
 		enumerable: false,
 		configurable: false
@@ -278,12 +307,12 @@ wnBuild.prototype.minify = function (code,className) {
 /**
  * Get the target class's builder.
  * Create a source code from it.
- * Compile the source. (if not DEV mode minify it)
+ * Compile the source as a prototype. (if not DEV mode minify it)
  * Save the new prototype object.
  * @param string $className
  * @param array $extend class extension list
  */
-wnBuild.prototype.compileClass = function (targetClass)
+wnBuild.prototype.compileClassPrototype = function (targetClass)
 {
 	// Catch all errors
 	try {
@@ -323,7 +352,7 @@ wnBuild.prototype.compileClass = function (targetClass)
 		for (e in fullExtend)
 		{
 			classLoader+='// - Extension: '+ fullExtend[e]+'\n';
-			var extendSource = builder.classesSource[fullExtend[e]];
+			var extendSource = builder.classesProtoSource[fullExtend[e]];
 			classLoader+=extendSource;
 		}
 
@@ -392,11 +421,140 @@ wnBuild.prototype.compileClass = function (targetClass)
 		classLoader=builder.minify(classLoader,targetClass);
 
 		// Store the compiled and not compiled source code.
-		this.classesSource[targetClass] = classSource;
-		this.compiledSource[targetClass] = classLoader;
+		this.classesProtoSource[targetClass] = classSource;
+		this.compiledProtoSource[targetClass] = classLoader;
 
 		// Create a VM.Script from the classLoader;
-		this.vmScript[targetClass] = vm.createScript(classLoader,targetClass+'.js');
+		this.vmProtoScript[targetClass] = vm.createScript(classLoader,targetClass+'.js');
+	} catch (e)
+	{
+		console.log('\nError on compiling `'+targetClass+'`: '+e.message);
+		process.exit();
+	}
+};
+
+/**
+ * Get the target class's builder.
+ * Create a source code from it.
+ * Compile the source as an object. (if not DEV mode minify it)
+ * Save the object.
+ * @param string $className
+ * @param array $extend class extension list
+ */
+wnBuild.prototype.compileClassObject = function (targetClass)
+{
+	// Catch all errors
+	try {
+
+		// Check if class is loaded.
+		if (!this.classesBuild[targetClass] || this.classesBuild[targetClass].source)
+			process.exit("Error on compiling class `"+targetClass+"`, it's not loaded.");
+
+		var build = this.classesBuild[targetClass];
+		var self = builder = this;
+		var fullExtend = [];
+
+		// Get all classes dependencies and put a single array.
+		(function (extend) {
+			for (e in extend)
+			{
+				var ext=fullExtend.reverse();
+					ext.push(extend[e]);
+					ext.reverse();
+					fullExtend=ext;
+				arguments.callee(self.classes[extend[e]].build.extend);
+			}
+		})(build.extend);
+
+		// Begin of the classLoader source code.
+		var classLoader = 'var classObject = (function () {\n';
+		classLoader+='//@'+targetClass+'\n\n';
+		classLoader+='var '+targetClass+' = { className: '+targetClass+' }\n';
+		classLoader+='var self='+targetClass+', className="'+targetClass+'";\n';
+		classLoader+='var klass = '+targetClass+',\n';
+		classLoader+=' proto = '+targetClass+',\n';
+		classLoader+=' __extend = '+util.inspect(fullExtend)+';\n';
+		classLoader+='proto.construct = function () {};\n';
+
+		// Importing extensions source code.
+		classLoader+='\n// Importing WNS extensions\n\n';
+		for (e in fullExtend)
+		{
+			classLoader+='// - Extension: '+ fullExtend[e]+'\n';
+			var extendSource = builder.classesObjectSource[fullExtend[e]];
+			classLoader+=extendSource;
+		}
+
+		// Start of the targetClass's source code.
+		classLoader +='\n// Begin of '+targetClass+' \n';
+
+		// Importing every NPM dependencies 
+		classSource = '\n// Declaring NPM dependencies \n';
+		classSource += '	var deps = '+util.inspect(build.dependencies)+'; builder.loadDependencies(deps);\n';
+		classSource += '	for (e in deps)\n';
+		classSource += "		eval ('var '+deps[e].replace(\/\\\-\|\\\.\/g,\"_\")+'=builder.loadedModules[deps[e]];');\n";
+
+		// Declare private properties
+		classSource += '\n// Declaring private properties \n';
+		classSource += 'var _=underscore,$$=self,';
+		for (p in build.private)
+		{
+			if (p == 'proto' || p == 'klass')
+				continue;
+			if (typeof build.private[p] != 'function')
+				classSource += p+" = "+util.inspect(build.private[p],false,null,false);
+			else
+				classSource += p+" = "+build.private[m].toString();
+			classSource+=",";
+		}
+		classSource=classSource.substr(0,classSource.length-1)+";\n";
+
+		// Declare public properties
+		classSource += '\n// Declaring public properties\n';
+		for (p in build.public)
+		{
+			if (p == 'proto' || p == 'klass')
+				continue;
+			if (typeof build.public[p] != 'function')
+				classSource += "proto['"+p+"'] = "+util.inspect(build.public[p],false,null,false)+";\n";
+			else
+				classSource += "proto['"+p+"'] = "+build.public[m].toString()+";\n";
+		}
+
+		// Declare privileged methods
+		var promiseRegExp = new RegExp('^\\\$');
+		classSource += '\n// Declaring privileged methods\n';
+		for (m in build.methods)
+		{
+			var methodName=m;
+			var fn = build.methods[m].toString();
+			if (promiseRegExp.test(m))
+			{
+				classSource += "proto['"+methodName+"'] = function () { var done=q.defer(); var self = this; return ("+fn+").apply(self,arguments); };\n";
+			} else
+				classSource += "proto['"+methodName+"'] = "+fn+";\n";
+		}
+
+		// Declare the constructor.
+		classSource += '\n// Constructor\n';
+		if (build.hasOwnProperty('constructor') && build.constructor!==undefined)
+			classSource += 'proto.construct='+build.constructor.toString()+";\n";
+
+		// Replace all unknown functions.
+		classSource = classSource.replace(/\[Function\]/gim, 'function () {}');
+
+		// Add to the classLoader source code the class's sourceCode.
+		classLoader += classSource+'\n return klass; })();';
+
+		// Try to minify the sourceCode.
+		classLoader=builder.minify(classLoader,targetClass);
+
+		// Store the compiled and not compiled source code.
+		this.classesObjectSource[targetClass] = classSource;
+		this.compiledObjectSource[targetClass] = classLoader;
+
+		// Create a VM.Script from the classLoader;
+		this.vmObjectScript[targetClass] = vm.createScript(classLoader,targetClass+'.js');
 	} catch (e)
 	{
 		console.log('\nError on compiling `'+targetClass+'`: '+e.message);
