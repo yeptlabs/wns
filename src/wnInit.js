@@ -13,14 +13,6 @@
  * @author Pedro Nasser
  */
 
- console.log('\n  o       o o--o  o--o (TM)');
- console.log('  |   o   | |   | o__');
- console.log('   \\ / \\ /  |   |    o');
- console.log('    o   o   o   o o--o');
- console.log('\n         powered by YEPT(R)');
- console.log();
-
-
 // DEFINING ZONE...
 
 global.WNS_SHOW_LOAD = (process.argv.indexOf('--silent') != -1 ? true : (typeof WNS_SHOW_LOAD !== 'undefined' ? WNS_SHOW_LOAD : true));
@@ -30,16 +22,19 @@ global.WNS_DEV = (process.argv.indexOf('--dev') != -1 || process.env.DEV ? true 
 global._r = require;
 global.require = require;
 
-// // Checking for v8debug
-// if (process.execArgv.indexOf('--expose-debug-as=v8debug') !==-1)
-// 	var foundDebug = true;
-// else
-// 	global.v8debug=undefined;
+var fs = require('fs');
+var path = require('path');
+var buffer = require('buffer');
+var memory = process.memoryUsage().rss;
+var sl = WNS_SHOW_LOAD;
+var builder;
 
-var memory = process.memoryUsage().rss,
-	sl = WNS_SHOW_LOAD,
-	builder;
-
+sl&&console.log('\n  o       o o--o  o--o (TM)');
+sl&&console.log('  |   o   | |   | o__');
+sl&&console.log('   \\ / \\ /  |   |    o');
+sl&&console.log('    o   o   o   o o--o');
+sl&&console.log('\n         powered by YEPT(R)');
+sl&&console.log();
 
 // LOADING ZONE...
 try
@@ -85,7 +80,7 @@ try
 
 	// Importing node's core modules and npm modules.
 	sl&&process.stdout.write(' - Required node modules..');
-	var nm = ['http','fs','path','url','zlib','crypto','stream','util','events','buffer','domain','vm'];
+	var nm = [];
 	for (d in wns.info.dependencies)
 		nm.push(d);
 	for (n in nm)
@@ -95,7 +90,6 @@ try
 		catch (e) {}
 	if (fs.existsSync == undefined)
 		fs.existsSync = path.existsSync;
-	global.emitter = events.EventEmitter;
 	global.Buffer = buffer.Buffer;
 	cwd=path.normalize(cwd);
 	sourcePath=path.normalize(sourcePath);
@@ -128,7 +122,7 @@ _walk(cwd+sourcePath+'core', function (err, classes) {
 			className = classes[c].split('/').pop().split('.')[0];
 
 		// Store class source.
-		_coreClasses[className] = _class; 
+		_coreClasses[className] = classes[c]; 
 	}
 
 
@@ -176,8 +170,3 @@ sl&&console.log('');
 
 // START WNS CONSOLE
 wns.console = new wns.wnConsole({ modulePath: cwd }, {}, cwd, [cwd]);
-
-
-
-if (WNS_TEST)
-	process.exit(0);

@@ -78,12 +78,6 @@ module.exports = {
 			self.run.apply(self,arguments);
 			_initialized=true;
 		});
-
-
-		// if (this.getConfig('autoInit')!=false)
-		// 	process.nextTick(function () {
-		// 		self.e.ready.apply(this,arguments);
-		// 	});
 	},
 
 	/**
@@ -161,15 +155,6 @@ module.exports = {
 			this.setComponent('classBuilder',classBuilder);
 			classBuilder.build();
 
-			// Make documentation
-			for (c in classBuilder.classes)
-				classBuilder.makeDoc(c);
-
-			// Make test
-			if (WNS_TEST)
-				for (c in classBuilder.classes)
-					classBuilder.makeTest(c);
-
 			return this;
 		},
 
@@ -210,7 +195,7 @@ module.exports = {
 									{
 										var className = fileName.split('.');
 										className.splice(-1);
-										pkgInfo.classes[className] = ''+fs.readFileSync(pkgDir+'/'+fileName,'utf8');
+										pkgInfo.classes[className] = pkgDir+'/'+fileName;
 									}
 								}
 								packageList[pkgInfo.name]=pkgInfo;
@@ -234,6 +219,9 @@ module.exports = {
 		 */
 		removeInvalidPackages: function (packageList)
 		{
+			if (!_.isObject(packageList))
+				return false;
+
 			var pkgList = _.keys(packageList);
 			var pkgRequire;
 			var pkgName;
@@ -295,11 +283,9 @@ module.exports = {
 				for (c in classes)
 				{
 					className = c;
-					classSource = classes[c];
 					
-					classBuilder.addSource(className,classSource);
+					classBuilder.addSource(className,classes[c]);
 					classBuilder.classes[className]=classBuilder.buildClass(className);
-					classBuilder.makeDoc(className);
 				}
 			}
 		},
@@ -311,6 +297,7 @@ module.exports = {
 		{
 			this.e.log&&this.e.log('Importing from config...','system');
 			var importConfig = this.getConfig('import');
+			var cb = this.getComponent('classBuilder');
 			for (i in importConfig)
 			{
 				var path = this.modulePath+importConfig[i];
@@ -323,11 +310,8 @@ module.exports = {
 						if (classes[c].split('.').pop() != 'js')
 							continue;
 						var className = classes[c].split('.')[0];
-						var classSource = fs.readFileSync(path+classes[c],'utf-8').toString();
-						var cb = this.getComponent('classBuilder');
-						cb.addSource(className,classSource);
+						cb.addSource(className,path+classes[c]);
 						cb.classes[c]=cb.buildClass(className);
-						cb.makeDoc(className);
 					}
 				}
 			}
@@ -398,6 +382,9 @@ module.exports = {
 		 */
 		configureFromFile: function (file)
 		{
+			if (!_.isString(file))
+				return false;
+
 			var file = file+'';
 			this.e.log&&this.e.log('Loading module configuration from file: '+file,'system');
 			if (fs.statSync(file).isFile() && path.extname(file) == '.json')
@@ -702,6 +689,9 @@ module.exports = {
 		 * @param string $id source module id
 		 */
 		attachModuleEvents: function (id) {
+			if (!_.isString(id))
+				return false;
+
 			var module = this.getModule(id),
 				events;
 			this.e.log&&this.e.log("Attaching module's events...",'system');
@@ -838,67 +828,6 @@ module.exports = {
 				this.setConfig('modulePath',value);
 			}
 			return this;
-		},
-
-		/**
-		 * Start syncronization server
-		 */
-		syncServer: function ()
-		{
-			this.setComponents({
-				'syncServer': {
-					port: 22011,
-					class: 'wnSync'
-				}
-			});
-			var syncServer = this.getComponent('syncServer');
-			syncServer.setParent(this);
-			syncServer.init();
-			return syncServer;
-		},
-
-		/**
-		 * Check if the package exists and its required version
-		 */
-		checkPackage: function ()
-		{
-			return true;
-			// http.get('http://wns.yept.net/packages/search/');
-		},
-
-		/**
-		 * Download a new WNS package into the module's directory
-		 * then reconfigure the module's config.json file.
-		 */
-		installPackage: function (packageName,cb)
-		{
-			if (!packageName || !this.checkPackage(packageName))
-				cb&&cb(false);
-
-			self.e.log('Downloading `%d` package...',packageName);
-			var file = fs.createWriteStream(this.modulePath+'/.tmp/'+packageName+'.tar.gz');
-			if (!fs.existsSync(this.modulePath+'/.tmp'))
-				fs.mkdirSync(this.modulePath+'/.tmp');
-			var req = http.request({
-				'method': 'GET',
-				'host': process.wns.info.wnspm.url,
-				'path': '/package/download'
-			}, function(response) {
-				cb&&cb(true)
-			  	response.pipe(file);
-			});
-			req.on('error',function () {
-				cb&&cb(false)
-			})
-			req.end();			
-		},
-
-		/**
-		 * Removes a installed package.
-		 */
-		removePackage: function ()
-		{
-
 		},
 		
 		/**

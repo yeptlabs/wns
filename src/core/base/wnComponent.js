@@ -35,6 +35,11 @@ module.exports = {
 	extend: [],
 
 	/**
+	 * Node/NPM modules dependencies
+	 */
+	dependencies: ['fs','path'],
+
+	/**
 	 * Constructor
 	 */	
 	constructor: function (config,classes)
@@ -188,7 +193,7 @@ module.exports = {
 		setConfig: function (extend, overwrite)
 		{
 			if (typeof extend != 'object') return false;
-			_config=Object.extend(true,_config,extend);
+			_.extend(_config,extend);
 			return true;
 		},
 
@@ -276,19 +281,23 @@ module.exports = {
 		 */
 		$getFile: function (filePath,buffer)
 		{
-			var realPath = done.promise.filePath = this.instanceOf('wnModule')?this.modulePath+filePath:filePath;
-			done.promise.returnAsBuffer=buffer=buffer || true;
+			if (!_.isString(filePath))
+				done.reject(false);
+			else {
+				var realPath = done.promise.filePath = this.instanceOf('wnModule')?this.modulePath+filePath:filePath;
+				done.promise.returnAsBuffer=buffer=buffer || true;
 
-			fs.readFile(realPath,function (err,text) {
-				if (err)
-					done.reject(err);
-				else
-				{
-					if (!buffer)
-						text=text.toString('utf8');
-					done.resolve(text);
-				}
-			});
+				fs.readFile(realPath,function (err,text) {
+					if (err)
+						done.reject(err);
+					else
+					{
+						if (!buffer)
+							text=text.toString('utf8');
+						done.resolve(text);
+					}
+				});
+			}
 
 			return done.promise;
 		},
@@ -319,7 +328,9 @@ module.exports = {
 		preloadEvents: function ()
 		{
 			this.e.log&&this.e.log('Preloading events...','system');
-			var preload = Object.extend(true,{},this.defaultEvents,this.getConfig().events);
+			var preload = {};
+			_.extend(preload,this.defaultEvents)
+			_.extend(preload,this.getConfig().events);
 			if (preload != undefined)
 				this.setEvents(preload);
 			for (e in preload)
@@ -351,7 +362,7 @@ module.exports = {
 
 			if (source[className].build.extend.indexOf('wnModule')!==-1)
 			{
-				instance = new source[className](self,config,path,npmPath,builder.classesCode);
+				instance = new source[className](self,config,path,npmPath,builder.classesPath);
 			}
 			else
 				instance = new source[className](config,source);
@@ -420,9 +431,10 @@ module.exports = {
 				event[e].eventName = e.split('-').pop();
 				if (this.hasEvent(e))
 				{
-					Object.extend(true,event[e],this.getEvent(e));
+					_.extend(event[e],this.getEvent(e));
 				}
-				_eventsConfig[e]=Object.extend(true,_eventsConfig[e] || {}, event[e]);
+				_eventsConfig[e]=_eventsConfig[e] || {};
+				_.extend(_eventsConfig[e], event[e]);
 			}
 			return this;
 		},
@@ -568,7 +580,8 @@ module.exports = {
 		{
 			var _export = {},
 				merge = {};
-			Object.extend(merge,this.getConfig(),this);
+			_.extend(merge,this.getConfig());
+			_.extend(merge,this);
 			for (p in merge)
 			{
 				if (!((typeof merge[p] == 'object' || typeof merge[p] == 'function') && merge[p] != null && merge[p].instanceOf!=undefined))
@@ -609,7 +622,7 @@ module.exports = {
 			arguments[arguments.length+'']='info';
 			arguments.length++;
 			this.e.log.apply(this,arguments);
-			return this;
+			return self;
 		},
 
 		/**
@@ -621,7 +634,7 @@ module.exports = {
 			arguments[arguments.length+'']='warn';
 			arguments.length++;
 			this.e.log.apply(this,arguments);
-			return this;
+			return self;
 		},
 
 		/**

@@ -21,6 +21,11 @@ module.exports = {
 	extend: ['wnComponent'],
 
 	/**
+	 * Node/NPM modules dependencies
+	 */
+	dependencies: ['fs'],
+
+	/**
 	 * PRIVATE
 	 */
 	private: {

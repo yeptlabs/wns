@@ -4,8 +4,9 @@
   "version": "0.0.9",
   "author": "Pedro Nasser <pedro@yept.net>",
   "devDependencies": {
-    "chai": "*",
-    "mocha": "*"
+    "grunt": "*",
+    "grunt-mocha-test": "~0.7.0",
+    "benchmark": "~1.0.0"
   },
   "dependencies": {
     "mime": "1.2.x",
@@ -47,7 +48,7 @@
     "wnspm": "./bin/wnspm"
   },
   "scripts": {
-    "test": "node index --test"
+    "test": "grunt test"
   },
   "engines": {
     "node": ">= 0.8.x"

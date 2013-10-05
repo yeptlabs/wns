@@ -99,17 +99,15 @@ module.exports = {
 				{
 					modules[a].class='wnApp_'+appName;
 					var className = modules[a].class;
-					var classSource = fs.readFileSync(realModulePath+appName+'.js','utf-8').toString();
 					var cb = this.getComponent('classBuilder');
-					var appClass = cb.classesCode['wnApp'];
+					var appClass = cb.classesPath['wnApp'];
 					if (typeof appClass == 'string')
 						cb.addSource(className,appClass,true);
 					else
 						for (a in appClass)
 							cb.addSource(className,appClass[a],true);
-					cb.addSource(className,classSource);
+					cb.addSource(className,realModulePath+appName+'.js');
 					cb.classes[className]=self.c[className]=cb.buildClass(className);
-					cb.uglify=null;
 				}
 				modules[a].autoInit=false;
 			}
@@ -142,6 +140,9 @@ module.exports = {
 		buildApplication: function (appName)
 		{
 			var appDir = this.getConfig('appDirectory');
+
+			if (!_.isString(appName))
+				return false;
 
 			if (!appDir)
 			{
@@ -191,6 +192,9 @@ module.exports = {
 		 */
 		setApplication: function (id,application)
 		{
+			if (!_.isString(id) || !_.isObject(application))
+				return false;
+
 			if (this.hasModule('app-'+id) && application == null)
 				delete this.getModule('app-'+id);
 			else
@@ -289,6 +293,9 @@ module.exports = {
 		 */
 		logFilter: function (e,data,zone)
 		{
+			if (_.isUndefined(data) || !_.isObject(e))
+				return false;
+
 			var event = this.getEvent('log'),
 				config = event.getConfig();
 			if (this.config.log[log.zone] === true)
@@ -318,8 +325,8 @@ module.exports = {
 		 */
 		exceptionHandler: function (e,err)
 		{
-			if (typeof err == 'string' || typeof err != 'object' || err.stack == undefined)
-				err = new Error(err);
+			if (!_.isObject(e) || typeof err == 'string' || typeof err != 'object' || err.stack == undefined)
+				return false;
 
 			e.owner.e.log('ERROR: '+err.message,'exception');
 
