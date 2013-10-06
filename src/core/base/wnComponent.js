@@ -37,7 +37,7 @@ module.exports = {
 	/**
 	 * Node/NPM modules dependencies
 	 */
-	dependencies: ['fs','path'],
+	dependencies: ['fs','path','util'],
 
 	/**
 	 * Constructor
@@ -193,7 +193,7 @@ module.exports = {
 		setConfig: function (extend, overwrite)
 		{
 			if (typeof extend != 'object') return false;
-			_.extend(_config,extend);
+			_config=_.merge(_config,extend);
 			return true;
 		},
 
@@ -329,8 +329,8 @@ module.exports = {
 		{
 			this.e.log&&this.e.log('Preloading events...','system');
 			var preload = {};
-			_.extend(preload,this.defaultEvents)
-			_.extend(preload,this.getConfig().events);
+			preload=_.merge(preload,this.defaultEvents);
+			preload=_.merge(preload,this.getConfig().events);
 			if (preload != undefined)
 				this.setEvents(preload);
 			for (e in preload)
@@ -431,10 +431,10 @@ module.exports = {
 				event[e].eventName = e.split('-').pop();
 				if (this.hasEvent(e))
 				{
-					_.extend(event[e],this.getEvent(e));
+					event[e]=_.merge(event[e],this.getEvent(e));
 				}
 				_eventsConfig[e]=_eventsConfig[e] || {};
-				_.extend(_eventsConfig[e], event[e]);
+				_eventsConfig[e]=_.merge(_eventsConfig[e], event[e]);
 			}
 			return this;
 		},
@@ -580,8 +580,8 @@ module.exports = {
 		{
 			var _export = {},
 				merge = {};
-			_.extend(merge,this.getConfig());
-			_.extend(merge,this);
+			merge=_.merge(merge,this.getConfig());
+			merge=_.merge(merge,this);
 			for (p in merge)
 			{
 				if (!((typeof merge[p] == 'object' || typeof merge[p] == 'function') && merge[p] != null && merge[p].instanceOf!=undefined))

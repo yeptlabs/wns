@@ -20,7 +20,7 @@ var fs = require('fs');
 var util = require('util');
 var path = require('path');
 var vm = require('vm');
-var underscore = _ = require('underscore')
+var lodash = _ = require('lodash')
 var q = require('q');
 
 /**
@@ -64,7 +64,7 @@ function wnBuild(classes,parent)
 	// NPM already loaded modules.
 	this.loadedModules = {
 		q: q,
-		underscore: underscore
+		lodash: lodash
 	};
 
 	for (c in classes)
@@ -122,7 +122,7 @@ wnBuild.prototype.extend = function (build,newbuild,className)
 
 	for (b in build)
 		if (newbuild[b]!==undefined)
-			build[b]=_.extend(build[b],newbuild[b]);
+			build[b]=_.merge(build[b],newbuild[b]);
 };
 
 /**
@@ -357,7 +357,7 @@ wnBuild.prototype.compilePrototype = function (targetClass)
 
 		// Declare private properties
 		classSource += '\n// Declaring private properties \n';
-		classSource += 'var _=builder.loadedModules.underscore,q=builder.loadedModules.q,$$=self,';
+		classSource += 'var _=builder.loadedModules.lodash,q=builder.loadedModules.q,$$=self,';
 		for (p in build.private)
 		{
 			if (p == 'proto' || p == 'klass' || build.dependencies.indexOf(p)!==-1)
@@ -482,7 +482,7 @@ wnBuild.prototype.compileObject = function (targetClass)
 
 		// Declare private properties
 		classSource += '\n// Declaring private properties \n';
-		classSource += 'var _=builder.loadedModules.underscore,q=builder.loadedModules.q,$$=self,';
+		classSource += 'var _=builder.loadedModules.lodash,q=builder.loadedModules.q,$$=self,';
 		for (p in build.private)
 		{
 			if (p == 'proto' || p == 'klass')
@@ -555,7 +555,7 @@ wnBuild.prototype.recompile = function (className,obj)
 {
 	this.classes[className] = this.classes[className] || {};
 	this.classes[className].loaded = false;
-	var _nc = _.extend(this.classesBuild[className],obj);
+	var _nc = _.merge(this.classesBuild[className],obj);
 	var _c = this.buildClass(className);
 
 	if (_c.loaded == true)

@@ -5,6 +5,7 @@
   "author": "Pedro Nasser <pedro@yept.net>",
   "devDependencies": {
     "grunt": "*",
+    "grunt-cli": "*",
     "grunt-mocha-test": "~0.7.0",
     "benchmark": "~1.0.0"
   },
@@ -15,10 +16,10 @@
     "commander": "~2.0.0",
     "request": "~2.22.0",
     "querystring": "~0.2.0",
-    "underscore": "~1.5.1",
     "node-uuid": "~1.4.1",
     "npm": "~1.3.11",
-    "q": "0.9.7"
+    "q": "0.9.7",
+    "lodash": "~2.2.1"
   },
   "keywords": [
     "web",

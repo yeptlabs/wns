@@ -548,7 +548,6 @@ module.exports = {
 			var preload = this.getConfig().components;
 			if (preload != undefined)
 			{
-				this.e.log&&this.e.log('Preloading components...','system');
 				this.setComponents(preload);
 			}
 			return this;

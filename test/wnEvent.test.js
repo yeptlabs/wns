@@ -3,7 +3,7 @@ global.WNS_QUIET_MODE=true;
 global.WNS_SHOW_LOAD=false;
 require('../src/wnInit.js');
 var assert = require('assert');
-var _ = require('underscore');
+var _ = require('lodash');
 
 // Test Resources
 var className = 'wnEvent';

@@ -1,7 +1,7 @@
 // Test Requirements
 var wnBuild = require('../src/wnBuild.js');
 var assert = require('assert');
-var _ = require('underscore');
+var _ = require('lodash');
 
 // Test Resources
 var compiler;
