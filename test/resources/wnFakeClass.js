@@ -1,11 +1,11 @@
 module.exports = {
 	extend: ["wnComponent"],
-	private: { mocha: 1 },
-	dependencies: ["npm","mocha","commander","falseModule"],
+	private: { npm: 1 },
+	dependencies: ["npm","commander","falseModule"],
 	methods: {
-		getMocha: function ()
+		getNpm: function ()
 		{
-			return mocha;
+			return npm;
 		}
 	}
 }

@@ -58,7 +58,6 @@ describe('wnBuild', function () {
 		assert.notEqual(undefined,compiler.classesBuild.wnFakeClass);
 		assert.notEqual(undefined,compiler.classes.wnFakeClass);
 		assert.notEqual(undefined,compiler.loadedModules.npm);
-		assert.notEqual(undefined,compiler.loadedModules.mocha);
 		assert.notEqual(undefined,compiler.loadedModules.commander);
 		assert.equal(undefined,compiler.loadedModules.falseModule);
 		done();
@@ -69,9 +68,9 @@ describe('wnBuild', function () {
 describe('an instance of a compiled class', function () {
 	it('should have npm dependencies inside its methods scope', function (done) {
 		var fakeInstance = new compiler.classes.wnFakeClass;
-		var mocha = fakeInstance.getMocha();
-		assert.notEqual(undefined,mocha);
-		assert.notEqual(1,mocha);
+		var npm = fakeInstance.getNpm();
+		assert.notEqual(undefined,npm);
+		assert.notEqual(1,npm);
 		done();
 	});
 
