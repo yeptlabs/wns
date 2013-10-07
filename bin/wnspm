@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 var prog = require('./client.js');
 var npm = require('npm');
-var _ = require('underscore');
+var _ = require('lodash');
 
 function addDependency (modulePath,name,version)
 {

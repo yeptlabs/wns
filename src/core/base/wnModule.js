@@ -78,12 +78,6 @@ module.exports = {
 			self.run.apply(self,arguments);
 			_initialized=true;
 		});
-
-
-		// if (this.getConfig('autoInit')!=false)
-		// 	process.nextTick(function () {
-		// 		self.e.ready.apply(this,arguments);
-		// 	});
 	},
 
 	/**
@@ -161,15 +155,6 @@ module.exports = {
 			this.setComponent('classBuilder',classBuilder);
 			classBuilder.build();
 
-			// Make documentation
-			for (c in classBuilder.classes)
-				classBuilder.makeDoc(c);
-
-			// Make test
-			if (WNS_TEST)
-				for (c in classBuilder.classes)
-					classBuilder.makeTest(c);
-
 			return this;
 		},
 
@@ -210,7 +195,7 @@ module.exports = {
 									{
 										var className = fileName.split('.');
 										className.splice(-1);
-										pkgInfo.classes[className] = ''+fs.readFileSync(pkgDir+'/'+fileName,'utf8');
+										pkgInfo.classes[className] = pkgDir+'/'+fileName;
 									}
 								}
 								packageList[pkgInfo.name]=pkgInfo;
@@ -234,6 +219,9 @@ module.exports = {
 		 */
 		removeInvalidPackages: function (packageList)
 		{
+			if (!_.isObject(packageList))
+				return false;
+
 			var pkgList = _.keys(packageList);
 			var pkgRequire;
 			var pkgName;
@@ -295,11 +283,9 @@ module.exports = {
 				for (c in classes)
 				{
 					className = c;
-					classSource = classes[c];
 					
-					classBuilder.addSource(className,classSource);
+					classBuilder.addSource(className,classes[c]);
 					classBuilder.classes[className]=classBuilder.buildClass(className);
-					classBuilder.makeDoc(className);
 				}
 			}
 		},
@@ -311,6 +297,7 @@ module.exports = {
 		{
 			this.e.log&&this.e.log('Importing from config...','system');
 			var importConfig = this.getConfig('import');
+			var cb = this.getComponent('classBuilder');
 			for (i in importConfig)
 			{
 				var path = this.modulePath+importConfig[i];
@@ -323,11 +310,8 @@ module.exports = {
 						if (classes[c].split('.').pop() != 'js')
 							continue;
 						var className = classes[c].split('.')[0];
-						var classSource = fs.readFileSync(path+classes[c],'utf-8').toString();
-						var cb = this.getComponent('classBuilder');
-						cb.addSource(className,classSource);
+						cb.addSource(className,path+classes[c]);
 						cb.classes[c]=cb.buildClass(className);
-						cb.makeDoc(className);
 					}
 				}
 			}
@@ -398,6 +382,9 @@ module.exports = {
 		 */
 		configureFromFile: function (file)
 		{
+			if (!_.isString(file))
+				return false;
+
 			var file = file+'';
 			this.e.log&&this.e.log('Loading module configuration from file: '+file,'system');
 			if (fs.statSync(file).isFile() && path.extname(file) == '.json')
@@ -426,11 +413,9 @@ module.exports = {
 		{
 			for (c in components)
 			{
+				_componentsConfig[c]=_.merge({}, components[c]);
 				if (this.hasComponent(c))
-				{
-					Object.extend(true,components[c],this.getComponent(c));
-				}
-				_componentsConfig[c]=Object.extend(true,_componentsConfig[c] || {}, components[c]);
+					_.merge(_componentsConfig[c],this.getComponentsConfig[c]);
 			}
 			return this;
 		},
@@ -561,7 +546,6 @@ module.exports = {
 			var preload = this.getConfig().components;
 			if (preload != undefined)
 			{
-				this.e.log&&this.e.log('Preloading components...','system');
 				this.setComponents(preload);
 			}
 			return this;
@@ -593,11 +577,9 @@ module.exports = {
 		{
 			for (m in modules)
 			{
+				_modulesConfig[m]=_.merge({}, modules[m]);
 				if (this.hasModule(m))
-				{
-					Object.extend(true,modules[m],this.getModule(m));
-				}
-				_modulesConfig[m]=Object.extend(true,_modulesConfig[m] || {}, modules[m]);
+					_.merge(_modulesConfig[m],this.getModulesConfig[m]);
 			}
 			return this;
 		},
@@ -702,10 +684,13 @@ module.exports = {
 		 * @param string $id source module id
 		 */
 		attachModuleEvents: function (id) {
+			if (!_.isString(id))
+				return false;
+
 			var module = this.getModule(id),
 				events;
 			this.e.log&&this.e.log("Attaching module's events...",'system');
-			if (module != undefined && (events=module.getEvents()) && !Object.isEmpty(events)) {
+			if (module != undefined && (events=module.getEvents()) && !_.isEmpty(events)) {
 				for (e in events)
 				{
 					var evtConfig = {},
@@ -716,7 +701,7 @@ module.exports = {
 
 					if (!this.hasEvent(eventName) && evtCnf.bubble && e.indexOf('event-module') == -1)
 					{
-						evtConfig[eventName]=Object.extend(true,evtConfig[eventName],evtCnf);
+						evtConfig[eventName]=_.merge({},evtCnf);
 						evtConfig[eventName].listenEvent=null;
 						evtConfig[eventName].handler=null;
 						this.setEvents(evtConfig);
@@ -764,7 +749,7 @@ module.exports = {
 					s = 'script-'+s.replace('-','.');
 				script[s]=ref;
 				script[s].class='wnScript'+scriptName || 'wnScript';
-				_componentsConfig[s]=Object.extend(true,_componentsConfig[s] || {}, script[s]);
+				_componentsConfig[s]=_.merge({}, script[s]);
 			}
 			return this;
 		},
@@ -838,67 +823,6 @@ module.exports = {
 				this.setConfig('modulePath',value);
 			}
 			return this;
-		},
-
-		/**
-		 * Start syncronization server
-		 */
-		syncServer: function ()
-		{
-			this.setComponents({
-				'syncServer': {
-					port: 22011,
-					class: 'wnSync'
-				}
-			});
-			var syncServer = this.getComponent('syncServer');
-			syncServer.setParent(this);
-			syncServer.init();
-			return syncServer;
-		},
-
-		/**
-		 * Check if the package exists and its required version
-		 */
-		checkPackage: function ()
-		{
-			return true;
-			// http.get('http://wns.yept.net/packages/search/');
-		},
-
-		/**
-		 * Download a new WNS package into the module's directory
-		 * then reconfigure the module's config.json file.
-		 */
-		installPackage: function (packageName,cb)
-		{
-			if (!packageName || !this.checkPackage(packageName))
-				cb&&cb(false);
-
-			self.e.log('Downloading `%d` package...',packageName);
-			var file = fs.createWriteStream(this.modulePath+'/.tmp/'+packageName+'.tar.gz');
-			if (!fs.existsSync(this.modulePath+'/.tmp'))
-				fs.mkdirSync(this.modulePath+'/.tmp');
-			var req = http.request({
-				'method': 'GET',
-				'host': process.wns.info.wnspm.url,
-				'path': '/package/download'
-			}, function(response) {
-				cb&&cb(true)
-			  	response.pipe(file);
-			});
-			req.on('error',function () {
-				cb&&cb(false)
-			})
-			req.end();			
-		},
-
-		/**
-		 * Removes a installed package.
-		 */
-		removePackage: function ()
-		{
-
 		},
 		
 		/**

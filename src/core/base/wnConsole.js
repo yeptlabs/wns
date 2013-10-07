@@ -103,6 +103,9 @@ module.exports = {
 		 */
 		buildServer: function (serverPath)
 		{
+			if (!_.isString(serverPath))
+				return false;
+
 			var _sourcePath = cwd+sourcePath,
 				relativeSourcePath = path.relative(serverPath,_sourcePath)+'/',
 				relativeServerPath = path.relative(cwd,serverPath);
@@ -135,10 +138,13 @@ module.exports = {
 
 		/**
 		 * Set new properties to the respective servers
-		 * @param OBJECT $servers servers configurations
+		 * @param object $servers servers configurations
 		 */
 		setServers: function (servers)
 		{
+			if (!_.isObject(servers))
+				return false;
+
 			var modules = {};
 			for (s in servers)
 			{
@@ -161,6 +167,9 @@ module.exports = {
 		 */
 		setServer: function (id,server)
 		{
+			if (!_.isString(id) || !_.isObject(server))
+				return false;
+
 			if (this.hasModule('server-'+id) && server == null)
 				delete this.getModule('server-'+id);
 			else
@@ -274,6 +283,9 @@ module.exports = {
  		 * @param $argN mixed argument
 		 */
 		logHandler: function (e,data) {
+			if (!_.isObject(e) || _.isUndefined(data))
+				return false;
+
 			var prefix = '', sourceName = e.owner.getConfig('id');
 			if (sourceName) prefix = '['+sourceName+']'+' ';
 			(!WNS_QUIET_MODE)&&console.log(prefix+''+data);
@@ -285,6 +297,9 @@ module.exports = {
 		 * @param $zone log zone
 		 */
 		logFilter: function (e,data) {
+			if (!_.isObject(e) || _.isUndefined(data))
+				return false;
+				
 			if (server.getConfig('consoleID') == this.activeServer)
 				return true;
 			return false;

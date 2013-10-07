@@ -22,6 +22,11 @@ module.exports = {
 	extend: ['wnComponent'],
 
 	/**
+	 * NPM dependencies
+	 */
+	dependencies: ['crypto'],
+
+	/**
 	 * PRIVATE
 	 */
 	private: {},
