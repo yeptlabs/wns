@@ -413,11 +413,9 @@ module.exports = {
 		{
 			for (c in components)
 			{
+				_componentsConfig[c]=_.merge({}, components[c]);
 				if (this.hasComponent(c))
-				{
-					Object.extend(true,components[c],this.getComponent(c));
-				}
-				_componentsConfig[c]=Object.extend(true,_componentsConfig[c] || {}, components[c]);
+					_.merge(_componentsConfig[c],this.getComponentsConfig[c]);
 			}
 			return this;
 		},
@@ -579,11 +577,9 @@ module.exports = {
 		{
 			for (m in modules)
 			{
+				_modulesConfig[m]=_.merge({}, modules[m]);
 				if (this.hasModule(m))
-				{
-					Object.extend(true,modules[m],this.getModule(m));
-				}
-				_modulesConfig[m]=Object.extend(true,_modulesConfig[m] || {}, modules[m]);
+					_.merge(_modulesConfig[m],this.getModulesConfig[m]);
 			}
 			return this;
 		},
@@ -694,7 +690,7 @@ module.exports = {
 			var module = this.getModule(id),
 				events;
 			this.e.log&&this.e.log("Attaching module's events...",'system');
-			if (module != undefined && (events=module.getEvents()) && !Object.isEmpty(events)) {
+			if (module != undefined && (events=module.getEvents()) && !_.isEmpty(events)) {
 				for (e in events)
 				{
 					var evtConfig = {},
@@ -705,7 +701,7 @@ module.exports = {
 
 					if (!this.hasEvent(eventName) && evtCnf.bubble && e.indexOf('event-module') == -1)
 					{
-						evtConfig[eventName]=Object.extend(true,evtConfig[eventName],evtCnf);
+						evtConfig[eventName]=_.merge({},evtCnf);
 						evtConfig[eventName].listenEvent=null;
 						evtConfig[eventName].handler=null;
 						this.setEvents(evtConfig);
@@ -753,7 +749,7 @@ module.exports = {
 					s = 'script-'+s.replace('-','.');
 				script[s]=ref;
 				script[s].class='wnScript'+scriptName || 'wnScript';
-				_componentsConfig[s]=Object.extend(true,_componentsConfig[s] || {}, script[s]);
+				_componentsConfig[s]=_.merge({}, script[s]);
 			}
 			return this;
 		},

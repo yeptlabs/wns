@@ -122,7 +122,7 @@ wnBuild.prototype.extend = function (build,newbuild,className)
 
 	for (b in build)
 		if (newbuild[b]!==undefined)
-			build[b]=_.merge(build[b],newbuild[b]);
+			build[b]=_.merge(build[b]||{},newbuild[b]);
 };
 
 /**
@@ -261,6 +261,7 @@ wnBuild.prototype.buildClass = function (className)
 	var evalBuilder = "var classBuilder = function () {\n";
 		evalBuilder += '	builder.vmProtoScript[className].runInThisContext();\n';
 		evalBuilder += "	var klass = new classObject;\n";
+		evalBuilder += "	Object.defineProperty(klass,'_proto',{ value: builder.classesBuild[className], enumerable: false })\n";
 		evalBuilder += '	klass.construct&&klass.construct.apply(klass,arguments);\n';
 		evalBuilder += '	return klass;\n};';
 	eval(evalBuilder);

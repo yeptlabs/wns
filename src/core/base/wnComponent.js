@@ -193,7 +193,7 @@ module.exports = {
 		setConfig: function (extend, overwrite)
 		{
 			if (typeof extend != 'object') return false;
-			_config=_.merge(_config,extend);
+			_.merge(_config,extend);
 			return true;
 		},
 
@@ -329,8 +329,8 @@ module.exports = {
 		{
 			this.e.log&&this.e.log('Preloading events...','system');
 			var preload = {};
-			preload=_.merge(preload,this.defaultEvents);
-			preload=_.merge(preload,this.getConfig().events);
+			_.merge(preload,this.defaultEvents);
+			_.merge(preload,this.getConfig().events);
 			if (preload != undefined)
 				this.setEvents(preload);
 			for (e in preload)
@@ -431,10 +431,10 @@ module.exports = {
 				event[e].eventName = e.split('-').pop();
 				if (this.hasEvent(e))
 				{
-					event[e]=_.merge(event[e],this.getEvent(e));
+					_.merge(event[e],this.getEvent(e));
 				}
 				_eventsConfig[e]=_eventsConfig[e] || {};
-				_eventsConfig[e]=_.merge(_eventsConfig[e], event[e]);
+				_.merge(_eventsConfig[e], event[e]);
 			}
 			return this;
 		},
@@ -580,15 +580,17 @@ module.exports = {
 		{
 			var _export = {},
 				merge = {};
-			merge=_.merge(merge,this.getConfig());
-			merge=_.merge(merge,this);
+			_.merge(merge,this.getConfig());
+			_.merge(merge,this);
+			var proto = this._proto.public;
+			for (p in proto)
+				if (!((typeof proto[p] == 'object' || typeof proto[p] == 'function') && proto[p] != null && proto[p].instanceOf!=undefined))
+					_export[p] = proto[p];
+
 			for (p in merge)
-			{
 				if (!((typeof merge[p] == 'object' || typeof merge[p] == 'function') && merge[p] != null && merge[p].instanceOf!=undefined))
-				{
 					_export[p] = merge[p];
-				}
-			}
+
 			return _export;
 		},
 
