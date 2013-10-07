@@ -79,17 +79,6 @@ module.exports = {
 		validate: function (attributes, clearErrors)
 		{
 			return true;
-			
-			var attributes = attributes || null;
-				clearErrors = clearErrors || true;
-			if(clearErrors)
-				this.clearErrors();
-
-			var validators = this.getValidators();
-			for(v in validators)
-				validators[v].validate(this,attributes);
-
-			return this.hasErrors();
 		},
 
 		/**
@@ -106,9 +95,7 @@ module.exports = {
 		 */
 		getValidatorList: function ()
 		{
-			if(this._validators===null)
-				this._validators={};
-			return this._validators;
+			// NEED TO BE DONE
 		},
 
 		/**
@@ -119,22 +106,7 @@ module.exports = {
 		 */
 		getValidators: function (attribute)
 		{
-			var attribute = attribute || null;
-			if(this._validators===null)
-				this._validators={};
-
-			validators=[];
-			scenario=this.getScenario();
-			for (v in this._validators)
-			{
-				var validator = this._validators[v];
-				if(validator.applyTo(scenario))
-				{
-					if(attribute===null || validator.attributes[attribute]!==undefined)
-						validators.push(validator);
-				}
-			}
-			return validators;
+			// NEED TO BE DONE
 		},
 
 		/**
@@ -144,31 +116,7 @@ module.exports = {
 		 */
 		getSafeAttributeNames: function ()
 		{
-			var attributes={},
-				unsafe=[],
-				safe=[];
-				validators = this.getValidators();
-			for(v in validators)
-			{
-				var validator = validators[v];
-				if(!validator.safe)
-				{
-					for (a in validator.attributes)
-						unsafe.push(a);
-				}
-				else
-				{
-					for (a in validator.attributes)
-						attributes[a]=true;
-				}
-			}
-
-			for(u in unsafe)
-				delete attributes[unsafe[u]];
-			for (u in attributes)
-				safe.push(u);
-
-			return safe;
+			// NEED TO BE DONE
 		},
 
 		/**
@@ -180,16 +128,7 @@ module.exports = {
 		 */
 		isAttributeRequired: function (attribute)
 		{
-			var attribute = attribute || null,
-				validators = this.getValidators(attribute);
-
-			for (v in validators)
-			{
-				var validator = validators[v];
-				if(validator.instanceOf('wnRequiredValidator'))
-					return true;
-			}
-			return false;
+			// NEED TO BE DONE
 		},
 
 		/**
@@ -200,9 +139,7 @@ module.exports = {
 		 */
 		isAttributeSafe: function (attribute)
 		{
-			var attribute = attribute || null;
-			attributes=this.getSafeAttributeNames();
-			return attributes[attribute] !== undefined;
+			// NEED TO BE DONE
 		},
 
 		/**
@@ -212,11 +149,7 @@ module.exports = {
 		 */
 		hasErrors: function(attribute)
 		{
-			var attribute = attribute || null;
-			if(attribute===null)
-				return _errors!=={};
-			else
-				return _errors[attribute]!==undefined;
+			// NEED TO BE DONE
 		},
 
 		/**
@@ -226,11 +159,7 @@ module.exports = {
 		 */
 		getErrors: function (attribute)
 		{
-			var attribute = attribute || null;
-			if(attribute===null)
-				return _errors;
-			else
-				return _errors[attribute]!==undefined ? _errors[attribute] : {};
+			// NEED TO BE DONE
 		},
 
 		/**
@@ -240,7 +169,7 @@ module.exports = {
 		 */
 		getError: function (attribute)
 		{
-			return _errors[attribute]!==undefined ? _errors[attribute][0] : '';
+			// NEED TO BE DONE
 		},
 
 		/**
@@ -250,7 +179,7 @@ module.exports = {
 		 */
 		addError: function (attribute,error)
 		{
-			_errors[attribute].push(error);
+			// NEED TO BE DONE
 		},
 
 		/**
@@ -262,17 +191,7 @@ module.exports = {
 		 */
 		addErrors: function (errors)
 		{
-			for (e in errors)
-			{
-				var error = errors[e];
-				if(Array.isArray(error))
-				{
-					for (d in error)
-						this.addError(attribute, error[d]);
-				}
-				else
-					this.addError(attribute, error);
-			}
+			// NEED TO BE DONE
 		},
 
 		/**
@@ -281,11 +200,7 @@ module.exports = {
 		 */
 		clearErrors: function (attribute)
 		{
-			var attribute = attribute || null;
-			if(attribute===null)
-				_errors={};
-			else
-				delete _errors[attribute];
+			// NEED TO BE DONE
 		}
 		
 	}
