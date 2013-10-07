@@ -22,6 +22,11 @@ module.exports = {
 	extend: ['wnComponent'],
 
 	/**
+	 * NPM dependencies
+	 */
+	dependencies: ['crypto'],	
+
+	/**
 	 * Constructor.
 	 * @param string $expression the PHP expression whose result is used to determine the dependency.
 	 */

@@ -3,6 +3,7 @@
  * @param $dir STRING path to the directory
  * @param $done ARRAY callback that returns the list of files...
  */
+var fs = require('fs');
 module.exports = function(dir, done) {
   var results = [];
   var list = fs.readdirSync(dir);
