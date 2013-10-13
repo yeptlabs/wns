@@ -4,7 +4,8 @@ var Damage = require('damage');
 // Define the test enviroment
 Damage.env({
 	testObj: { a: { b: { c: 1 } } },
-	i: 0
+	i: 0,
+	wnsPath: __dirname
 });
 
 // Prepare the test.
@@ -12,7 +13,7 @@ Damage.env({
 Damage.prepare(function () {
 	global.WNS_QUIET_MODE= true;
 	global.WNS_SHOW_LOAD= false;
-	require(__dirname+'/src/wnInit.js');
+	require(env.wnsPath+'/../src/wnInit.js');
 	var compiler=wns.console.getComponent('classBuilder');
 });
 
