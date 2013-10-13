@@ -1,7 +1,7 @@
 {
   "name": "wnserver",
   "description": "A high-performance, scalable and component-based middleware",
-  "version": "0.0.91",
+  "version": "0.0.92",
   "author": "Pedro Nasser <pedro@yept.net>",
   "devDependencies": {
     "grunt": "*",
