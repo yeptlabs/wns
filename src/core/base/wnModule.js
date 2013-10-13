@@ -283,11 +283,12 @@ module.exports = {
 				for (c in classes)
 				{
 					className = c;
-					
-					classBuilder.addSource(className,classes[c]);
-					classBuilder.classes[className]=classBuilder.buildClass(className);
+					classBuilder.addSource(className,classes[c],true);
 				}
 			}
+
+			classBuilder.load();
+			classBuilder.build();
 		},
 
 		/**
