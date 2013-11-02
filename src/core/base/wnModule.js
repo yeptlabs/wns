@@ -716,7 +716,7 @@ module.exports = {
 							if (typeof e == 'object'
 								&& e.stopPropagation == true)
 										return false;
-							eventClass.push.apply(eventClass,arguments);
+							eventClass.emit.apply(eventClass,arguments);
 						});
 					}
 

@@ -24,8 +24,11 @@ module.exports = {
 	 * PRIVATE
 	 */
 	private: {
-		_filters: [],
-		_listeners: []
+		_config: {
+			eventName: undefined,
+			async: false
+		},
+		_listeners: null
 	},
 
 	/**
@@ -39,6 +42,34 @@ module.exports = {
 	 */
 	methods: {
 
+		/**
+		 * Call the listener
+		 */
+		callListener: function (listener,evtObj)
+		{
+			var args = evtObj.arguments;			
+			switch (args.length)
+			{
+				case 1:
+					listener(args[0]);
+					break;
+				case 2:
+					listener(args[0],args[1]);
+					break;
+				case 3:
+					listener(args[0],args[1],args[2]);
+					break;
+				case 4:
+					listener(args[0],args[1],args[2],args[3]);
+					break;
+				case 5:
+					listener(args[0],args[1],args[2],args[3],args[4]);
+					break;
+				default:
+					listener.apply(undefined,args);
+			}
+		},
+
         /**
          * Raises the event.
          * Push event and arguments to all event's listeners.
@@ -47,166 +78,77 @@ module.exports = {
          * @param mixed $argN (optional)
          * @return boolean
          */
-        push: function ()
+        emit: function ()
 		{
-			var type = typeof _listeners, listener, len, args=[], _arguments=arguments;
-
-			if (type === 'undefined')
+			if (!_listeners)
 				return false;
+
+			var isArray = _.isArray(_listeners), listener, len, args=[], _arguments=arguments;			
 
 			var eventObject = function ()
 				{
-					this.event = self;
-					this.owner = self.getParent();
-					this.eventName = self.getEventName();
-					this.stopPropagation = false;
+					var args = _.toArray(_arguments);
+					var evtObj = this;
+					args.unshift(this);
+					this.index=0;
+					Object.defineProperty(this,'event',{value:self,enumerable:false,writable:false});
+					Object.defineProperty(this,'owner',{value:self.getParent(),enumerable:false,writable:false});
+					Object.defineProperty(this,'evetName',{value:self.getEventName(),enumerable:true,writable:false});
+					Object.defineProperty(this,'stopPropagation',{value:false,enumerable:false});
+					Object.defineProperty(this,'lastListeners',{value:(isArray ? _listeners.length : 1),enumerable:false});
+					Object.defineProperty(this,'listeners',{value:_listeners,enumerable:false,writable:false});
+					Object.defineProperty(this,'arguments',{value:args,enumerable:false,writable:false});
+					if (_config.async)
+						this.next = function () {
+							if (_.isArray(this.listeners))
+							{							
+								if (this.listeners.length == this.lastListeners)
+									this.index++;
+
+								var listener = this.listeners[this.index];
+								var evtObj = this;
+								self.callListener(listener,evtObj);
+							}
+						};
 				},
 				ieo = arguments[0] != null && typeof arguments[0] == 'object'
 									&& arguments[0].stopPropagation!=undefined ? true : false,
 				evtObj = ieo ? arguments[0] : new eventObject;
 
-			if (type === 'function')
+			if (!isArray)
 			{
-				listener = _listeners;
-				switch (_arguments.length)
-				{
-					case 0:
-						listener.call(self,evtObj);
-						break;
-					case 1:
-						listener.call(self,evtObj,ieo ? undefined : _arguments[0]);
-						break;
-					case 2:
-						listener.call(self,evtObj,_arguments[ieo ? 1 : 0],ieo ? undefined : _arguments[1]);
-						break;
-					case 3:
-						listener.call(self,evtObj,_arguments[ieo ? 1 : 0],_arguments[ieo ? 2 : 1],ieo ? undefined : _arguments[2]);
-						break;
-					default:
-						var args = [];
-						for (var a = (ieo ? 1 : 0); a<_arguments.length; a++)
-							args.push(_arguments[a]);
-						args.unshift(evtObj);
-						listener.apply(self,args);
-				}
-			} else if (type === 'object')
+				self.callListener(_listeners,evtObj);
+			} else
 			{
 				if (_listeners.length==2)
 				{
-					listener = _listeners[0];
-					switch (_arguments.length)
-					{
-						case 0:
-							listener.call(self,evtObj);
-							break;
-						case 1:
-							listener.call(self,evtObj,ieo ? undefined : _arguments[0]);
-							break;
-						case 2:
-							listener.call(self,evtObj,_arguments[ieo ? 1 : 0],ieo ? undefined : _arguments[1]);
-							break;
-						case 3:
-							listener.call(self,evtObj,_arguments[ieo ? 1 : 0],_arguments[ieo ? 2 : 1],ieo ? undefined : _arguments[2]);
-							break;
-						default:
-							var args = [];
-							for (var a = (ieo ? 1 : 0); a<_arguments.length; a++)
-								args.push(_arguments[a]);
-							args.unshift(evtObj);
-							listener.apply(self,args);
-					}
-					if (evtObj.stopPropagation === true)
+
+					self.callListener(_listeners[0],evtObj);
+
+					if (evtObj.stopPropagation === true || _config.async === true)
 						return false;
-					else 
-					{
-						listener = _listeners.length == 2 ? _listeners[1] : _listeners[0];
-						switch (_arguments.length)
-						{
-							case 0:
-								listener.call(self,evtObj);
-								break;
-							case 1:
-								listener.call(self,evtObj,ieo ? undefined : _arguments[0]);
-								break;
-							case 2:
-								listener.call(self,evtObj,_arguments[ieo ? 1 : 0],ieo ? undefined : _arguments[1]);
-								break;
-							case 3:
-								listener.call(self,evtObj,_arguments[ieo ? 1 : 0],_arguments[ieo ? 2 : 1],ieo ? undefined : _arguments[2]);
-								break;
-							default:
-								var args = [];
-								for (var a = (ieo ? 1 : 0); a<_arguments.length; a++)
-									args.push(_arguments[a]);
-								args.unshift(evtObj);
-								listener.apply(self,args);
-						}
-					}
+				
+					listener = _listeners.length == 2 ? _listeners[1] : _listeners[0];
+					self.callListener(listener,evtObj);
+
 				} else {
 					var listeners = _listeners.slice();
-					for (var i = 0, l = listeners.length; i < l; i++)
-					{
-						if (evtObj.stopPropagation == true)
-							return true;
-						listener = listeners[i];
-						switch (_arguments.length)
+
+					if (_config.async === true)
+						self.callListener(listeners[0],evtObj);
+					else 
+						for (var i = 0, l = listeners.length; i < l; i++)
 						{
-							case 0:
-								listener.call(self,evtObj);
-								break;
-							case 1:
-								listener.call(self,evtObj,ieo ? undefined : _arguments[0]);
-								break;
-							case 2:
-								listener.call(self,evtObj,_arguments[ieo ? 1 : 0],ieo ? undefined : _arguments[1]);
-								break;
-							case 3:
-								listener.call(self,evtObj,_arguments[ieo ? 1 : 0],_arguments[ieo ? 2 : 1],ieo ? undefined : _arguments[2]);
-								break;
-							default:
-								var args = [];
-								for (var a = (ieo ? 1 : 0); a<_arguments.length; a++)
-									args.push(_arguments[a]);
-								args.unshift(evtObj);
-								listener.apply(self,args);
+
+							if (evtObj.stopPropagation == true)
+								return true;
+
+							self.callListener(listeners[i],evtObj);
 						}
-					}
 				}
 			}
 			return true;
         },
-
-		/**
-		 * Add new filter to the event.
-		 * @param function $filter filter
-		 */
-		addFilter: function (filter)
-		{
-			_filters.push(filter);
-			return this;
-		},
-
-		/**
-		 * Clear all event filters.
-		 */
-		clearFilters: function ()
-		{
-			_filters = [];
-			return this;
-		},
-
-		/**
-		 * Check if passed all filters
-		 * @return boolean
-		 */
-		checkFilters: function ()
-		{
-			for (f in _filters)
-			{
-				if (!_filter[s].apply(undefined,arguments)) return false;
-			}
-			return true;
-		},
 
         /**
          * Add a new handler to this event.'
@@ -261,10 +203,11 @@ module.exports = {
 			if ('function' === typeof listener)
 			{
 				var self = this,
-					g = function ()
+					g = function (e)
 					{
+						e.lastListeners--;
 						self.removeListener(g);
-						listener.apply(this, arguments);
+						listener.apply(listener, arguments);
 					};
 				g.listener = listener;
 				
@@ -303,6 +246,9 @@ module.exports = {
 
 				if (position > -1)
 					list.splice(position, 1);
+
+				if (list.length == 1)
+					_listeners = list[0];
 			}
 
 			return this;
@@ -313,7 +259,7 @@ module.exports = {
          */
         clearListeners: function ()
 		{
-			_listeners = [];
+			_listeners = null;
 			return this;
         },
 

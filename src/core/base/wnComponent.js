@@ -407,7 +407,7 @@ module.exports = {
 						if (typeof e == 'object'
 							&& e.stopPropagation == true)
 									return false;
-						this.event.push.apply(this.event,arguments);
+						this.event.emit.apply(this.event,arguments);
 					}.bind({ event: event }));
 					event.setConfig({ listenEvent: null });
 				}
@@ -466,7 +466,7 @@ module.exports = {
 					if (hidden != false)
 					{
 						_events[eventName] = evt;
-						this.e[name]=function () { evt.push.apply(evt,arguments); };
+						this.e[name]=evt.emit;
 					} else
 					{
 						Object.defineProperty(_events[eventName],{ value: evt, enumerable: false });
