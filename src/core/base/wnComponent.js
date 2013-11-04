@@ -1,28 +1,8 @@
-/**
- * @WNS - The NodeJS Middleware and Framework
- * 
- * @copyright: Copyright &copy; 2012- YEPT &reg;
- * @page: http://wns.yept.net/
- * @docs: http://wns.yept.net/docs/
- * @license: http://wns.yept.net/license/
- */
-
-/**
- * wnComponent is the class that extend almost every component in WNS
- * It implements the creation of classes, events and some default methods.
- * 
- * The event can be set by configuring the config file or editing the defaultEvents
- * properties. Doing the event be preloaded.
- *
- * An event is builded by the {@link wnEvent} class.
- *
- * With the event loaded, you can attach handlers to listen when the event raise.
- * An event handler can be attached with the methods {@link once} and {@link addListener}.
- * 
- * To raise the event inside the component context, you can just use the method with the
- * event name inside the {@link e} property.
- * Or just get the event object than use the {@link push} method.
- *
+ /**
+ * WNS Middleware
+ * @copyright &copy; 2012- Pedro Nasser &reg;
+ * @license: MIT
+ * @see http://github.com/yeptlabs/wns
  * @author Pedro Nasser
  */
 

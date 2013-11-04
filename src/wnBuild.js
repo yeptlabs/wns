@@ -1,18 +1,11 @@
-/**
- * @WNS - The NodeJS Middleware and Framework
- * 
- * @copyright: Copyright &copy; 2012- YEPT &reg;
- * @page: http://wns.yept.net/
- * @docs: http://wns.yept.net/docs/
- * @license: http://wns.yept.net/license/
- */
-
-/**
- * WNS class builder
- * @version 0.2.0
+ /**
+ * WNS Middleware
+ * @copyright &copy; 2012- Pedro Nasser &reg;
+ * @license: MIT
+ * @see http://github.com/yeptlabs/wns
  * @author Pedro Nasser
  */
-
+ 
 module.exports=wnBuild;
 
 var buildStart, buildEnd, self;

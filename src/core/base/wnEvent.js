@@ -1,15 +1,8 @@
-/**
- * @WNS - The NodeJS Middleware and Framework
- * 
- * @copyright: Copyright &copy; 2012- YEPT &reg;
- * @page: http://wns.yept.net/
- * @docs: http://wns.yept.net/docs/
- * @license: http://wns.yept.net/license/
- */
-
-/**
- * No description yet.
- *
+ /**
+ * WNS Middleware
+ * @copyright &copy; 2012- Pedro Nasser &reg;
+ * @license: MIT
+ * @see http://github.com/yeptlabs/wns
  * @author Pedro Nasser
  */
 
@@ -44,9 +37,14 @@ module.exports = {
 
 		/**
 		 * Call the listener
+		 * @param {function} listener
+		 * @param {object} event object
 		 */
 		callListener: function (listener,evtObj)
 		{
+			if (!_.isFunction(listener) || !_.isObject(evtObj))
+				return false;
+
 			var args = evtObj.arguments;			
 			switch (args.length)
 			{
@@ -71,16 +69,11 @@ module.exports = {
 		},
 
         /**
-         * Raises the event.
-         * Push event and arguments to all event's listeners.
-         * @param object $eventObject (optional)
-         * @param mixed $arg1 (optional)
-         * @param mixed $argN (optional)
-         * @return boolean
+         * Emit this event.
          */
         emit: function ()
 		{
-			if (!_listeners)
+			if (_.isNull(_listeners))
 				return false;
 
 			var isArray = _.isArray(_listeners), listener, len, args=[], _arguments=arguments;			
