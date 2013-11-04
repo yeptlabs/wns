@@ -1,18 +1,11 @@
-/**
- * @WNS - The NodeJS Middleware and Framework
- * 
- * @copyright: Copyright &copy; 2012- YEPT &reg;
- * @page: http://wns.yept.net/
- * @docs: http://wns.yept.net/docs/
- * @license: http://wns.yept.net/license/
- */
-
-/**
- * WNS class builder
- * @version 0.2.0
+ /**
+ * WNS Middleware
+ * @copyright &copy; 2012- Pedro Nasser &reg;
+ * @license: MIT
+ * @see http://github.com/yeptlabs/wns
  * @author Pedro Nasser
  */
-
+ 
 module.exports=wnBuild;
 
 var buildStart, buildEnd, self;
@@ -69,11 +62,13 @@ function wnBuild(classes,parent)
 
 	for (c in classes)
 	{
-		if (typeof classes[c] == 'string')
+		if (_.isString(classes[c]))
 			this.addSource(c,classes[c],true);
-		else if (typeof classes[c] == 'array')
+		else if (_.isArray(classes[c]))
+		{
 			for (l in classes[c])
 				this.addSource(c,classes[c][l],true);
+		}
 	}
 
 	this.load();
@@ -86,6 +81,7 @@ function wnBuild(classes,parent)
  */
 wnBuild.prototype.addSource = function (className,classPath,withoutLoad)
 {
+
 	if (typeof className !== 'string'||typeof classPath !== 'string' || !fs.existsSync(classPath))
 		return false;
 
@@ -142,12 +138,25 @@ wnBuild.prototype.load = function (className)
 	for (c in loadList)
 	{
 		source = this.classesCode[c];
+		var filePath = self.classesPath[c];
+		if (_.isArray(filePath))
+		{
+			filePath = _.clone(filePath);
+			filePath = filePath.pop();
+		}
+		filePath = filePath.replace(/\\/g,'/');
+
+		var path = filePath.split('/');
+		path.pop();
+		var dirname=path.join('/');
+
 		this.classesBuild[c] = { extend: [], public: {}, private: {}, methods:{}, dependencies: [] };
 
 		// Eval class source or a list of sources.
 		if (typeof source == 'string')
 		{
-			var ctx = { module: { exports: {} }, require: require };
+			var ctx = { module: { exports: {} }, __dirname: dirname, __filename: filePath, process: process, console: console };
+			Object.defineProperty(ctx, 'require', { value: require, enumerable: false });
 			try {
 				vm.runInNewContext(source,ctx,c+'.js');
 			} catch (e)
@@ -166,7 +175,8 @@ wnBuild.prototype.load = function (className)
 		else if (source instanceof Array)
 			for (s in source)
 			{
-				var ctx = { module: { exports: {} }, require: require };
+				var ctx = { module: { exports: {} }, __dirname: dirname, __filename: filePath, process: process, console: console };
+				Object.defineProperty(ctx, 'require', { value: require, enumerable: false });
 				try {
 					vm.runInNewContext(source[s],ctx,c+'.js');
 				} catch (e)

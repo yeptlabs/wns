@@ -1,8 +1,9 @@
 *.un~
+*.heapsnapshot
+*.log
 
 /node_modules
 /app/*
 /config.json
-*.log
 /test/tmp
 /wns.*

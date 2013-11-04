@@ -1,15 +1,8 @@
-/**
- * @WNS - The NodeJS Middleware and Framework
- * 
- * @copyright: Copyright &copy; 2012- YEPT &reg;
- * @page: http://wns.yept.net/
- * @docs: http://wns.yept.net/docs/
- * @license: http://wns.yept.net/license/
- */
-
-/**
- * No description yet.
- *
+ /**
+ * WNS Middleware
+ * @copyright &copy; 2012- Pedro Nasser &reg;
+ * @license: MIT
+ * @see http://github.com/yeptlabs/wns
  * @author Pedro Nasser
  */
 
