@@ -41,6 +41,8 @@ function wnBuild(classes,parent)
 	this.classesObject = {};
 	// Store classes.
 	this.classes = {};
+	// Method's parameters type
+	this.paramTypes = {};
 
 	// Object to store not compiled class source
 	this.prototypeSource = {};
@@ -151,12 +153,18 @@ wnBuild.prototype.load = function (className)
 		var dirname=path.join('/');
 
 		this.classesBuild[c] = { extend: [], public: {}, private: {}, methods:{}, dependencies: [] };
+		this.paramTypes[c] = {};
 
 		// Eval class source or a list of sources.
 		if (typeof source == 'string')
 		{
 			var ctx = { module: { exports: {} }, __dirname: dirname, __filename: filePath, process: process, console: console };
 			Object.defineProperty(ctx, 'require', { value: require, enumerable: false });
+
+			var catchResult = this.catchTyped(source);
+			this.paramTypes[c] = catchResult[0];
+			source = catchResult[1];
+
 			try {
 				vm.runInNewContext(source,ctx,c+'.js');
 			} catch (e)
@@ -175,6 +183,11 @@ wnBuild.prototype.load = function (className)
 		else if (source instanceof Array)
 			for (s in source)
 			{
+
+				var catchResult = this.catchTyped(source[s]);
+				_.merge(this.paramTypes[c],catchResult[0]);
+				source[s] = catchResult[1];
+
 				var ctx = { module: { exports: {} }, __dirname: dirname, __filename: filePath, process: process, console: console };
 				Object.defineProperty(ctx, 'require', { value: require, enumerable: false });
 				try {
@@ -206,6 +219,39 @@ wnBuild.prototype.load = function (className)
 	}
 };
 
+/**
+ * Catch all typed parameters and save in the memory for the compilation
+ * Replace all typed parameters for simples parameters.
+ * @param {string} className
+ * @param {string} classSource
+ */
+wnBuild.prototype.catchTyped = function (classSource) {
+	var result = {};
+	var functions = classSource.match(/\"?[\w|\_|\$]+\"?\:[\s|\w]+\(.+\)/gim);
+	var fn;
+	try {
+		for (f in functions)
+		{
+			allParams=functions[f].split('(')[1].split(')')[0];
+			var params = allParams.match(/[\w|\_|\$]+\:[\:]+?[\w|\_|\$]+/g);
+			if (_.isNull(params))
+				continue;
+			fn = functions[f].replace(/\"/g,'');
+			var fnName = fn.split(':')[0];
+			result[fnName] = {};
+			for (p in params)
+			{
+				var pos = params[p].indexOf(':');
+				var name = params[p].substr(0,pos);
+				var type = params[p].substr(pos);
+				result[fnName][name]=type;
+			}
+
+		}
+	} catch (e) {};
+	var cleanSource = classSource.replace(/[\w|\_|\$]+\:[\:]+?[\w|\_|\$]+/g,function (match) { return match.split(':')[0]; })
+	return [result,cleanSource];
+};
 
 /**
  * Build all classes already loaded.
@@ -398,7 +444,37 @@ wnBuild.prototype.compilePrototype = function (targetClass)
 		{
 			var methodName=m;
 			var fn = build.methods[m].toString();
-			if (promiseRegExp.test(m))
+			var isPromise = promiseRegExp.test(m);
+
+			var types = this.paramTypes[targetClass][m];
+			if (!_.isUndefined(types) && !_.isEmpty(types))
+			{
+				var typeDeclare = '';
+				for (t in types)
+				{
+					var level = (types[t].match(/\:/g) || []).length;
+					var type = types[t].split(':').pop();
+					if (!_.isUndefined(global[type]) && !_.isUndefined(_['is'+type]))
+					{
+						switch (level)
+						{
+							case 2: typeDeclare += t+' = '+'_.is'+type+'('+t+') ? '+t+' : '+type+'('+t+');'; break;
+							default:
+								typeDeclare += 'if (!_.is'+type+'('+t+')) ';
+								if (!isPromise)
+									typeDeclare += 'throw Error("'+t+' is not '+type+' on `'+targetClass+'.'+m+'`");';
+								else
+									typeDeclare += 'done.reject("'+t+' is not '+type+' on `'+targetClass+'.'+m+'`");';
+							break;
+						}
+						typeDeclare+='\n';
+					}
+				}
+
+				fn=fn.replace(/\)[\s|\n|\r|\t]+?\{/,')\n{\n\n\t'+typeDeclare+'\n');
+			}
+
+			if (isPromise)
 			{
 				classSource += "proto['"+methodName+"'] = function () { var done=q.defer(); var self = this; return ("+fn+").apply(self,arguments); };\n";
 			} else
