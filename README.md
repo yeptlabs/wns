@@ -54,11 +54,11 @@ For more packages, [search them here](https://npmjs.org/search?q=wns+package).
 
 ## Main Features
 
- - Component-based development
- - Class-based development
- - Full PACKAGE system
- - Full EVENT system
+ - Class/Component-based development
+ - Package Management
+ - Improved Event System
  - Typed Arguments (optional)
+ - Support for CoffeeScript
 
 ## Philosophy
 
