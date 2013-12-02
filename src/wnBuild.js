@@ -39,6 +39,8 @@ function wnBuild(classes,parent)
 	this.classesBuild = {};
 	// Object to store classes's literal object.
 	this.classesObject = {};
+	// Object to store classes compilation method.
+	this.classesCompiler = {};
 	// Store classes.
 	this.classes = {};
 	// Method's parameters type
@@ -88,6 +90,12 @@ wnBuild.prototype.addSource = function (className,classPath,withoutLoad)
 		return false;
 
 	var sourceCode = fs.readFileSync(classPath,'utf8');
+
+
+	if (/@coffee/gim.test(sourceCode))
+		this.classesCompiler[className] = 'coffee';
+	else
+		this.classesCompiler[className] = 'js';
 
 	if (!this.classesPath[className])
 		this.classesPath[className]=classPath;
@@ -154,6 +162,8 @@ wnBuild.prototype.load = function (className)
 
 		this.classesBuild[c] = { extend: [], public: {}, private: {}, methods:{}, dependencies: [] };
 		this.paramTypes[c] = {};
+
+		source=self.precompileSource(source,self.classesCompiler[c]);
 
 		// Eval class source or a list of sources.
 		if (typeof source == 'string')
@@ -293,6 +303,26 @@ wnBuild.prototype.build = function ()
 	this.buildTime = buildEnded - buildStart;
 
 	return this.classes;
+};
+
+/**
+ * Precompile the source using the correct engine
+ */
+wnBuild.prototype.precompileSource = function (source,engine) {
+
+	if (engine == 'js')
+		return source;
+	else if (engine == 'coffee')
+	{
+		try {
+			this.loadDependencies(['coffee-script']);
+			var cs = this.loadedModules['coffee-script'];
+			return cs.compile(source);
+		} catch (e) {
+			console.log(e);
+			return '';
+		}
+	}
 };
 
 /**

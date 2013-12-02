@@ -161,7 +161,7 @@ module.exports = {
 			var pkgName;
 			var pkgInfo;
 			var packageList = {};
-			var classNameReg = new RegExp(/^wn\w+\.js$/);
+			var validScript = /[\w|\W]+\.[js|coffee]+$/;
 			if (fs.existsSync(nmPath))
 			{
 				this.e.log&&this.e.log('Importing packages...','system');
@@ -184,7 +184,7 @@ module.exports = {
 								for (f in files)
 								{
 									var fileName = files[f].split('/').pop();
-									if (classNameReg.test(fileName))
+									if (validScript.test(fileName))
 									{
 										var className = fileName.split('.');
 										className.splice(-1);
@@ -292,6 +292,8 @@ module.exports = {
 			this.e.log&&this.e.log('Importing from config...','system');
 			var importConfig = this.getConfig('import');
 			var cb = this.getComponent('classBuilder');
+			var validScript = /[\w|\W]+\.[js|coffee]+$/;
+
 			for (i in importConfig)
 			{
 				var path = this.modulePath+importConfig[i];
@@ -301,8 +303,10 @@ module.exports = {
 					var classes = fs.readdirSync(path);
 					for (c in classes)
 					{
-						if (classes[c].split('.').pop() != 'js')
+
+						if (!validScript.test(classes[c]))
 							continue;
+
 						var className = classes[c].split('.')[0];
 						cb.addSource(className,path+classes[c]);
 						cb.classes[c]=cb.buildClass(className);
