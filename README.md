@@ -1,6 +1,6 @@
 [![WNS](http://dl.dropbox.com/u/21773527/WNS-Logo.png)](http://wns.yept.net)
 
-## Welcome to WNS Middleware (v0.0.94) [![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
+## Welcome to WNS Middleware (v0.0.95) [![Build Status](https://travis-ci.org/yeptlabs/wns.png?branch=master)](https://travis-ci.org/yeptlabs/wns)
 
 ##### What's the idea?
 To build your application/service, just installing packages, configuring as you like and extending **COMPONENTS** and **PACKAGES** (if you want).
@@ -54,11 +54,11 @@ For more packages, [search them here](https://npmjs.org/search?q=wns+package).
 
 ## Main Features
 
- - Component-based development
- - Class-based development
- - Full PACKAGE system
- - Full EVENT system
+ - Class/Component-based development
+ - Package Management
+ - Improved Event System
  - Typed Arguments (optional)
+ - Support for CoffeeScript
 
 ## Philosophy
 
