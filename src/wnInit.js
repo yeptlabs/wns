@@ -155,3 +155,4 @@ sl&&console.log('');
 
 // START WNS CONSOLE
 wns.console = new wns.wnConsole({ modulePath: cwd }, {}, cwd, [cwd]);
+wns.console.init();
