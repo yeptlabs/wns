@@ -20,7 +20,8 @@ module.exports = {
 	private:
 	{
 		_server: {},
-		_serverModules: []
+		_serverModules: [],
+		_execCtx: []
 	},
 
 	/**
@@ -67,7 +68,7 @@ module.exports = {
 			this.setConfig({ id: '*' });
 			this.listenInput();
 			process.on('uncaughtException', function (e) { self.e.exception(e); });
-			this.e.log('wnConsole initialized.');
+			console.log('wnConsole initialized...');
 		},
 		
 		/**
@@ -76,14 +77,23 @@ module.exports = {
 		listenInput: function () {
 			process.stdin.resume();
 			process.stdin.setEncoding('utf8');
+			_execCtx = [self];
 			process.stdin.on('data', function (chunk) {
-				var ctx = self.getServer(self.activeServer),
+				var ctx = _execCtx[0],
 					cmd = chunk.substr(0,chunk.length-1);
+
 				if (cmd.substr(0,2) == '..')
 				{
-					ctx = false; 
-					cmd = 'this.selectServer(-1)';
+					cmd = 'if (_execCtx.length>1) _execCtx.shift(); undefined;'
+				} else if (cmd.substr(0,1) == ':')
+				{
+					cmd = 'var newCtx = '+cmd.substr(1)+'; _execCtx.unshift(newCtx); undefined;';
+				} else if (cmd.substr(0,1) == '/')
+				{
+					cmd = '';
+					_execCtx = [self];
 				}
+
 				self.exec(cmd,ctx?ctx:undefined);
 				return false;
 			});

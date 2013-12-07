@@ -667,21 +667,25 @@ module.exports = {
 		 * Execute an expression in this component's context.
 		 * @param string $cmd expression
 		 * @param object $context forced context
+		 * @param boolean $silent do not print result?
 		 * @return this
 		 */
-		exec: function (cmd,context)
+		exec: function (cmd,context,silent)
 		{
 			var ctx = (context!=undefined?context:this);
 			try
 			{
-				(function () {
-					self.e.log&&self.e.log(util.inspect(eval(cmd)),'result');
+				return (function () {
+					var result = eval(cmd);
+					if (!silent)
+						self.e.log&&self.e.log(util.inspect(result),'result');
+					return result;
 				}.bind(ctx))();
 			} catch (e)
 			{
 				this.e.exception&&this.e.exception(e);
 			}
-			return this;
+			return;
 		}
 
 	}
