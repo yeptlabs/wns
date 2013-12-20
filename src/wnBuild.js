@@ -480,6 +480,7 @@ wnBuild.prototype.compilePrototype = function (targetClass)
 			if (!_.isUndefined(types) && !_.isEmpty(types))
 			{
 				var typeDeclare = '';
+				var error = '';
 				for (t in types)
 				{
 					var level = (types[t].match(/\:/g) || []).length;
@@ -488,17 +489,26 @@ wnBuild.prototype.compilePrototype = function (targetClass)
 					{
 						switch (level)
 						{
-							case 2: typeDeclare += t+' = '+'_.is'+type+'('+t+') ? '+t+' : '+type+'('+t+');'; break;
+							case 2:
+								typeDeclare += t+' = '+'_.is'+type+'('+t+') ? '+t+' : '+type+'('+t+');';
+								continue;
+							break;
 							default:
 								typeDeclare += 'if (!_.is'+type+'('+t+')) ';
-								if (!isPromise)
-									typeDeclare += 'throw Error("'+t+' is not '+type+' on `'+targetClass+'.'+m+'`");';
-								else
-									typeDeclare += 'done.reject("'+t+' is not '+type+' on `'+targetClass+'.'+m+'`");';
 							break;
 						}
 						typeDeclare+='\n';
-					}
+					} else if (builder.classes[type] !== undefined)
+						typeDeclare += 'if (_.isObject('+t+') && _.isFunction('+t+'.instanceOf) && (!'+t+'.instanceOf("'+type+'") && '+t+'.getClassName() !== "'+type+'"))';
+					else
+						continue;
+
+					error = 'Argument `'+t+'` not received '+type+' on `'+targetClass+'.'+m+'`';
+
+					if (!isPromise)
+						typeDeclare += 'throw Error("'+error+'");';
+					else
+						typeDeclare += 'done.reject("'+error+'");';
 				}
 
 				fn=fn.replace(/\)[\s|\n|\r|\t]+?\{/,')\n{\n\n\t'+typeDeclare+'\n');
